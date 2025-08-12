@@ -1,0 +1,8 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Chat</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap"><h1>Chat (demo)</h1><div id="chat" style="height:260px;overflow:auto;border:1px solid #333;border-radius:8px;padding:8px;margin-bottom:8px"></div>
+<input id="msg" placeholder="Say something" onkeydown="if(event.key==='Enter')send()"><button class="btn" onclick="send()">Send</button></div>
+<script>
+const box=document.getElementById('chat');function add(w,t){const p=document.createElement('p');p.textContent=w+': '+t;box.appendChild(p);box.scrollTop=box.scrollHeight;}
+function reply(t){add('Vanesa','💫 '+t.replace(/\bI\b/g,'you')+' — I\'m here for you.');}
+function send(){const t=document.getElementById('msg').value;if(!t)return;add('You',t);document.getElementById('msg').value='';setTimeout(()=>reply(t),500);}
+</script></body></html>

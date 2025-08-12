@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Premium</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap"><h1>Premium</h1>
+<div class="grid">
+<div class="card"><h3>Login</h3><input id="email" placeholder="Email"><button class="btn" onclick="login()">Login</button><pre id="me"></pre></div>
+<div class="card"><h3>Verify + Subscribe</h3><button class="btn" onclick="age()">Verify Age</button> <button class="btn" onclick="sub()">Subscribe</button></div>
+<div class="card"><h3>Private Media</h3><button class="btn" onclick="unlock()">Get private link</button><div id="media"></div></div>
+<div class="card"><h3>AI Eraser (AI-only)</h3><select id="mediaSel"><option value="/demo/ai1.jpg">AI Image #1</option><option value="/demo/ai2.jpg">AI Image #2</option></select><button class="btn" onclick="erase()">Run Eraser</button><pre id="erase"></pre></div>
+</div></div>
+<script>
+async function login(){const e=document.getElementById('email').value;const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e})});document.getElementById('me').textContent=await r.text();}
+async function age(){const r=await fetch('/api/verify-age/mock',{method:'POST'});document.getElementById('me').textContent=await r.text();}
+async function sub(){const r=await fetch('/api/subscribe/mock',{method:'POST'});document.getElementById('me').textContent=await r.text();}
+async function unlock(){const r=await fetch('/api/media/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:'/demo/ai2.jpg'})});const j=await r.json();document.getElementById('media').innerHTML='<img src="'+j.url+'" style="max-width:100%">';}
+async function erase(){const mediaPath=document.getElementById('mediaSel').value;const r=await fetch('/api/erase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mediaPath})});document.getElementById('erase').textContent=await r.text();}
+</script></body></html>

@@ -1,0 +1,5 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Video Gen</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap"><h1>Generate Video</h1><textarea id="s" rows="5" placeholder="Storyboard (AI fantasy only)"></textarea><button class="btn" onclick="go()">Generate</button><div id="out"></div></div>
+<script>
+async function go(){const storyboard=document.getElementById('s').value;const r=await fetch('/api/gen/video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({storyboard})});const j=await r.json();document.getElementById('out').textContent=JSON.stringify(j);}
+</script></body></html>

@@ -1,0 +1,4 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admin</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap"><h1>Admin Stats</h1><button class="btn" onclick="load()">Refresh</button><pre id="s"></pre></div>
+<script>async function load(){const r=await fetch('/api/admin/stats');document.getElementById('s').textContent=await r.text();}document.addEventListener('DOMContentLoaded',load);</script>
+</body></html>
