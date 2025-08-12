@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node server.js"
-  },
+    "dev": "node server.js",
+  "postinstall": "npm rebuild sqlite3 --build-from-source"
+},
+"engines": { "node": "20.x" },
   "dependencies": {
     "express": "^4.19.2",
     "cors": "^2.8.5",
