@@ -12,10 +12,6 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// === DEV FLAG: bypass login când DEV_NO_AUTH=true ===
-const DEV_NO_AUTH = String(process.env.DEV_NO_AUTH || '')
-  .trim().toLowerCase() === 'true';
-
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '5mb' }));
@@ -27,6 +23,9 @@ app.use(session({
   saveUninitialized: false,
   cookie: { httpOnly: true, sameSite: 'lax' }
 }));
+
+// ===== DEV AUTO LOGIN (ca să nu mai fie nevoie de autentificare la test) =====
+const DEV_NO_AUTH = (process.env.DEV_NO_AUTH || '').toLowerCase() === 'true';
 
 // --- DB ---
 const db = new sqlite3.Database(path.join(__dirname, 'db.sqlite'));
@@ -90,22 +89,29 @@ function get(sql, params = []) {
   });
 }
 
-// === currentUser: auto-login în DEV_NO_AUTH ===
 async function currentUser(req) {
-  if (DEV_NO_AUTH && !req.session.userId) {
-    let u = await get('SELECT * FROM users WHERE email=?', ['demo@local']);
-    if (!u) {
-      const r = await run(
-        'INSERT INTO users(email, age_verified, subscribed) VALUES(?,?,?)',
-        ['demo@local', 1, 1]
-      );
-      u = await get('SELECT * FROM users WHERE id=?', [r.lastID]);
-    }
-    req.session.userId = u.id;
-  }
   if (!req.session.userId) return null;
   return await get('SELECT * FROM users WHERE id=?', [req.session.userId]);
 }
+
+// ===== autologin pt DEV_NO_AUTH =====
+app.use(async (req, res, next) => {
+  try {
+    if (DEV_NO_AUTH && !req.session.userId) {
+      let u = await get('SELECT * FROM users WHERE email=?', ['dev@local.test']);
+      if (!u) {
+        const r = await run(
+          'INSERT INTO users(email, age_verified, subscribed) VALUES(?,?,?)',
+          ['dev@local.test', 1, 1]
+        );
+        req.session.userId = r.lastID;
+      } else {
+        req.session.userId = u.id;
+      }
+    }
+  } catch {}
+  next();
+});
 
 // seed demo media
 (async () => {
@@ -115,32 +121,14 @@ async function currentUser(req) {
   }
 })();
 
-// policy filter (super simplu)
+// policy filter (simplu)
 function allowed(text = '') {
   const bad = ['deepfake','real person','celebr','undress','remove clothes','minor','under 18',' teen ','bestial','rape','nonconsens'];
   const t = text.toLowerCase();
   return !bad.some(w => t.includes(w));
 }
 
-// health
-app.get('/health', (req, res) => res.send('ok'));
-
-// dev fake-login explicit
-app.get('/login-demo', async (req, res) => {
-  if (!DEV_NO_AUTH) return res.status(403).send('disabled');
-  let u = await get('SELECT * FROM users WHERE email=?', ['demo@local']);
-  if (!u) {
-    const r = await run(
-      'INSERT INTO users(email, age_verified, subscribed) VALUES(?,?,?)',
-      ['demo@local', 1, 1]
-    );
-    u = await get('SELECT * FROM users WHERE id=?', [r.lastID]);
-  }
-  req.session.userId = u.id;
-  res.send('ok');
-});
-
-// auth (real)
+// auth
 app.post('/api/login', async (req, res) => {
   const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
@@ -165,12 +153,14 @@ app.post('/api/subscribe/mock', async (req, res) => {
   res.json({ ok: true });
 });
 
-// image gen (stub)
+// image gen (demo -> returnează aleator o imagine din /demo)
+const demoImgs = ['/demo/ai1.jpg','/demo/ai2.jpg','/demo/ai3.jpg'];
 app.post('/api/gen/image', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   const { prompt = '' } = req.body || {};
   if (!allowed(prompt)) return res.status(400).json({ error: 'Prompt not allowed' });
-  res.json({ ok: true, url: '/demo/ai1.jpg' });
+  const url = demoImgs[Math.floor(Math.random()*demoImgs.length)];
+  res.json({ ok: true, url });
 });
 
 // video gen (stub)
