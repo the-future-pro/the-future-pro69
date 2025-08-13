@@ -1,5 +1,48 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Image Gen</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="wrap"><h1>Generate Image</h1><input id="p" placeholder="AI fantasy only (no real persons)"><button class="btn" onclick="go()">Generate</button><div id="out"></div></div>
-<script>
-async function go(){const prompt=document.getElementById('p').value;const r=await fetch('/api/gen/image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});const j=await r.json();document.getElementById('out').innerHTML=j.url?('<img src="'+j.url+'" style="max-width:100%">'):JSON.stringify(j);}
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Generate Image</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    #out{max-width:100%;height:auto;display:block;margin-top:12px;border-radius:8px}
+    #msg{margin-top:8px}
+    #debug{font-family:monospace;font-size:12px;opacity:.75;margin-top:6px;word-break:break-all}
+  </style>
+</head>
+<body>
+  <h1>Generate Image</h1>
+  <input id="p" placeholder="Prompt">
+  <button id="g">Generate</button>
+  <div id="msg"></div>
+  <img id="out" alt="result">
+  <div id="debug"></div>
+
+  <script>
+    async function gen(){
+      const prompt = document.getElementById('p').value.trim();
+      document.getElementById('msg').textContent = 'Generating...';
+      document.getElementById('out').src = '';
+      document.getElementById('debug').textContent = '';
+      try{
+        const r = await fetch('/api/gen/image',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ prompt })
+        });
+        const raw = await r.text();
+        let data;
+        try { data = JSON.parse(raw); } catch(e){ throw new Error('Non-JSON response: '+raw.slice(0,200)); }
+        if(!r.ok) throw new Error(data?.error || ('HTTP '+r.status));
+        const url = (data.url || '') + (data.url?.includes('?') ? '&':'?') + 't=' + Date.now(); // anti-cache
+        document.getElementById('out').src = url;
+        document.getElementById('msg').textContent = '';
+        document.getElementById('debug').textContent = 'URL: ' + url;
+      }catch(e){
+        document.getElementById('msg').textContent = 'Error: ' + e.message;
+      }
+    }
+    document.getElementById('g').onclick = gen;
+  </script>
+</body>
+</html>
