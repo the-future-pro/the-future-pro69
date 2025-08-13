@@ -12,6 +12,10 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// === DEV FLAG: bypass login când DEV_NO_AUTH=true ===
+const DEV_NO_AUTH = String(process.env.DEV_NO_AUTH || '')
+  .trim().toLowerCase() === 'true';
+
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '5mb' }));
@@ -86,7 +90,19 @@ function get(sql, params = []) {
   });
 }
 
+// === currentUser: auto-login în DEV_NO_AUTH ===
 async function currentUser(req) {
+  if (DEV_NO_AUTH && !req.session.userId) {
+    let u = await get('SELECT * FROM users WHERE email=?', ['demo@local']);
+    if (!u) {
+      const r = await run(
+        'INSERT INTO users(email, age_verified, subscribed) VALUES(?,?,?)',
+        ['demo@local', 1, 1]
+      );
+      u = await get('SELECT * FROM users WHERE id=?', [r.lastID]);
+    }
+    req.session.userId = u.id;
+  }
   if (!req.session.userId) return null;
   return await get('SELECT * FROM users WHERE id=?', [req.session.userId]);
 }
@@ -99,14 +115,32 @@ async function currentUser(req) {
   }
 })();
 
-// policy filter (keep super-simple to avoid regex issues)
+// policy filter (super simplu)
 function allowed(text = '') {
   const bad = ['deepfake','real person','celebr','undress','remove clothes','minor','under 18',' teen ','bestial','rape','nonconsens'];
   const t = text.toLowerCase();
   return !bad.some(w => t.includes(w));
 }
 
-// auth
+// health
+app.get('/health', (req, res) => res.send('ok'));
+
+// dev fake-login explicit
+app.get('/login-demo', async (req, res) => {
+  if (!DEV_NO_AUTH) return res.status(403).send('disabled');
+  let u = await get('SELECT * FROM users WHERE email=?', ['demo@local']);
+  if (!u) {
+    const r = await run(
+      'INSERT INTO users(email, age_verified, subscribed) VALUES(?,?,?)',
+      ['demo@local', 1, 1]
+    );
+    u = await get('SELECT * FROM users WHERE id=?', [r.lastID]);
+  }
+  req.session.userId = u.id;
+  res.send('ok');
+});
+
+// auth (real)
 app.post('/api/login', async (req, res) => {
   const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
