@@ -1,78 +1,129 @@
 <!doctype html>
 <html lang="ro">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>The Future — PRO</title>
-<link rel="stylesheet" href="/style.css">
-<style>
-:root{--bg:#0b0b0d;--card:#151519;--muted:#a1a1aa;--accent:#8b5cf6;--accent2:#ec4899;}
-body{background:var(--bg);color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;}
-.hero{max-width:900px;margin:42px auto;padding:0 16px;text-align:center;}
-.badge{display:inline-block;padding:4px 10px;background:#111827;border:1px solid #1f2937;border-radius:999px;color:var(--muted);font-size:12px;margin-bottom:14px;}
-h1{font-size:34px;line-height:1.15;margin:0 0 10px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
-p.lead{color:#cbd5e1;margin:0 auto 16px;max-width:680px;}
-.cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:18px 0 6px}
-.cta a{padding:10px 14px;border-radius:10px;border:1px solid #2a2a33;background:#121217;text-decoration:none;color:white}
-.cta a.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));border:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;max-width:1000px;margin:26px auto;padding:0 16px;}
-.card{background:var(--card);border:1px solid #23232b;border-radius:14px;padding:14px}
-.card h3{margin:4px 0 6px;font-size:16px}
-.gallery{display:flex;gap:10px;overflow:auto;padding:0 16px;margin:10px auto 26px;max-width:1000px}
-.gallery img{height:180px;border-radius:12px;border:1px solid #23232b}
-footer{opacity:.65;text-align:center;font-size:12px;margin:22px 0 40px}
-.small{font-size:12px;color:var(--muted)}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Future — PRO</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-<header class="hero">
-  <span class="badge">AI fantasy only · 18+</span>
-  <h1>The Future — PRO</h1>
-  <p class="lead">Generează <b>imagini & video</b> AI + chat. Suport pentru abonamente și PPV. <span class="small">(Doar personaje imaginare, fără persoane reale.)</span></p>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="nav container">
+      <div class="brand">The Future — PRO</div>
+      <nav class="nav-links">
+        <a href="/gen-image.html">Generate Image</a>
+        <a href="/gen-video.html">Generate Video</a>
+        <a href="/chat.html">Chat</a>
+        <a href="/premium.html">Premium</a>
+        <a href="/ideas.html">💡 Idei</a>
+        <a href="/login-demo.html">Login</a>
+      </nav>
+    </div>
+  </header>
 
-  <nav class="cta">
-    <a class="primary" href="/gen-image.html">Generate Image</a>
-    <a href="/gen-video.html">Generate Video</a>
-    <a href="/chat.html">Chat</a>
-    <a href="/premium.html">Premium</a>
-    <a href="/links.html">Linkuri utile</a>
-    <a href="#" id="login">Sign in (demo)</a>
-    <a href="/api/admin/stats" title="Admin stats JSON">Admin</a>
-  </nav>
-</header>
+  <!-- HERO -->
+  <section class="hero container">
+    <span class="kicker badge">AI fantasy only · 18+</span>
+    <h1 class="title-gradient">Ultra-realistic AI Images & Videos</h1>
+    <p class="subtitle">
+      Create, chat, and monetize. Subscriptions + PPV • NSFW allowed (AI-only, no real persons).
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="/gen-image.html">Generate Image</a>
+      <a class="btn" href="/gen-video.html">Generate Video</a>
+      <a class="btn" href="/chat.html">Chat</a>
+      <a class="btn" href="/premium.html">Premium</a>
+    </div>
+  </section>
 
-<section class="grid">
-  <div class="card"><h3>⚡ Rapid</h3><p>Interfață simplă, mobile-first. Demo local pentru generare.</p></div>
-  <div class="card"><h3>🖼️ Galerie</h3><p>Fișiere demo servite din <code>/public/demo</code>. Poți adăuga ușor imagini proprii.</p></div>
-  <div class="card"><h3>🛡️ Politică</h3><p>Filtrare prompturi: fără persoane reale / minori / conținut ilegal.</p></div>
-  <div class="card"><h3>💳 Monetizare</h3><p>Structură pregătită pentru abonamente + comenzi (CCBill/Stripe).</p></div>
-</section>
+  <!-- FEATURES -->
+  <section class="container grid features">
+    <article class="card">
+      <h3>⚡ Fast</h3>
+      <p>Simple, mobile-first interface. Low latency pipeline.</p>
+    </article>
+    <article class="card">
+      <h3>🖼️ Gallery</h3>
+      <p>Creator profiles, AI-only media, signed delivery.</p>
+    </article>
+    <article class="card">
+      <h3>💳 Monetize</h3>
+      <p>Subscriptions + credits, PPV unlocks, orders & jobs.</p>
+    </article>
+    <article class="card">
+      <h3>🛡️ Policy</h3>
+      <p>No real persons/deepfakes. 18+ gate & moderation.</p>
+    </article>
+  </section>
 
-<div class="gallery">
-  <a href="/demo/ai1.jpg?t=1"><img src="/demo/ai1.jpg?t=1" alt="demo 1"></a>
-  <a href="/demo/ai2.jpg?t=1"><img src="/demo/ai2.jpg?t=1" alt="demo 2"></a>
-  <a href="/demo/ai3.jpg?t=1"><img src="/demo/ai3.jpg?t=1" alt="demo 3"></a>
-</div>
+  <!-- GALLERY -->
+  <section class="container">
+    <h2 class="section-title">Featured Gallery</h2>
+    <div class="gallery">
+      <a href="/demo/ai1.jpg?t=1"><img src="/demo/ai1.jpg?t=1" alt="demo 1"></a>
+      <a href="/demo/ai2.jpg?t=1"><img src="/demo/ai2.jpg?t=1" alt="demo 2"></a>
+      <a href="/demo/ai3.jpg?t=1"><img src="/demo/ai3.jpg?t=1" alt="demo 3"></a>
+      <a href="/demo/ai2.jpg?t=2"><img src="/demo/ai2.jpg?t=2" alt="demo 4"></a>
+      <a href="/demo/ai1.jpg?t=2"><img src="/demo/ai1.jpg?t=2" alt="demo 5"></a>
+    </div>
+  </section>
 
-<footer>
-  © 2025 The Future — PRO · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>
-</footer>
+  <!-- PRICING -->
+  <section class="container pricing">
+    <div class="card big">
+      <h2 class="section-title">Pricing (credits + subscriptions)</h2>
+      <div class="pricing-grid">
+        <div class="tier">
+          <div class="tier-name">BASIC</div>
+          <div class="tier-price">€7.99 / 30 days</div>
+          <ul class="tier-list">
+            <li>280 credits</li>
+            <li>Good image quality</li>
+            <li>Shorts up to 720p</li>
+            <li>Priority: low</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div class="tier-name">PLUS</div>
+          <div class="tier-price">€13.99 / 30 days</div>
+          <ul class="tier-list">
+            <li>510 credits</li>
+            <li>High image quality</li>
+            <li>Shorts up to 1080p</li>
+            <li>Priority: medium</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div class="tier-name">PRO</div>
+          <div class="tier-price">€46.99 / 30 days</div>
+          <ul class="tier-list">
+            <li>1200 credits</li>
+            <li>UHD images • 15s video</li>
+            <li>Highest quality</li>
+            <li>Priority: high</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cta" style="margin-top:8px">
+        <a class="btn primary" href="/premium.html">Get Premium</a>
+      </div>
+    </div>
+  </section>
 
-<script>
-document.getElementById('login')?.addEventListener('click', async (e)=>{
-  e.preventDefault();
-  const email = prompt('Email (demo):', 'demo@example.com');
-  if(!email) return;
-  const r = await fetch('/api/login',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email})
-  });
-  const j = await r.json();
-  alert(r.ok ? 'Autentificat ✅' : ('Eroare: '+(j.error||'unknown')));
-});
-</script>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-flex">
+      <div class="muted">© 2025 The Future — PRO</div>
+      <nav class="footer-links">
+        <a href="/terms.html">Terms</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/dmca.html">DMCA</a>
+        <a href="/18-policy.html">18+ Policy</a>
+      </nav>
+    </div>
+  </footer>
 
 </body>
 </html>
