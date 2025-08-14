@@ -1,15 +1,125 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Premium</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="wrap"><h1>Premium</h1>
-<div class="grid">
-<div class="card"><h3>Login</h3><input id="email" placeholder="Email"><button class="btn" onclick="login()">Login</button><pre id="me"></pre></div>
-<div class="card"><h3>Verify + Subscribe</h3><button class="btn" onclick="age()">Verify Age</button> <button class="btn" onclick="sub()">Subscribe</button></div>
-<div class="card"><h3>Private Media</h3><button class="btn" onclick="unlock()">Get private link</button><div id="media"></div></div>
-<div class="card"><h3>AI Eraser (AI-only)</h3><select id="mediaSel"><option value="/demo/ai1.jpg">AI Image #1</option><option value="/demo/ai2.jpg">AI Image #2</option></select><button class="btn" onclick="erase()">Run Eraser</button><pre id="erase"></pre></div>
-</div></div>
-<script>
-async function login(){const e=document.getElementById('email').value;const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e})});document.getElementById('me').textContent=await r.text();}
-async function age(){const r=await fetch('/api/verify-age/mock',{method:'POST'});document.getElementById('me').textContent=await r.text();}
-async function sub(){const r=await fetch('/api/subscribe/mock',{method:'POST'});document.getElementById('me').textContent=await r.text();}
-async function unlock(){const r=await fetch('/api/media/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:'/demo/ai2.jpg'})});const j=await r.json();document.getElementById('media').innerHTML='<img src="'+j.url+'" style="max-width:100%">';}
-async function erase(){const mediaPath=document.getElementById('mediaSel').value;const r=await fetch('/api/erase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mediaPath})});document.getElementById('erase').textContent=await r.text();}
-</script></body></html>
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Premium</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .wrap { max-width: 720px; margin: 24px auto; padding: 16px; }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    input[type="email"]{ padding:8px; min-width:260px; }
+    button{ padding:8px 12px; cursor:pointer; }
+    .muted{ opacity:.8; font-size:14px; }
+    .ok{ color:#6ade8a; }
+    .err{ color:#ff7070; }
+    nav a{ margin-right:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="muted">
+      <a href="/">Home</a>
+      <a href="/gen-image.html">Image Gen</a>
+      <a href="/gen-video.html">Video Gen</a>
+      <a href="/login-demo.html">Login Demo</a>
+    </nav>
+
+    <h1>Premium</h1>
+    <p class="muted">
+      Pasul 1: login • Pasul 2: verificare vârstă (mock) • Pasul 3: abonare (mock).<br/>
+      După ce ești abonat, poți accesa conținut protejat (ex: media semnată).
+    </p>
+
+    <div class="row" style="margin:12px 0 8px;">
+      <input id="email" type="email" placeholder="email" />
+      <button onclick="doLogin()">Login</button>
+      <button onclick="mockAge()">Mock Verify Age</button>
+      <button onclick="mockSubscribe()">Mock Subscribe</button>
+    </div>
+
+    <div id="msg" class="muted">Status: &mdash;</div>
+
+    <hr style="margin:20px 0; opacity:.2;">
+
+    <h3>Test conținut protejat</h3>
+    <p class="muted">Acest buton cere un URL semnat (necesită <i>age_verified</i> + <i>subscribed</i>).</p>
+    <button onclick="getSigned()">Obține URL semnat</button>
+    <div id="signed" class="muted" style="margin-top:8px;"></div>
+  </div>
+
+  <script>
+    const msg = (t, cls='') => {
+      const el = document.getElementById('msg');
+      el.className = 'muted ' + cls;
+      el.textContent = 'Status: ' + t;
+    };
+
+    async function api(path, method='POST', body) {
+      try {
+        const res = await fetch(path, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: body ? JSON.stringify(body) : undefined
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        return data;
+      } catch (e) {
+        throw e;
+      }
+    }
+
+    async function doLogin() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) return msg('Introdu un email', 'err');
+      try {
+        const r = await api('/api/login', 'POST', { email });
+        msg('Logat ca: ' + (r.user?.email || email), 'ok');
+      } catch (e) {
+        msg(e.message || 'Eroare login', 'err');
+      }
+    }
+
+    async function mockAge() {
+      try {
+        await api('/api/verify-age/mock');
+        msg('Vârsta verificată (mock)', 'ok');
+      } catch (e) {
+        if (/Not logged in/i.test(e.message)) {
+          msg('Nu ești logat. Fă mai întâi login.', 'err');
+        } else {
+          msg(e.message || 'Eroare verify-age', 'err');
+        }
+      }
+    }
+
+    async function mockSubscribe() {
+      try {
+        await api('/api/subscribe/mock');
+        msg('Abonat (mock) activat', 'ok');
+      } catch (e) {
+        if (/Not logged in/i.test(e.message)) {
+          msg('Nu ești logat. Fă mai întâi login.', 'err');
+        } else {
+          msg(e.message || 'Eroare subscribe', 'err');
+        }
+      }
+    }
+
+    async function getSigned() {
+      try {
+        const r = await api('/api/media/sign', 'POST', { path: '/demo/ai2.jpg' });
+        document.getElementById('signed').innerHTML =
+          '<span class="ok">OK:</span> ' +
+          '<a href="' + r.url + '" target="_blank" rel="noopener">' + r.url + '</a>';
+        msg('URL semnat generat', 'ok');
+      } catch (e) {
+        msg(e.message || 'Eroare semnare media', 'err');
+        document.getElementById('signed').textContent = '';
+      }
+    }
+  </script>
+</body>
+</html>
