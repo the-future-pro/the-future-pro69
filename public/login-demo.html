@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Login Demo</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="container">
+  <h1>Login Demo</h1>
+
+  <input id="email" placeholder="email" style="width:280px" />
+  <button id="btnLogin">Login</button>
+  <div id="msg" class="mt"></div>
+
+  <div class="mt">
+    <button id="btnAge">Mock Verify Age</button>
+    <button id="btnSub">Mock Subscribe</button>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    $('btnLogin').onclick = async () => {
+      const r = await fetch('/api/login', {
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({email: $('email').value})
+      });
+      const j = await r.json();
+      $('msg').textContent = r.ok ? 'Logged in' : (j.error || 'Error');
+    };
+    $('btnAge').onclick = async () => {
+      const r = await fetch('/api/verify-age/mock',{method:'POST',credentials:'include'});
+      $('msg').textContent = (await r.json()).ok ? 'Age verified' : 'Error';
+    };
+    $('btnSub').onclick = async () => {
+      const r = await fetch('/api/subscribe/mock',{method:'POST',credentials:'include'});
+      $('msg').textContent = (await r.json()).ok ? 'Subscribed' : 'Error';
+    };
+  </script>
+</body>
+</html>
