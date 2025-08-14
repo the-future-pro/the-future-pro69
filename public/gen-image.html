@@ -1,48 +1,102 @@
 <!doctype html>
-<html lang="en">
+<html lang="ro">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Generate Image</title>
   <link rel="stylesheet" href="/style.css">
   <style>
-    #out{max-width:100%;height:auto;display:block;margin-top:12px;border-radius:8px}
-    #msg{margin-top:8px}
-    #debug{font-family:monospace;font-size:12px;opacity:.75;margin-top:6px;word-break:break-all}
+    .wrap{max-width:900px;margin:0 auto;padding:24px}
+    textarea,input,select{width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--fg)}
+    button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-weight:600;cursor:pointer}
+    .primary{background:linear-gradient(90deg,var(--accent),var(--pink));border-color:transparent;color:#0b0b0f}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    img{max-width:100%;border-radius:12px;border:1px solid var(--line);margin-top:10px}
+    .muted{color:var(--muted)}
   </style>
 </head>
 <body>
-  <h1>Generate Image</h1>
-  <input id="p" placeholder="Prompt">
-  <button id="g">Generate</button>
-  <div id="msg"></div>
-  <img id="out" alt="result">
-  <div id="debug"></div>
+  <div class="wrap">
+    <nav class="muted" style="margin-bottom:8px"><a href="/">← Acasă</a></nav>
+    <h1>Generate Image</h1>
 
-  <script>
-    async function gen(){
-      const prompt = document.getElementById('p').value.trim();
-      document.getElementById('msg').textContent = 'Generating...';
-      document.getElementById('out').src = '';
-      document.getElementById('debug').textContent = '';
-      try{
-        const r = await fetch('/api/gen/image',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ prompt })
-        });
-        const raw = await r.text();
-        let data;
-        try { data = JSON.parse(raw); } catch(e){ throw new Error('Non-JSON response: '+raw.slice(0,200)); }
-        if(!r.ok) throw new Error(data?.error || ('HTTP '+r.status));
-        const url = (data.url || '') + (data.url?.includes('?') ? '&':'?') + 't=' + Date.now(); // anti-cache
-        document.getElementById('out').src = url;
-        document.getElementById('msg').textContent = '';
-        document.getElementById('debug').textContent = 'URL: ' + url;
-      }catch(e){
-        document.getElementById('msg').textContent = 'Error: ' + e.message;
+    <div class="row">
+      <input id="email" placeholder="email (login rapid)">
+      <button onclick="login()">Login</button>
+    </div>
+
+    <p class="muted" style="margin:10px 0">Ai nevoie de credite. În “Premium” poți face mock subscribe (+100 credite demo).</p>
+
+    <label>Prompt</label>
+    <textarea id="prompt" placeholder="Describe your image..."></textarea>
+
+    <div class="row" style="margin-top:10px">
+      <label style="min-width:140px">Resolution</label>
+      <select id="res" style="max-width:260px">
+        <option value="1024">1024x1024 (15 credits)</option>
+        <option value="uhd">UHD (25 credits)</option>
+      </select>
+      <button class="primary" onclick="createJob()">Generate</button>
+    </div>
+
+    <div id="status" class="muted" style="margin-top:8px"></div>
+    <div id="result"></div>
+  </div>
+
+<script>
+const $ = s => document.querySelector(s);
+
+async function api(path, method='POST', body) {
+  const r = await fetch(path, {
+    method, credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let j={}; try{ j=await r.json(); }catch{}
+  if(!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+async function login(){
+  const email = $('#email').value.trim();
+  if(!email){ $('#status').textContent='Introdu email'; return; }
+  try{ await api('/api/login','POST',{ email }); $('#status').textContent='Logat'; }
+  catch(e){ $('#status').textContent=e.message; }
+}
+
+async function createJob(){
+  const prompt = $('#prompt').value.trim();
+  const res = $('#res').value;
+  if(!prompt){ $('#status').textContent='Scrie un prompt'; return; }
+  $('#status').textContent='Se creează job...';
+
+  try{
+    const j = await api('/api/jobs','POST',{ kind:'image', options:{ prompt, res }});
+    $('#status').textContent = `Job #${j.job_id} creat (debited ${j.debited} cr). Așteaptă...`;
+    poll(j.job_id);
+  }catch(e){
+    if(/INSUFFICIENT_CREDITS/.test(e.message)) $('#status').textContent='Nu ai suficiente credite. Mergi la Premium și fă mock subscribe.';
+    else $('#status').textContent=e.message;
+  }
+}
+
+async function poll(id){
+  const timer = setInterval(async ()=>{
+    try{
+      const s = await fetch(`/api/jobs/${id}`, {credentials:'include'}).then(r=>r.json());
+      if(s.status==='completed'){
+        clearInterval(timer);
+        $('#status').textContent='Gata ✔';
+        const out = JSON.parse(s.output_json||'{}');
+        if(out.url) $('#result').innerHTML = `<img src="${out.url}" alt="">`;
+      }else if(s.status==='failed'){
+        clearInterval(timer);
+        $('#status').textContent='Job failed';
+      }else{
+        $('#status').textContent=`${s.status}...`;
       }
-    }
-    document.getElementById('g').onclick = gen;
-  </script>
+    }catch(e){ clearInterval(timer); $('#status').textContent=e.message; }
+  }, 1500);
+}
+</script>
 </body>
 </html>
