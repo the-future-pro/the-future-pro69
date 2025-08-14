@@ -1,125 +1,152 @@
 <!doctype html>
-<html>
+<html lang="ro">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Premium</title>
   <link rel="stylesheet" href="/style.css">
   <style>
     body{padding:16px}
+    nav a{margin-right:12px;color:var(--muted)}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-    .card{border:1px solid #333;border-radius:10px;padding:12px;background:#111}
-    .card h3{margin:0 0 8px 0}
+    .card{border:1px solid var(--line);border-radius:16px;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01))}
+    .card h3{margin:.2rem 0 .6rem}
+    .muted{color:var(--muted)}
     .result{white-space:pre-wrap;font-family:monospace}
-    img{max-width:100%;border-radius:8px}
-    small{opacity:.7}
+    input[type="email"]{padding:10px;min-width:280px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--fg)}
+    button{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-weight:600;cursor:pointer}
+    .primary{background:linear-gradient(90deg,var(--accent),var(--pink));border-color:transparent;color:#0b0b0f}
+    img{max-width:100%;border-radius:10px}
   </style>
 </head>
-<body>
+<body class="container">
+
+  <nav class="muted" style="margin-bottom:8px">
+    <a href="/">Home</a>
+    <a href="/gen-image.html">Image Gen</a>
+    <a href="/gen-video.html">Video Gen</a>
+    <a href="/ideas.html">💡 Idei</a>
+    <a href="/login-demo.html">Login Demo</a>
+  </nav>
+
   <h1>Premium</h1>
+  <p class="muted">Pasul 1: Login • Pasul 2: Verificare vârstă (mock) • Pasul 3: Abonare (mock sau Stripe real)</p>
 
   <div class="grid">
     <!-- Login -->
     <div class="card">
       <h3>Login</h3>
-      <input id="email" placeholder="email" style="width:70%"/>
-      <button onclick="doLogin()">Login</button>
-      <div class="result" id="rLogin"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="email" type="email" placeholder="email">
+        <button onclick="doLogin()">Login</button>
+      </div>
+      <div id="rLogin" class="result" style="margin-top:8px"></div>
     </div>
 
     <!-- Verify + Subscribe -->
     <div class="card">
       <h3>Verify + Subscribe</h3>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button onclick="mockVerifyAge()">Verify Age</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="mockVerifyAge()">Mock Verify Age</button>
         <button onclick="mockSubscribe()">Mock Subscribe</button>
-        <button onclick="startCheckout()">Plătește (Stripe)</button>
+        <button class="primary" onclick="startCheckout()">Plătește (Stripe)</button>
       </div>
-      <div class="result" id="rSub"></div>
-      <small>Mock = pentru test. Stripe = real (dacă setezi cheile).</small>
+      <div id="rSub" class="result" style="margin-top:8px"></div>
+      <p class="muted" style="margin-top:6px">Mock = pentru testare. Stripe = abonament real (dacă ai cheile setate).</p>
     </div>
 
     <!-- Private media -->
     <div class="card">
       <h3>Private Media</h3>
-      <button onclick="signMedia()">Get private link</button>
-      <div style="margin-top:8px">
-        <img id="pm" src="/demo/ai2.jpg" alt="">
-      </div>
-      <div class="result" id="rMedia"></div>
+      <p class="muted">Cere un URL semnat (necesită age_verified + subscribed).</p>
+      <button onclick="signMedia()">Obține link</button>
+      <div id="rMedia" class="result" style="margin-top:8px"></div>
+      <div style="margin-top:8px"><img id="pm" src="/demo/ai2.jpg" alt=""></div>
     </div>
 
     <!-- AI Eraser -->
     <div class="card">
       <h3>AI Eraser (AI-only)</h3>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select id="imgPick">
           <option value="/demo/ai1.jpg">AI image #1</option>
           <option value="/demo/ai2.jpg">AI image #2</option>
           <option value="/demo/ai3.jpg">AI image #3</option>
         </select>
-        <button onclick="runEraser()">Run Eraser</button>
+        <button onclick="runEraser()">Rulează</button>
       </div>
-      <div class="result" id="rErase"></div>
+      <div id="rErase" class="result" style="margin-top:8px"></div>
+      <p class="muted" style="margin-top:6px">Funcționează doar pe media generată AI (fără persoane reale).</p>
     </div>
   </div>
 
   <script>
     const $ = (id)=>document.getElementById(id);
 
+    async function api(path, method='POST', body){
+      const res = await fetch(path, {
+        method, credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: body ? JSON.stringify(body) : undefined
+      });
+      let data={}; try{ data=await res.json(); }catch{}
+      if(!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
     async function doLogin(){
       const email = $('email').value.trim();
-      const r = await fetch('/api/login',{
-        method:'POST', credentials:'include',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email})
-      });
-      const j = await r.json();
-      $('rLogin').textContent = JSON.stringify(j);
+      if(!email){ $('rLogin').textContent='Introdu un email.'; return; }
+      try{
+        const r = await api('/api/login','POST',{ email });
+        $('rLogin').textContent = 'Logat: ' + (r.user?.email || email);
+      }catch(e){ $('rLogin').textContent = e.message; }
     }
 
     async function mockVerifyAge(){
-      const r = await fetch('/api/verify-age/mock',{method:'POST',credentials:'include'});
-      $('rSub').textContent = await r.text();
+      try{
+        const r = await api('/api/verify-age/mock');
+        $('rSub').textContent = 'Age verified (mock).';
+      }catch(e){
+        $('rSub').textContent = /Not logged/i.test(e.message) ? 'Fă login întâi.' : e.message;
+      }
     }
 
     async function mockSubscribe(){
-      const r = await fetch('/api/subscribe/mock',{method:'POST',credentials:'include'});
-      $('rSub').textContent = await r.text();
+      try{
+        const r = await api('/api/subscribe/mock');
+        $('rSub').textContent = 'Subscribed (mock).';
+      }catch(e){
+        $('rSub').textContent = /Not logged/i.test(e.message) ? 'Fă login întâi.' : e.message;
+      }
     }
 
     async function startCheckout(){
       try{
-        const r = await fetch('/api/checkout/create',{method:'POST',credentials:'include'});
-        const j = await r.json();
-        if(!r.ok) throw new Error(j.error||'Eroare checkout');
-        location.href = j.url;
-      }catch(e){ alert(e.message); }
+        const r = await api('/api/checkout/create','POST');
+        location.href = r.url; // Stripe Checkout
+      }catch(e){ $('rSub').textContent = e.message; }
     }
 
     async function signMedia(){
-      const r = await fetch('/api/media/sign',{
-        method:'POST',credentials:'include',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({path:'/demo/ai2.jpg'})
-      });
-      const j = await r.json();
-      $('rMedia').textContent = JSON.stringify(j);
-      if(j.url) $('pm').src = j.url;
+      try{
+        const r = await api('/api/media/sign','POST',{ path:'/demo/ai2.jpg' });
+        $('rMedia').textContent = JSON.stringify(r);
+        if(r.url) $('pm').src = r.url;
+      }catch(e){ $('rMedia').textContent = e.message; }
     }
 
     async function runEraser(){
-      const mediaPath = $('imgPick').value;
-      const r = await fetch('/api/erase',{
-        method:'POST',credentials:'include',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({mediaPath})
-      });
-      $('rErase').textContent = await r.text();
+      try{
+        const mediaPath = $('imgPick').value;
+        const r = await api('/api/erase','POST',{ mediaPath });
+        $('rErase').textContent = JSON.stringify(r);
+      }catch(e){ $('rErase').textContent = e.message; }
     }
 
     // feedback după întoarcerea din Stripe
     if(new URLSearchParams(location.search).get('paid')==='1'){
-      $('rSub').textContent = 'Payment ok. Subscription activat (după webhook).';
+      $('rSub').textContent = 'Payment OK. Abonamentul se activează prin webhook în câteva secunde.';
     }
   </script>
 </body>
