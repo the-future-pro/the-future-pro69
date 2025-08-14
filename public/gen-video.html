@@ -1,5 +1,49 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Video Gen</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="wrap"><h1>Generate Video</h1><textarea id="s" rows="5" placeholder="Storyboard (AI fantasy only)"></textarea><button class="btn" onclick="go()">Generate</button><div id="out"></div></div>
-<script>
-async function go(){const storyboard=document.getElementById('s').value;const r=await fetch('/api/gen/video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({storyboard})});const j=await r.json();document.getElementById('out').textContent=JSON.stringify(j);}
-</script></body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Generate Video</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="container">
+  <h1>Generate Video</h1>
+
+  <textarea placeholder="Storyboard (AI fantasy only)"></textarea>
+  <button>Generate</button>
+
+  <div id="out" class="mt"></div>
+  <video id="vid" controls style="max-width:100%;display:none"></video>
+
+  <script>
+    const ta  = document.querySelector('textarea');
+    const btn = document.querySelector('button');
+    const out = document.getElementById('out');
+    const vid = document.getElementById('vid');
+
+    btn.onclick = async () => {
+      out.textContent = 'Generating...';
+      vid.pause();
+      vid.style.display = 'none';
+
+      const r = await fetch('/api/gen/video', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ storyboard: ta.value || '' })
+      });
+      const data = await r.json();
+
+      if (!r.ok) {
+        out.textContent = data?.error || 'Eroare';
+        return;
+      }
+
+      out.textContent = '';
+      vid.src = data.url;     // ex: /demo/video-placeholder.mp4
+      vid.style.display = 'block';
+      vid.load();
+      vid.play().catch(()=>{});
+    };
+  </script>
+</body>
+</html>
