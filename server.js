@@ -203,3 +203,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`The Future — PRO running on http://localhost:${PORT}`));
+// who am I
+app.get('/api/me', async (req, res) => {
+  const user = await currentUser(req);
+  res.json({ user });
+});
