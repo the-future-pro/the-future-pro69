@@ -1,124 +1,125 @@
 <!doctype html>
-<html lang="ro">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
   <title>Premium</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css">
   <style>
-    .wrap { max-width: 720px; margin: 24px auto; padding: 16px; }
-    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    input[type="email"]{ padding:8px; min-width:260px; }
-    button{ padding:8px 12px; cursor:pointer; }
-    .muted{ opacity:.8; font-size:14px; }
-    .ok{ color:#6ade8a; }
-    .err{ color:#ff7070; }
-    nav a{ margin-right:12px; }
+    body{padding:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .card{border:1px solid #333;border-radius:10px;padding:12px;background:#111}
+    .card h3{margin:0 0 8px 0}
+    .result{white-space:pre-wrap;font-family:monospace}
+    img{max-width:100%;border-radius:8px}
+    small{opacity:.7}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <nav class="muted">
-      <a href="/">Home</a>
-      <a href="/gen-image.html">Image Gen</a>
-      <a href="/gen-video.html">Video Gen</a>
-      <a href="/login-demo.html">Login Demo</a>
-    </nav>
+  <h1>Premium</h1>
 
-    <h1>Premium</h1>
-    <p class="muted">
-      Pasul 1: login • Pasul 2: verificare vârstă (mock) • Pasul 3: abonare (mock).<br/>
-      După ce ești abonat, poți accesa conținut protejat (ex: media semnată).
-    </p>
-
-    <div class="row" style="margin:12px 0 8px;">
-      <input id="email" type="email" placeholder="email" />
+  <div class="grid">
+    <!-- Login -->
+    <div class="card">
+      <h3>Login</h3>
+      <input id="email" placeholder="email" style="width:70%"/>
       <button onclick="doLogin()">Login</button>
-      <button onclick="mockAge()">Mock Verify Age</button>
-      <button onclick="mockSubscribe()">Mock Subscribe</button>
+      <div class="result" id="rLogin"></div>
     </div>
 
-    <div id="msg" class="muted">Status: &mdash;</div>
+    <!-- Verify + Subscribe -->
+    <div class="card">
+      <h3>Verify + Subscribe</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="mockVerifyAge()">Verify Age</button>
+        <button onclick="mockSubscribe()">Mock Subscribe</button>
+        <button onclick="startCheckout()">Plătește (Stripe)</button>
+      </div>
+      <div class="result" id="rSub"></div>
+      <small>Mock = pentru test. Stripe = real (dacă setezi cheile).</small>
+    </div>
 
-    <hr style="margin:20px 0; opacity:.2;">
+    <!-- Private media -->
+    <div class="card">
+      <h3>Private Media</h3>
+      <button onclick="signMedia()">Get private link</button>
+      <div style="margin-top:8px">
+        <img id="pm" src="/demo/ai2.jpg" alt="">
+      </div>
+      <div class="result" id="rMedia"></div>
+    </div>
 
-    <h3>Test conținut protejat</h3>
-    <p class="muted">Acest buton cere un URL semnat (necesită <i>age_verified</i> + <i>subscribed</i>).</p>
-    <button onclick="getSigned()">Obține URL semnat</button>
-    <div id="signed" class="muted" style="margin-top:8px;"></div>
+    <!-- AI Eraser -->
+    <div class="card">
+      <h3>AI Eraser (AI-only)</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <select id="imgPick">
+          <option value="/demo/ai1.jpg">AI image #1</option>
+          <option value="/demo/ai2.jpg">AI image #2</option>
+          <option value="/demo/ai3.jpg">AI image #3</option>
+        </select>
+        <button onclick="runEraser()">Run Eraser</button>
+      </div>
+      <div class="result" id="rErase"></div>
+    </div>
   </div>
 
   <script>
-    const msg = (t, cls='') => {
-      const el = document.getElementById('msg');
-      el.className = 'muted ' + cls;
-      el.textContent = 'Status: ' + t;
-    };
+    const $ = (id)=>document.getElementById(id);
 
-    async function api(path, method='POST', body) {
-      try {
-        const res = await fetch(path, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: body ? JSON.stringify(body) : undefined
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || res.statusText);
-        return data;
-      } catch (e) {
-        throw e;
-      }
+    async function doLogin(){
+      const email = $('email').value.trim();
+      const r = await fetch('/api/login',{
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email})
+      });
+      const j = await r.json();
+      $('rLogin').textContent = JSON.stringify(j);
     }
 
-    async function doLogin() {
-      const email = document.getElementById('email').value.trim();
-      if (!email) return msg('Introdu un email', 'err');
-      try {
-        const r = await api('/api/login', 'POST', { email });
-        msg('Logat ca: ' + (r.user?.email || email), 'ok');
-      } catch (e) {
-        msg(e.message || 'Eroare login', 'err');
-      }
+    async function mockVerifyAge(){
+      const r = await fetch('/api/verify-age/mock',{method:'POST',credentials:'include'});
+      $('rSub').textContent = await r.text();
     }
 
-    async function mockAge() {
-      try {
-        await api('/api/verify-age/mock');
-        msg('Vârsta verificată (mock)', 'ok');
-      } catch (e) {
-        if (/Not logged in/i.test(e.message)) {
-          msg('Nu ești logat. Fă mai întâi login.', 'err');
-        } else {
-          msg(e.message || 'Eroare verify-age', 'err');
-        }
-      }
+    async function mockSubscribe(){
+      const r = await fetch('/api/subscribe/mock',{method:'POST',credentials:'include'});
+      $('rSub').textContent = await r.text();
     }
 
-    async function mockSubscribe() {
-      try {
-        await api('/api/subscribe/mock');
-        msg('Abonat (mock) activat', 'ok');
-      } catch (e) {
-        if (/Not logged in/i.test(e.message)) {
-          msg('Nu ești logat. Fă mai întâi login.', 'err');
-        } else {
-          msg(e.message || 'Eroare subscribe', 'err');
-        }
-      }
+    async function startCheckout(){
+      try{
+        const r = await fetch('/api/checkout/create',{method:'POST',credentials:'include'});
+        const j = await r.json();
+        if(!r.ok) throw new Error(j.error||'Eroare checkout');
+        location.href = j.url;
+      }catch(e){ alert(e.message); }
     }
 
-    async function getSigned() {
-      try {
-        const r = await api('/api/media/sign', 'POST', { path: '/demo/ai2.jpg' });
-        document.getElementById('signed').innerHTML =
-          '<span class="ok">OK:</span> ' +
-          '<a href="' + r.url + '" target="_blank" rel="noopener">' + r.url + '</a>';
-        msg('URL semnat generat', 'ok');
-      } catch (e) {
-        msg(e.message || 'Eroare semnare media', 'err');
-        document.getElementById('signed').textContent = '';
-      }
+    async function signMedia(){
+      const r = await fetch('/api/media/sign',{
+        method:'POST',credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({path:'/demo/ai2.jpg'})
+      });
+      const j = await r.json();
+      $('rMedia').textContent = JSON.stringify(j);
+      if(j.url) $('pm').src = j.url;
+    }
+
+    async function runEraser(){
+      const mediaPath = $('imgPick').value;
+      const r = await fetch('/api/erase',{
+        method:'POST',credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({mediaPath})
+      });
+      $('rErase').textContent = await r.text();
+    }
+
+    // feedback după întoarcerea din Stripe
+    if(new URLSearchParams(location.search).get('paid')==='1'){
+      $('rSub').textContent = 'Payment ok. Subscription activat (după webhook).';
     }
   </script>
 </body>
