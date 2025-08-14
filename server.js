@@ -17,12 +17,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.set('trust proxy', 1); // necesar pe Render pentru cookie secure
-
-// CORS
 app.use(cors({ origin: true, credentials: true }));
 
-// ---------- STRIPE (webhook raw) ----------
-// !! webhook-ul trebuie să fie ÎNAINTE de express.json
+// ---------- STRIPE (webhook raw, înainte de express.json) ----------
 const stripe = new Stripe(process.env.STRIPE_SECRET || '');
 app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -32,7 +29,6 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
-
     if (event.type === 'checkout.session.completed') {
       const ref = event.data.object.client_reference_id;
       run('UPDATE users SET subscribed=1 WHERE id=?', [ref]).catch(console.error);
@@ -48,7 +44,7 @@ app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-// ---------- Sesiuni cu SQLiteStore (fără WARNING) ----------
+// ---------- Sesiuni cu SQLiteStore ----------
 const SQLiteStore = SQLiteStoreFactory(session);
 app.use(session({
   secret: process.env.SESSION_SECRET || 'change-this-secret',
@@ -58,7 +54,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production' // pe Render e HTTPS
+    secure: process.env.NODE_ENV === 'production'
   }
 }));
 
@@ -107,6 +103,17 @@ db.serialize(() => {
     meta_json TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`);
+  // feedback / idei
+  db.run(`CREATE TABLE IF NOT EXISTS suggestions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    title TEXT,
+    body TEXT,
+    category TEXT,
+    votes INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'open',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`);
 });
 
 function run(sql, params = []) {
@@ -120,6 +127,13 @@ function get(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
       if (err) reject(err); else resolve(row);
+    });
+  });
+}
+function all(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err); else resolve(rows);
     });
   });
 }
@@ -140,7 +154,7 @@ async function currentUser(req) {
 // policy filter (simplu)
 function allowed(text = '') {
   const bad = ['deepfake','real person','celebr','undress','remove clothes','minor','under 18',' teen ','bestial','rape','nonconsens'];
-  const t = text.toLowerCase();
+  const t = (text||'').toLowerCase();
   return !bad.some(w => t.includes(w));
 }
 
@@ -157,7 +171,7 @@ app.post('/api/login', async (req, res) => {
   res.json({ ok: true, user });
 });
 
-// ---------- Age & subscribe (mock pentru demo) ----------
+// ---------- Age & subscribe (mock pentru test) ----------
 app.post('/api/verify-age/mock', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   await run('UPDATE users SET age_verified=1 WHERE id=?', [user.id]);
@@ -188,7 +202,7 @@ app.post('/api/checkout/create', async (req, res) => {
   }
 });
 
-// ---------- Generare (stub) ----------
+// ---------- Generare (demo) ----------
 app.post('/api/gen/image', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   const { prompt = '' } = req.body || {};
@@ -202,7 +216,7 @@ app.post('/api/gen/video', async (req, res) => {
   res.json({ ok: true, url: '/demo/video-placeholder.mp4' });
 });
 
-// ---------- AI eraser (doar media AI) ----------
+// ---------- AI Eraser (AI-only) ----------
 app.post('/api/erase', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   const { mediaPath = '' } = req.body || {};
@@ -211,7 +225,7 @@ app.post('/api/erase', async (req, res) => {
   res.json({ ok: true, message: 'Eraser accepted (demo)' });
 });
 
-// ---------- Link semnat media (fallback local) ----------
+// ---------- Signed media (fallback local) ----------
 app.post('/api/media/sign', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   if (!user.age_verified) return res.status(403).json({ error: 'Age not verified' });
@@ -220,12 +234,51 @@ app.post('/api/media/sign', async (req, res) => {
   res.json({ url: mediaPath });
 });
 
+// ---------- FEEDBACK / IDEI ----------
+app.get('/api/feedback', async (req, res) => {
+  const rows = await all(
+    `SELECT id,title,body,category,votes,status,created_at
+     FROM suggestions
+     ORDER BY votes DESC, datetime(created_at) DESC
+     LIMIT 200`
+  );
+  res.json(rows);
+});
+
+app.post('/api/feedback', async (req, res) => {
+  const user = await currentUser(req).catch(()=>null);
+  const { title = '', body = '', category = 'General' } = req.body || {};
+  if (!title.trim() || !body.trim()) return res.status(400).json({ error: 'Title and body required' });
+  if (!allowed(title) || !allowed(body)) return res.status(400).json({ error: 'Content not allowed' });
+
+  const r = await run(
+    `INSERT INTO suggestions(user_id,title,body,category) VALUES(?,?,?,?)`,
+    [user?.id || null, title.trim(), body.trim(), String(category).slice(0,40)]
+  );
+  const row = await get(`SELECT id,title,body,category,votes,status,created_at FROM suggestions WHERE id=?`, [r.lastID]);
+  req.session.voted = Array.isArray(req.session.voted) ? req.session.voted : [];
+  req.session.voted.push(row.id);
+  res.json(row);
+});
+
+app.post('/api/feedback/:id/vote', async (req, res) => {
+  const sid = Number(req.params.id);
+  if (!sid) return res.status(400).json({ error: 'Bad id' });
+  req.session.voted = Array.isArray(req.session.voted) ? req.session.voted : [];
+  if (req.session.voted.includes(sid)) return res.status(200).json({ ok: true, already: true });
+  await run(`UPDATE suggestions SET votes = votes + 1 WHERE id=?`, [sid]);
+  req.session.voted.push(sid);
+  const row = await get(`SELECT id,votes FROM suggestions WHERE id=?`, [sid]);
+  res.json({ ok: true, id: sid, votes: row?.votes || 0 });
+});
+
 // ---------- Admin ----------
 app.get('/api/admin/stats', async (req, res) => {
   const users = await get('SELECT COUNT(*) c FROM users');
   const orders = await get('SELECT COUNT(*) c FROM orders');
   const jobs = await get('SELECT COUNT(*) c FROM jobs');
-  res.json({ users: users?.c || 0, orders: orders?.c || 0, jobs: jobs?.c || 0 });
+  const ideas = await get('SELECT COUNT(*) c FROM suggestions');
+  res.json({ users: users?.c || 0, orders: orders?.c || 0, jobs: jobs?.c || 0, ideas: ideas?.c || 0 });
 });
 
 // ---------- Static ----------
