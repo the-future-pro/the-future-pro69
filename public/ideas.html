@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>💡 Idei & Feedback</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .wrap{max-width:900px;margin:0 auto;padding:24px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));padding:16px;margin-bottom:16px}
+    input,select,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--fg)}
+    textarea{min-height:120px}
+    button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-weight:600}
+    .primary{background:linear-gradient(90deg,var(--accent),var(--pink));border-color:transparent;color:#0b0b0f}
+    .idea{display:grid;grid-template-columns:80px 1fr;gap:14px;align-items:start}
+    .vote{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .muted{color:var(--muted);font-size:.92rem}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="muted" style="margin-bottom:8px"><a href="/">← Acasă</a></nav>
+    <h1>💡 Idei & Feedback</h1>
+    <p class="muted">Propune ce să dezvoltăm sau votează ideile altor utilizatori. (AI-fantasy only, fără persoane reale.)</p>
+
+    <div class="card">
+      <div class="row">
+        <input id="title" placeholder="Titlu scurt (ex: Clothes Changer pentru bărbați)"/>
+        <select id="cat" style="max-width:240px">
+          <option>Feature</option><option>Pricing</option><option>UI/UX</option><option>Models</option><option>Other</option>
+        </select>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <textarea id="body" placeholder="Descrie ideea în 1–3 paragrafe."></textarea>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="send">Trimite propunerea</button>
+      </div>
+      <div id="msg" class="muted" style="margin-top:6px"></div>
+    </div>
+
+    <h3 style="margin:12px 0 8px">🔥 Top idei</h3>
+    <div id="list"></div>
+  </div>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+
+    async function loadIdeas(){
+      const r = await fetch('/api/feedback',{credentials:'include'});
+      const ideas = await r.json();
+      const list = $('#list');
+      list.innerHTML = '';
+      ideas.forEach(it=>{
+        const div = document.createElement('div');
+        div.className = 'card idea';
+        div.innerHTML = `
+          <div class="vote">
+            <button data-id="${it.id}" class="vote-btn">⬆</button>
+            <div>${it.votes||0}</div>
+          </div>
+          <div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <strong>${escapeHtml(it.title)}</strong>
+              <span class="muted">• ${escapeHtml(it.category||'General')}</span>
+              <span class="muted">• ${new Date(it.created_at).toLocaleString()}</span>
+            </div>
+            <div style="margin-top:6px">${escapeHtml(it.body)}</div>
+          </div>`;
+        list.appendChild(div);
+      });
+      list.querySelectorAll('.vote-btn').forEach(btn=>{
+        btn.onclick = async ()=>{
+          btn.disabled = true;
+          const id = btn.getAttribute('data-id');
+          const r = await fetch(`/api/feedback/${id}/vote`, {method:'POST', credentials:'include'});
+          const j = await r.json();
+          if(j && j.votes!=null){ btn.nextElementSibling.textContent = j.votes; }
+        };
+      });
+    }
+
+    function escapeHtml(s=''){
+      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    $('#send').onclick = async ()=>{
+      const title = $('#title').value.trim();
+      const body  = $('#body').value.trim();
+      const category = $('#cat').value;
+      if(!title || !body){ $('#msg').textContent = 'Completează titlul și descrierea.'; return; }
+      $('#msg').textContent = 'Se trimite...';
+      const r = await fetch('/api/feedback',{
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ title, body, category })
+      });
+      const j = await r.json();
+      if(!r.ok){ $('#msg').textContent = j.error || 'Eroare'; return; }
+      $('#msg').textContent = 'Mulțumim! Ideea ta a fost înregistrată.';
+      $('#title').value=''; $('#body').value='';
+      loadIdeas();
+    };
+
+    loadIdeas();
+  </script>
+</body>
+</html>
