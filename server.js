@@ -8,26 +8,61 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import Stripe from 'stripe';
+import SQLiteStoreFactory from 'connect-sqlite3';
+
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set('trust proxy', 1); // necesar pe Render pentru cookie secure
+
+// CORS
 app.use(cors({ origin: true, credentials: true }));
+
+// ---------- STRIPE (webhook raw) ----------
+// !! webhook-ul trebuie să fie ÎNAINTE de express.json
+const stripe = new Stripe(process.env.STRIPE_SECRET || '');
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  try {
+    const event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+
+    if (event.type === 'checkout.session.completed') {
+      const ref = event.data.object.client_reference_id;
+      run('UPDATE users SET subscribed=1 WHERE id=?', [ref]).catch(console.error);
+    }
+    res.json({ received: true });
+  } catch (err) {
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+});
+
+// Body parser pentru restul rutelor
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
 app.use(morgan('dev'));
+
+// ---------- Sesiuni cu SQLiteStore (fără WARNING) ----------
+const SQLiteStore = SQLiteStoreFactory(session);
 app.use(session({
   secret: process.env.SESSION_SECRET || 'change-this-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { httpOnly: true, sameSite: 'lax' }
+  store: new SQLiteStore({ db: 'sessions.sqlite', dir: __dirname }),
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production' // pe Render e HTTPS
+  }
 }));
 
-// ===== DEV AUTO LOGIN (ca să nu mai fie nevoie de autentificare la test) =====
-const DEV_NO_AUTH = (process.env.DEV_NO_AUTH || '').toLowerCase() === 'true';
-
-// --- DB ---
+// ---------- DB ----------
 const db = new sqlite3.Database(path.join(__dirname, 'db.sqlite'));
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -51,7 +86,7 @@ db.serialize(() => {
     amount_cents INTEGER,
     currency TEXT DEFAULT 'EUR',
     status TEXT DEFAULT 'created',
-    provider TEXT DEFAULT 'CCBill',
+    provider TEXT DEFAULT 'Stripe',
     provider_ref TEXT,
     result_url TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -94,25 +129,6 @@ async function currentUser(req) {
   return await get('SELECT * FROM users WHERE id=?', [req.session.userId]);
 }
 
-// ===== autologin pt DEV_NO_AUTH =====
-app.use(async (req, res, next) => {
-  try {
-    if (DEV_NO_AUTH && !req.session.userId) {
-      let u = await get('SELECT * FROM users WHERE email=?', ['dev@local.test']);
-      if (!u) {
-        const r = await run(
-          'INSERT INTO users(email, age_verified, subscribed) VALUES(?,?,?)',
-          ['dev@local.test', 1, 1]
-        );
-        req.session.userId = r.lastID;
-      } else {
-        req.session.userId = u.id;
-      }
-    }
-  } catch {}
-  next();
-});
-
 // seed demo media
 (async () => {
   const files = ['/demo/ai1.jpg', '/demo/ai2.jpg', '/demo/ai3.jpg'];
@@ -128,7 +144,7 @@ function allowed(text = '') {
   return !bad.some(w => t.includes(w));
 }
 
-// auth
+// ---------- Auth ----------
 app.post('/api/login', async (req, res) => {
   const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
@@ -141,7 +157,7 @@ app.post('/api/login', async (req, res) => {
   res.json({ ok: true, user });
 });
 
-// age & subscribe (demo)
+// ---------- Age & subscribe (mock pentru demo) ----------
 app.post('/api/verify-age/mock', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   await run('UPDATE users SET age_verified=1 WHERE id=?', [user.id]);
@@ -153,17 +169,32 @@ app.post('/api/subscribe/mock', async (req, res) => {
   res.json({ ok: true });
 });
 
-// image gen (demo -> returnează aleator o imagine din /demo)
-const demoImgs = ['/demo/ai1.jpg','/demo/ai2.jpg','/demo/ai3.jpg'];
+// ---------- Stripe Checkout (abonament real) ----------
+app.post('/api/checkout/create', async (req, res) => {
+  const user = await currentUser(req);
+  if (!user) return res.status(401).json({ error: 'Not logged in' });
+
+  try {
+    const sess = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      client_reference_id: String(user.id),
+      success_url: `${process.env.PUBLIC_BASE}/premium.html?paid=1`,
+      cancel_url: `${process.env.PUBLIC_BASE}/premium.html?canceled=1`
+    });
+    res.json({ url: sess.url });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ---------- Generare (stub) ----------
 app.post('/api/gen/image', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   const { prompt = '' } = req.body || {};
   if (!allowed(prompt)) return res.status(400).json({ error: 'Prompt not allowed' });
-  const url = demoImgs[Math.floor(Math.random()*demoImgs.length)];
-  res.json({ ok: true, url });
+  res.json({ ok: true, url: '/demo/ai1.jpg' });
 });
-
-// video gen (stub)
 app.post('/api/gen/video', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   const { storyboard = '' } = req.body || {};
@@ -171,7 +202,7 @@ app.post('/api/gen/video', async (req, res) => {
   res.json({ ok: true, url: '/demo/video-placeholder.mp4' });
 });
 
-// eraser (AI-only)
+// ---------- AI eraser (doar media AI) ----------
 app.post('/api/erase', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   const { mediaPath = '' } = req.body || {};
@@ -180,7 +211,7 @@ app.post('/api/erase', async (req, res) => {
   res.json({ ok: true, message: 'Eraser accepted (demo)' });
 });
 
-// signed media (local fallback)
+// ---------- Link semnat media (fallback local) ----------
 app.post('/api/media/sign', async (req, res) => {
   const user = await currentUser(req); if (!user) return res.status(401).json({ error: 'Not logged in' });
   if (!user.age_verified) return res.status(403).json({ error: 'Age not verified' });
@@ -189,7 +220,7 @@ app.post('/api/media/sign', async (req, res) => {
   res.json({ url: mediaPath });
 });
 
-// admin
+// ---------- Admin ----------
 app.get('/api/admin/stats', async (req, res) => {
   const users = await get('SELECT COUNT(*) c FROM users');
   const orders = await get('SELECT COUNT(*) c FROM orders');
@@ -197,14 +228,10 @@ app.get('/api/admin/stats', async (req, res) => {
   res.json({ users: users?.c || 0, orders: orders?.c || 0, jobs: jobs?.c || 0 });
 });
 
-// static
+// ---------- Static ----------
 app.use('/demo', express.static(path.join(__dirname, 'public', 'demo')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ---------- Start ----------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`The Future — PRO running on http://localhost:${PORT}`));
-// who am I
-app.get('/api/me', async (req, res) => {
-  const user = await currentUser(req);
-  res.json({ user });
-});
