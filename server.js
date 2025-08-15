@@ -573,3 +573,67 @@ app.use(express.static(path.join(__dirname,'public')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, ()=> console.log(`The Future — PRO running on http://localhost:${PORT}`));
+// ---- helpers pentru login/diagnostic pe mobil ----
+
+// login prin link + redirect (setează cookie-ul apoi te duce în /premium)
+app.get('/api/login/link', async (req, res) => {
+  try {
+    const email = String(req.query.email || '').trim();
+    if (!email) return res.status(400).send('email required');
+    let u = await get(`SELECT * FROM users WHERE email=?`, [email]);
+    if (!u) {
+      const r = await run(`INSERT INTO users(email) VALUES(?)`, [email]);
+      u = await get(`SELECT * FROM users WHERE id=?`, [r.lastID]);
+    }
+    req.session.regenerate(err => {
+      if (err) return res.status(500).send('session_regenerate_failed');
+      req.session.user_id = u.id;
+      req.session.save(err2 => {
+        if (err2) return res.status(500).send('session_save_failed');
+        // redirect în pagină normală ca să fie clar că s-a setat cookie-ul
+        res.redirect('/premium');
+      });
+    });
+  } catch (e) {
+    res.status(500).send(String(e.message || e));
+  }
+});
+
+// end-point de debug: verifică ce vede serverul despre sesiune/cookie
+app.get('/api/debug/cookies', (req, res) => {
+  res.json({
+    ok: true,
+    sid: req.sessionID || null,
+    hasSession: !!req.session,
+    user_id: req.session?.user_id || null,
+    cookies: req.cookies || {}
+  });
+});
+
+// seed rapid: adaugă o persoană demo dacă nu există
+app.get('/api/personas/mock-add', async (req, res) => {
+  const exists = await get(`SELECT id FROM personas WHERE slug=?`, ['luna-asistenta-medicala']).catch(()=>null);
+  if (!exists) {
+    const appearance = { hair: 'brunetă', eyes: 'café', style: 'scrubs', vibe: 'sweet but teasing' };
+    const tags = ['Nurse','Roleplay','Teasing'];
+    const prices = { image: 20, video10: 90, video20: 150 };
+    const openers = ['Hei, ai programare? Pot să-ți fac un control rapid… 😇'];
+    await run(
+      `INSERT INTO personas(slug,name,type,role,category,appearance_json,tone,tags_json,media_prices_json,opener_templates_json,preset)
+       VALUES(?,?,?,?,?,?,?,?,?,?,1)`,
+      ['luna-asistenta-medicala','Luna','female','Asistentă medicală','Roleplay',
+       JSON.stringify(appearance),'playful, teasing',
+       JSON.stringify(tags), JSON.stringify(prices), JSON.stringify(openers), 1]
+    );
+  }
+  res.json({ ok:true, slug:'luna-asistenta-medicala' });
+});
+
+// activare sub prin GET (shortcut)
+app.get('/api/sub/mock-activate/:tier', async (req,res)=>{
+  if(!req.session?.user_id) return res.status(401).json({ok:false,error:'login_required'});
+  const until = Math.floor(Date.now()/1000) + (Number(process.env.SUB_DEFAULT_DAYS||30)*86400);
+  const tier = String(req.params.tier||'PRO').toUpperCase();
+  await run(`UPDATE users SET sub_expires_at=?, sub_tier=? WHERE id=?`, [until, tier, req.session.user_id]);
+  res.json({ ok:true, subActive:true, until, subTier:tier });
+});
