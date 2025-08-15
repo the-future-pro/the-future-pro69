@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Seed Personas</title>
+<style>
+  body{background:#0b0b0f;color:#eee;font-family:system-ui,Arial;margin:24px}
+  button{padding:10px 16px;border-radius:10px;border:1px solid #555;background:#1c1c22;cursor:pointer}
+  pre{background:#121218;padding:12px;border-radius:10px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+  <h1>Adaugă personaje presetate</h1>
+  <p><b>Important:</b> întâi fă <a href="/premium.html">Login</a> și apasă <b>PRO</b> ca să ai abonament activ (mock), apoi revino aici.</p>
+  <button id="go">Adaugă 12 personaje presetate</button>
+  <pre id="out">—</pre>
+
+<script>
+const personas = [
+  // Femei — roleplay de bază
+  {name:'Mara',       type:'female', role:'Asistentă medicală', category:'Roleplay',
+    appearance:{eyes:'hazel',hair:'blonde',style:'nurse'}, tone:'caldă, grijulie',
+    tags:['gentle','romantic'], mediaPrices:{image:20,video10:90,video20:150}},
+  {name:'Irina',      type:'female', role:'Profesoară', category:'Roleplay',
+    appearance:{eyes:'green',hair:'brown',style:'elegant'}, tone:'dominantă, juc
