@@ -1,153 +1,116 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Premium</title>
-  <link rel="stylesheet" href="/style.css">
-  <style>
-    body{padding:16px}
-    nav a{margin-right:12px;color:var(--muted)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-    .card{border:1px solid var(--line);border-radius:16px;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01))}
-    .card h3{margin:.2rem 0 .6rem}
-    .muted{color:var(--muted)}
-    .result{white-space:pre-wrap;font-family:monospace}
-    input[type="email"]{padding:10px;min-width:280px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--fg)}
-    button{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-weight:600;cursor:pointer}
-    .primary{background:linear-gradient(90deg,var(--accent),var(--pink));border-color:transparent;color:#0b0b0f}
-    img{max-width:100%;border-radius:10px}
-  </style>
+<meta charset="utf-8">
+<title>Premium</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.card{border:1px solid #333;border-radius:12px;padding:12px;background:#0b0b0f}
+small.mono{font-family:monospace;opacity:.8}
+.blurred{filter:blur(14px)}
+</style>
 </head>
-<body class="container">
-
-  <nav class="muted" style="margin-bottom:8px">
-    <a href="/">Home</a>
-    <a href="/gen-image.html">Image Gen</a>
-    <a href="/gen-video.html">Video Gen</a>
-    <a href="/ideas.html">💡 Idei</a>
-    <a href="/login-demo.html">Login Demo</a>
-  </nav>
-
+<body class="wrap">
   <h1>Premium</h1>
-  <p class="muted">Pasul 1: Login • Pasul 2: Verificare vârstă (mock) • Pasul 3: Abonare (mock sau Stripe real)</p>
 
-  <div class="grid">
-    <!-- Login -->
-    <div class="card">
-      <h3>Login</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input id="email" type="email" placeholder="email">
-        <button onclick="doLogin()">Login</button>
-      </div>
-      <div id="rLogin" class="result" style="margin-top:8px"></div>
-    </div>
-
-    <!-- Verify + Subscribe -->
-    <div class="card">
-      <h3>Verify + Subscribe</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button onclick="mockVerifyAge()">Mock Verify Age</button>
-        <button onclick="mockSubscribe()">Mock Subscribe</button>
-        <button class="primary" onclick="startCheckout()">Plătește (Stripe)</button>
-      </div>
-      <div id="rSub" class="result" style="margin-top:8px"></div>
-      <p class="muted" style="margin-top:6px">Mock = pentru testare. Stripe = abonament real (dacă ai cheile setate).</p>
-    </div>
-
-    <!-- Private media -->
-    <div class="card">
-      <h3>Private Media</h3>
-      <p class="muted">Cere un URL semnat (necesită age_verified + subscribed).</p>
-      <button onclick="signMedia()">Obține link</button>
-      <div id="rMedia" class="result" style="margin-top:8px"></div>
-      <div style="margin-top:8px"><img id="pm" src="/demo/ai2.jpg" alt=""></div>
-    </div>
-
-    <!-- AI Eraser -->
-    <div class="card">
-      <h3>AI Eraser (AI-only)</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="imgPick">
-          <option value="/demo/ai1.jpg">AI image #1</option>
-          <option value="/demo/ai2.jpg">AI image #2</option>
-          <option value="/demo/ai3.jpg">AI image #3</option>
-        </select>
-        <button onclick="runEraser()">Rulează</button>
-      </div>
-      <div id="rErase" class="result" style="margin-top:8px"></div>
-      <p class="muted" style="margin-top:6px">Funcționează doar pe media generată AI (fără persoane reale).</p>
-    </div>
+  <div class="card">
+    <h3>Login</h3>
+    <input id="email" placeholder="email" style="width:260px">
+    <button onclick="doLogin()">Login</button>
+    <pre id="meBox" style="white-space:pre-wrap"></pre>
   </div>
 
-  <script>
-    const $ = (id)=>document.getElementById(id);
+  <div class="card">
+    <h3>Verifică & Abonează-te (mock)</h3>
+    <button onclick="mockSub('BASIC')">BASIC</button>
+    <button onclick="mockSub('PLUS')">PLUS</button>
+    <button onclick="mockSub('PRO')">PRO</button>
+    <p><small class="mono">Setează abonamentul în contul tău de test. Pe live vei conecta Stripe.</small></p>
+  </div>
 
-    async function api(path, method='POST', body){
-      const res = await fetch(path, {
-        method, credentials:'include',
-        headers:{'Content-Type':'application/json'},
-        body: body ? JSON.stringify(body) : undefined
-      });
-      let data={}; try{ data=await res.json(); }catch{}
-      if(!res.ok) throw new Error(data.error || res.statusText);
-      return data;
-    }
+  <div class="card" id="createBox" style="display:none">
+    <h3>Creează un Partener AI</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px">
+      <input id="p_name" placeholder="Nume (ex. Vanesa Maria)">
+      <select id="p_type">
+        <option value="female">Femeie</option>
+        <option value="male">Bărbat</option>
+        <option value="anime">Anime</option>
+      </select>
+      <select id="p_role">
+        <option>Asistentă medicală</option>
+        <option>Profesoară</option>
+        <option>Secretară</option>
+        <option>Asistentă birou</option>
+        <option>Girlfriend</option>
+        <option>Goth</option>
+        <option>MILF</option>
+        <option>Boyfriend</option>
+        <option>CEO/Boss</option>
+        <option>Personal Trainer</option>
+        <option>Catgirl</option>
+        <option>Elf Queen</option>
+      </select>
+      <input id="p_category" placeholder="Categorie (ex. Roleplay)">
+      <input id="p_tone" placeholder="Ton (ex. tandră, pasională)">
+      <input id="p_img" type="number" placeholder="Preț imagine (credite)" value="20">
+      <input id="p_v10" type="number" placeholder="Preț video 10s (credite)" value="90">
+      <input id="p_v20" type="number" placeholder="Preț video 20s (credite)" value="150">
+    </div>
+    <button onclick="createPersona()">Creează</button>
+    <div id="createMsg"></div>
+  </div>
 
-    async function doLogin(){
-      const email = $('email').value.trim();
-      if(!email){ $('rLogin').textContent='Introdu un email.'; return; }
-      try{
-        const r = await api('/api/login','POST',{ email });
-        $('rLogin').textContent = 'Logat: ' + (r.user?.email || email);
-      }catch(e){ $('rLogin').textContent = e.message; }
-    }
+  <h3 style="margin-top:24px">Parteneri AI disponibili</h3>
+  <div id="list" class="grid"></div>
 
-    async function mockVerifyAge(){
-      try{
-        const r = await api('/api/verify-age/mock');
-        $('rSub').textContent = 'Age verified (mock).';
-      }catch(e){
-        $('rSub').textContent = /Not logged/i.test(e.message) ? 'Fă login întâi.' : e.message;
-      }
-    }
+<script>
+const j = (u, o)=>fetch(u,{method:o?.method||'GET',headers:{'Content-Type':'application/json'},credentials:'include',body:o?.body?JSON.stringify(o.body):undefined}).then(r=>r.json());
 
-    async function mockSubscribe(){
-      try{
-        const r = await api('/api/subscribe/mock');
-        $('rSub').textContent = 'Subscribed (mock).';
-      }catch(e){
-        $('rSub').textContent = /Not logged/i.test(e.message) ? 'Fă login întâi.' : e.message;
-      }
-    }
+async function refreshMe(){
+  const me = await j('/api/me');
+  document.getElementById('meBox').textContent = JSON.stringify(me,null,2);
+  document.getElementById('createBox').style.display = (me.logged && me.subActive)?'block':'none';
+}
+async function doLogin(){
+  const email = document.getElementById('email').value.trim();
+  if(!email) return alert('Email!');
+  await j('/api/login',{method:'POST',body:{email}});
+  refreshMe(); loadPersonas();
+}
+async function mockSub(tier){ await j('/api/sub/mock-activate',{method:'POST',body:{tier}}); refreshMe(); }
 
-    async function startCheckout(){
-      try{
-        const r = await api('/api/checkout/create','POST');
-        location.href = r.url; // Stripe Checkout
-      }catch(e){ $('rSub').textContent = e.message; }
-    }
-
-    async function signMedia(){
-      try{
-        const r = await api('/api/media/sign','POST',{ path:'/demo/ai2.jpg' });
-        $('rMedia').textContent = JSON.stringify(r);
-        if(r.url) $('pm').src = r.url;
-      }catch(e){ $('rMedia').textContent = e.message; }
-    }
-
-    async function runEraser(){
-      try{
-        const mediaPath = $('imgPick').value;
-        const r = await api('/api/erase','POST',{ mediaPath });
-        $('rErase').textContent = JSON.stringify(r);
-      }catch(e){ $('rErase').textContent = e.message; }
-    }
-
-    // feedback după întoarcerea din Stripe
-    if(new URLSearchParams(location.search).get('paid')==='1'){
-      $('rSub').textContent = 'Payment OK. Abonamentul se activează prin webhook în câteva secunde.';
-    }
-  </script>
+async function createPersona(){
+  const body = {
+    name: p_name.value.trim(),
+    type: p_type.value,
+    role: p_role.value,
+    category: p_category.value.trim()||'Roleplay',
+    tone: p_tone.value.trim(),
+    mediaPrices: { image:Number(p_img.value||20), video10:Number(p_v10.value||90), video20:Number(p_v20.value||150) }
+  };
+  const r = await j('/api/personas',{method:'POST',body});
+  document.getElementById('createMsg').textContent = JSON.stringify(r);
+  if(r.ok) loadPersonas();
+}
+async function loadPersonas(){
+  const r = await j('/api/personas');
+  const el = document.getElementById('list');
+  el.innerHTML = '';
+  (r.items||[]).forEach(p=>{
+    const d = document.createElement('div');
+    d.className='card';
+    d.innerHTML = `
+      <div><b>${p.name}</b> — <small>${p.type}/${p.role}</small></div>
+      <div style="margin:6px 0"><small class="mono">Slug: ${p.slug}</small></div>
+      <a href="/chat.html?slug=${encodeURIComponent(p.slug)}">Deschide chat</a>
+    `;
+    el.appendChild(d);
+  });
+}
+refreshMe(); loadPersonas();
+</script>
 </body>
 </html>
