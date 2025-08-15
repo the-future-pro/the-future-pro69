@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import connectSqlite3 from 'connect-sqlite3';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -12,80 +13,87 @@ const __dirname  = path.dirname(__filename);
 
 const app = express();
 
-// --- middlewares
+// ——— proxy & middlewares
+app.set('trust proxy', 1); // OBLIGATORIU pe Render/HTTPS prin proxy
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// --- sesiune (SQLite store pe disc, sigur pe Render)
+// ——— sesiune (SQLite store pe disc)
 const SQLiteStore = connectSqlite3(session);
-app.use(
-  session({
-    store: new SQLiteStore({
-      // fișierul va fi creat automat
-      db: 'sessions.sqlite',
-      dir: path.join(__dirname, 'db')
-    }),
-    secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: true, // Render servește https
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 zile
-    }
-  })
-);
+const SESS_DIR = path.join(__dirname, 'db');
+try { fs.mkdirSync(SESS_DIR, { recursive: true }); } catch {}
+
+app.use(session({
+  store: new SQLiteStore({
+    db: 'sessions.sqlite',
+    dir: SESS_DIR
+  }),
+  secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
+  resave: false,
+  saveUninitialized: false,          // <— important
+  name: 'connect.sid',
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: 'auto',                  // <— important pe Render
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 zile
+  }
+}));
 
 // Helpers
 const TIERS = ['BASIC', 'PLUS', 'PRO'];
 
-// --- API: stare user
+// ——— API: user state
 app.get('/api/me', (req, res) => {
   if (req.session?.user) return res.json({ ok: true, user: req.session.user });
   return res.json({ ok: false, error: 'login_required' });
 });
 
-// --- API: login (mock) – ambele aliasuri ca să nu mai apară 404
+// ——— API: login (mock)
 app.get(['/api/mock-login', '/api/debug/login'], (req, res) => {
   const email = (req.query.email || '').trim() || 'user@example.com';
-  // setează userul în sesiune
   req.session.user = { id: Date.now() % 100000, email };
-  // opțional: salvează explicit, ca să fim 100% siguri
   req.session.save(() => res.json({ ok: true, user: req.session.user }));
 });
 
-// --- API: logout
+// ——— API: logout
 app.get(['/api/logout', '/api/debug/logout'], (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
-// --- API: „abonament” mock (activare pentru BASIC/PLUS/PRO)
+// ——— API: activare „abonament” mock
 app.get('/api/sub/mock-activate/:tier', (req, res) => {
   const tier = String(req.params.tier || '').toUpperCase();
   if (!TIERS.includes(tier)) return res.status(400).json({ ok: false, error: 'invalid_tier' });
-
   const days = Number(process.env.SUB_DEFAULT_DAYS || 30);
   const until = Date.now() + days * 24 * 60 * 60 * 1000;
-
   req.session.sub = { tier, until };
   req.session.save(() => res.json({ ok: true, sub: req.session.sub }));
 });
 
-// --- API: verificare abonament
+// ——— API: verificare abonament
 app.get('/api/sub/check', (req, res) => {
   const sub = req.session?.sub || null;
   const active = !!(sub && sub.until > Date.now());
   res.json({ ok: true, active, sub });
 });
 
-// --- API: debug cookie (ce trimite browserul)
+// ——— Debug: cookie trimis de browser
 app.get('/api/debug/cookie', (req, res) => {
   res.json({ cookie: req.headers.cookie || '' });
 });
 
-// --- UI simplu pentru test (pagina /premium)
+// ——— Debug: verificare persistență sesiune
+app.get('/api/debug/session/info', (req, res) => {
+  res.json({ ok: true, sessionID: req.sessionID || null, counter: req.session?.counter || 0 });
+});
+app.get('/api/debug/session/incr', (req, res) => {
+  req.session.counter = (req.session.counter || 0) + 1;
+  res.json({ ok: true, counter: req.session.counter });
+});
+
+// ——— UI simplu (/premium)
 app.get('/premium', (_req, res) => {
   res.type('html').send(`<!doctype html>
 <html lang="ro"><meta charset="utf-8"/>
@@ -142,6 +150,6 @@ app.get('/premium', (_req, res) => {
 </html>`);
 });
 
-// --- pornire
+// ——— start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server ready on :' + PORT));
