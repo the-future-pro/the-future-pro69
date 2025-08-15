@@ -1,25 +1,122 @@
 <!doctype html>
 <html lang="ro">
 <head>
-<meta charset="utf-8">
-<title>Seed Personas</title>
-<style>
-  body{background:#0b0b0f;color:#eee;font-family:system-ui,Arial;margin:24px}
-  button{padding:10px 16px;border-radius:10px;border:1px solid #555;background:#1c1c22;cursor:pointer}
-  pre{background:#121218;padding:12px;border-radius:10px;white-space:pre-wrap}
-</style>
+  <meta charset="utf-8">
+  <title>Seed Personas</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{background:#0b0b0e;color:#ddd;font:16px/1.4 system-ui,Segoe UI,Roboto;
+      max-width:900px;margin:24px auto;padding:24px}
+    button{padding:10px 16px;border-radius:10px;border:1px solid #444;background:#1c1c22;cursor:pointer}
+    .ok{color:#6ee7a2}.warn{color:#f5c84b}.err{color:#ff7a7a}
+    code{background:#16161a;padding:2px 6px;border-radius:6px}
+    li{margin:6px 0}
+  </style>
 </head>
 <body>
-  <h1>Adaugă personaje presetate</h1>
-  <p><b>Important:</b> întâi fă <a href="/premium.html">Login</a> și apasă <b>PRO</b> ca să ai abonament activ (mock), apoi revino aici.</p>
-  <button id="go">Adaugă 12 personaje presetate</button>
-  <pre id="out">—</pre>
+  <h1>Seed Personas</h1>
+  <p><b>Pas obligatoriu:</b> întâi fă <a href="/premium.html">Login</a> și activează un abonament (BASIC/PLUS/PRO). Apoi apasă butonul.</p>
+  <p>Rerulăm în siguranță – dacă există deja, le sare (slug_exists).</p>
+  <button id="go">Seed 12 personaje</button>
+  <ol id="log"></ol>
 
 <script>
 const personas = [
-  // Femei — roleplay de bază
-  {name:'Mara',       type:'female', role:'Asistentă medicală', category:'Roleplay',
-    appearance:{eyes:'hazel',hair:'blonde',style:'nurse'}, tone:'caldă, grijulie',
-    tags:['gentle','romantic'], mediaPrices:{image:20,video10:90,video20:150}},
-  {name:'Irina',      type:'female', role:'Profesoară', category:'Roleplay',
-    appearance:{eyes:'green',hair:'brown',style:'elegant'}, tone:'dominantă, juc
+  // FEMEI – roleplay
+  {name:'Andreea', type:'female', role:'Asistentă medicală', category:'Roleplay',
+   appearance:{eyes:'hazel', hair:'blonde', style:'glam', body:'slim-curvy', bust:'medium'},
+   tone:'tandră, grijulie, pasională',
+   tags:['nurse','gentle','teasing'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Ți-am pregătit un control… vrei un teaser blurat?']},
+
+  {name:'Irina', type:'female', role:'Profesoară', category:'Roleplay',
+   appearance:{eyes:'green', hair:'brown', style:'elegant', body:'athletic'},
+   tone:'dominantă, jucăușă', tags:['teacher','roleplay'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Ți-am pregătit o „lecție” privată — vrei un preview?']},
+
+  {name:'Elena', type:'female', role:'Secretară', category:'Office',
+   appearance:{eyes:'blue', hair:'black', style:'office-chic', body:'slim'},
+   tone:'confidențială, seducătoare', tags:['secretary','office'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Am un fișier „confidențial”. Îți trimit un teaser?']},
+
+  // FEMEI – stiluri cerute
+  {name:'Roxana', type:'female', role:'Goth', category:'Alt',
+   appearance:{eyes:'grey', hair:'black', style:'Goth Girl', body:'slim', makeup:'dark'},
+   tone:'misterioasă, intensă', tags:['goth','alt'], mediaPrices:{image:25,video10:95,video20:160},
+   openerTemplates:['Să-ți arăt ceva întunecat și irezistibil?']},
+
+  {name:'Mara', type:'female', role:'MILF', category:'Mature',
+   appearance:{eyes:'brown', hair:'caramel', style:'glossy', body:'curvy', bust:'large'},
+   tone:'caldă, răsfățată', tags:['milf','elegant'], mediaPrices:{image:25,video10:100,video20:170},
+   openerTemplates:['Îți trimit un mic răsfăț video?']},
+
+  {name:'Bianca', type:'female', role:'Asistentă birou', category:'Office',
+   appearance:{eyes:'brown', hair:'auburn', style:'casual', body:'fit'},
+   tone:'prietenoasă, dezinvoltă', tags:['assistant','casual'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Am pregătit un teaser discret. Îl vrei?']},
+
+  // BĂRBAȚI
+  {name:'Vlad', type:'male', role:'CEO/Boss', category:'Power',
+   appearance:{eyes:'blue', hair:'dark', style:'suit', body:'athletic'},
+   tone:'încrezător, protector', tags:['boss','suit'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Facem o ședință… privată? Îți trimit un preview?']},
+
+  {name:'Alex', type:'male', role:'Personal Trainer', category:'Fitness',
+   appearance:{eyes:'brown', hair:'brown', style:'sport', body:'muscular'},
+   tone:'motivațional, playful', tags:['fitness','trainer'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Ți-am pregătit un antrenament „vizual”. Preview?']},
+
+  {name:'Dani', type:'male', role:'Boyfriend', category:'Romance',
+   appearance:{eyes:'hazel', hair:'dark', style:'casual', body:'lean'},
+   tone:'romantic, grijuliu', tags:['boyfriend','romance'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Hai să începem cu un teaser dulce?']},
+
+  // ANIME
+  {name:'Nyara', type:'anime', role:'Catgirl', category:'Fantasy',
+   appearance:{eyes:'emerald', hair:'white', style:'kawaii', body:'slim', ears:'cat'},
+   tone:'jucăușă', tags:['anime','catgirl'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Nyaa~ vrei un preview drăgălaș?']},
+
+  {name:'Aeloria', type:'anime', role:'Elf Queen', category:'Fantasy',
+   appearance:{eyes:'gold', hair:'silver', style:'regal', body:'slender', ears:'elf'},
+   tone:'nobilă, seducătoare', tags:['elf','fantasy'], mediaPrices:{image:25,video10:100,video20:170},
+   openerTemplates:['Un dar regal pentru tine — un teaser?']},
+
+  {name:'Luna', type:'female', role:'Girlfriend', category:'Romance',
+   appearance:{eyes:'blue', hair:'blonde', style:'soft', body:'petite'},
+   tone:'dulce, tandră', tags:['girlfriend','soft'], mediaPrices:{image:20,video10:90,video20:150},
+   openerTemplates:['Îți trimit un preview drăguț?']}
+];
+
+async function seed() {
+  const log = document.getElementById('log');
+  log.innerHTML = '';
+  for (const p of personas) {
+    const li = document.createElement('li');
+    li.textContent = `Adaug ${p.name} (${p.type} / ${p.role})…`;
+    log.appendChild(li);
+    try {
+      const r = await fetch('/api/personas', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(p)
+      });
+      const j = await r.json().catch(()=>({}));
+      if (r.status===409 || j.error==='slug_exists') {
+        li.innerHTML += ' <span class="warn">— există deja (skip)</span>';
+      } else if (j.ok) {
+        li.innerHTML += ' <span class="ok">— OK</span>';
+      } else {
+        li.innerHTML += ` <span class="err">— eroare: ${j.error||r.status}</span>`;
+      }
+    } catch(e){
+      li.innerHTML += ` <span class="err">— ${String(e)}</span>`;
+    }
+  }
+  const done = document.createElement('p');
+  done.innerHTML = `Gata. Mergi la <a href="/premium.html">/premium.html</a> și reîncarcă — ar trebui să vezi cardurile.`;
+  log.appendChild(done);
+}
+document.getElementById('go').addEventListener('click', seed);
+</script>
+</body>
+</html>
