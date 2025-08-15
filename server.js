@@ -1,4 +1,4 @@
-// The Future — PRO (full server, ready-to-paste)
+ // The Future — PRO (full server, ready-to-paste)
 // Features: tiers BASIC/PLUS/PRO, quality gating, fixed negative packs,
 // chat offer + unlock, image/video generation jobs (demo worker),
 // preview blur, credits charging, personas CRUD basic.
@@ -25,17 +25,19 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '6mb' }));
 app.use(cookieParser());
 
+// ---------- Sessions (Render/HTTPS) ----------
 const SQLiteStore = SQLiteStoreFactory(session);
 app.use(session({
   secret: process.env.SESSION_SECRET || 'change-this-secret',
   resave: false,
   saveUninitialized: false,
+  proxy: true, // IMPORTANT pe Render
   store: new SQLiteStore({ db: 'sessions.sqlite', dir: __dirname }),
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
-    secure: true,                       // Render = HTTPS => secure cookie
-    maxAge: 1000*60*60*24*30            // 30 zile
+    secure: true,              // onrender.com este HTTPS
+    maxAge: 1000*60*60*24*30   // 30 zile
   }
 }));
 
@@ -173,7 +175,7 @@ const FIXED_NEG_VIDEO = [
 ].join(', ');
 
 const FIXED_NEG_SAFETY = [
-  'real person','deepfake','celebrity','underage','minor','teen','young-looking',
+  'real person','celebrity','underage','minor','teen','young-looking',
   'nonconsensual','sexual violence','incest','bestiality'
 ].join(', ');
 
@@ -282,12 +284,38 @@ app.get('/api/me',(req,res)=>{
   });
 });
 
-// Mock subscribe (test) — set tier & extend sub
+// ---- Login rapid & activare mock prin GET (pentru test din browser) ----
+app.get('/api/login/easy', async (req,res)=>{
+  try{
+    const email = String(req.query.email||'').trim();
+    if(!email) return res.status(400).send('Missing email');
+    let u = await get(`SELECT * FROM users WHERE email=?`,[email]);
+    if(!u){
+      const r = await run(`INSERT INTO users(email) VALUES(?)`,[email]);
+      u = await get(`SELECT * FROM users WHERE id=?`,[r.lastID]);
+    }
+    req.session.regenerate(err=>{
+      if(err) return res.status(500).send('session_regenerate_failed');
+      req.session.user_id = u.id;
+      req.session.save(()=> res.redirect('/premium.html'));
+    });
+  }catch(e){ res.status(500).send(String(e.message||e)); }
+});
+
+// Mock subscribe (POST existent) — set tier & extend sub
 app.post('/api/sub/mock-activate', requireLogin, async (req,res)=>{
   const until = nowSec() + SUB_DEFAULT_DAYS*86400;
   const tier = (req.body.tier || 'PRO').toUpperCase(); // BASIC|PLUS|PRO
   await run(`UPDATE users SET sub_expires_at=?, sub_tier=? WHERE id=?`,[until, tier, req.user.id]);
   res.json({ ok:true, subActive:true, until, subTier:tier });
+});
+
+// Mock subscribe prin GET (BASIC/PLUS/PRO) — pentru test rapid
+app.get('/api/sub/mock-activate/:tier', requireLogin, async (req,res)=>{
+  const until = nowSec() + SUB_DEFAULT_DAYS*86400;
+  const tier = (req.params.tier||'PRO').toUpperCase();
+  await run(`UPDATE users SET sub_expires_at=?, sub_tier=? WHERE id=?`,[until, tier, req.user.id]);
+  res.redirect('/premium.html');
 });
 
 // --------------- Personas ---------------
