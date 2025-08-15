@@ -1,8 +1,115 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Chat</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="wrap"><h1>Chat (demo)</h1><div id="chat" style="height:260px;overflow:auto;border:1px solid #333;border-radius:8px;padding:8px;margin-bottom:8px"></div>
-<input id="msg" placeholder="Say something" onkeydown="if(event.key==='Enter')send()"><button class="btn" onclick="send()">Send</button></div>
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Chat</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+.wrap{max-width:900px;margin:0 auto;padding:24px}
+.msg{border:1px solid #333;border-radius:12px;padding:10px;margin:8px 0;background:#0b0b0f}
+.you{border-color:#444}
+.persona{border-color:#6a3; background:#0b0f0b}
+.media{display:block;max-width:100%;border-radius:10px}
+.blurred{filter:blur(14px)}
+.row{display:flex;gap:8px}
+</style>
+</head>
+<body class="wrap">
+  <h1 id="title">Chat</h1>
+  <div id="log"></div>
+
+  <div class="row">
+    <input id="text" placeholder="scrie un mesaj" style="flex:1">
+    <button onclick="send()">Trimite</button>
+  </div>
+
+  <h3 style="margin-top:18px">Teaser / Ofertă</h3>
+  <div class="row">
+    <select id="kind"><option value="image">Imagine</option><option value="video">Video</option></select>
+    <select id="quality_img" style="display:block">
+      <option value="1024">1024 (BASIC)</option>
+      <option value="2048">2048 (PLUS)</option>
+      <option value="8k">8K (PRO)</option>
+    </select>
+    <div id="videoOpts" style="display:none" class="row">
+      <select id="v_sec"><option value="10">10s</option><option value="20">20s</option></select>
+      <select id="v_q"><option>1080p</option><option>4k</option></select>
+    </div>
+    <input id="neg" placeholder="Negative extra (se combină cu lock)">
+    <button onclick="offer()">Generează teaser</button>
+  </div>
+
 <script>
-const box=document.getElementById('chat');function add(w,t){const p=document.createElement('p');p.textContent=w+': '+t;box.appendChild(p);box.scrollTop=box.scrollHeight;}
-function reply(t){add('Vanesa','💫 '+t.replace(/\bI\b/g,'you')+' — I\'m here for you.');}
-function send(){const t=document.getElementById('msg').value;if(!t)return;add('You',t);document.getElementById('msg').value='';setTimeout(()=>reply(t),500);}
-</script></body></html>
+const qs = new URLSearchParams(location.search);
+const slug = qs.get('slug') || '';
+document.getElementById('title').textContent = 'Chat — ' + (slug||'alege din /premium');
+
+const j=(u,o)=>fetch(u,{method:o?.method||'GET',headers:{'Content-Type':'application/json'},credentials:'include',body:o?.body?JSON.stringify(o.body):undefined}).then(r=>r.json());
+let lastId=0;
+
+document.getElementById('kind').addEventListener('change', e=>{
+  const v = e.target.value;
+  document.getElementById('quality_img').style.display = v==='image'?'block':'none';
+  document.getElementById('videoOpts').style.display  = v==='video'?'flex':'none';
+});
+
+async function load(){
+  if(!slug) return;
+  const r = await j(`/api/chat/${encodeURIComponent(slug)}/history?after=${lastId}`);
+  (r.items||[]).forEach(m=>{
+    lastId = Math.max(lastId, m.id);
+    render(m);
+  });
+}
+function render(m){
+  const log = document.getElementById('log');
+  const d = document.createElement('div');
+  d.className = 'msg ' + (m.sender_type==='persona'?'persona':'you');
+  if(m.kind==='text'){
+    d.textContent = (m.sender_type==='persona'?'AI: ':'Tu: ') + m.text;
+  } else {
+    const med = m.media||{};
+    const isLocked = m.kind==='media_locked';
+    const url = isLocked ? med.preview_url : med.full_url;
+    d.innerHTML = `
+      <div>${isLocked?'Teaser (blur) — ':'Media — '} ${med.type||''} · preț: ${med.price_credits||0} cr ${med.duration_sec?('· '+med.duration_sec+'s'):''}</div>
+      <div style="position:relative;margin-top:6px">
+        <video ${med.type==='video'?'controls':''} class="media ${isLocked?'blurred':''}" src="${url}"></video>
+      </div>
+      ${isLocked?`<button data-id="${med.id}">Deblochează (${med.price_credits} cr)</button>`:''}
+    `;
+    if(isLocked){
+      d.querySelector('button').onclick = async (ev)=>{
+        const id = ev.target.getAttribute('data-id');
+        const r = await j('/api/media/'+id+'/unlock',{method:'POST'});
+        if(r.ok) location.reload(); else alert(r.error||'eroare');
+      }
+    }
+  }
+  log.appendChild(d);
+}
+
+async function send(){
+  const t = document.getElementById('text').value.trim();
+  if(!t) return;
+  await j(`/api/chat/${encodeURIComponent(slug)}/send`,{method:'POST',body:{text:t}});
+  document.getElementById('text').value='';
+  setTimeout(load,200);
+}
+async function offer(){
+  const kind = document.getElementById('kind').value;
+  let body = { kind, negative: document.getElementById('neg').value };
+  if(kind==='image'){
+    body.quality = document.getElementById('quality_img').value;
+  } else {
+    body.duration = Number(document.getElementById('v_sec').value);
+    body.quality  = document.getElementById('v_q').value;
+  }
+  const r = await j(`/api/chat/${encodeURIComponent(slug)}/offer`,{method:'POST',body});
+  if(!r.ok) alert(r.error||'Eroare');
+  setTimeout(load,300);
+}
+load(); setInterval(load, 3000);
+</script>
+</body>
+</html>
