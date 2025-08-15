@@ -1,0 +1,99 @@
+<!doctype html>
+<meta charset="utf-8"/>
+<title>Generator (mock) — Images & Video</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+  body{background:#0b0f16;color:#e6e9ef;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:24px}
+  h1{font-size:34px;margin:0 0 16px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+  input,select,button{font-size:16px;border-radius:12px;border:1px solid #2a3343;background:#111827;color:#e6e9ef;padding:12px 16px}
+  button{background:#1e293b;cursor:pointer}
+  button.primary{background:#3b82f6}
+  .chip{display:inline-block;padding:8px 12px;border:1px solid #2a3343;border-radius:1000px;background:#111827}
+  pre{background:#0f172a;border:1px solid #223047;border-radius:12px;padding:16px;overflow:auto;min-height:120px}
+</style>
+
+<h1>Generator (mock) — Images & Video</h1>
+
+<div class="row">
+  <textarea id="prompt" rows="6" style="min-width:300px;flex:1">Storyboard: fast drone flyover above a futuristic city at night with neon lights, smooth cinematic motion</textarea>
+</div>
+
+<div class="row">
+  <div class="chip">bad anatomy</div>
+  <div class="chip">extra fingers</div>
+  <div class="chip">blurry</div>
+  <div class="chip">logo</div>
+  <div class="chip">watermark</div>
+</div>
+
+<div class="row">
+  <label>Type</label>
+  <select id="type">
+    <option>Image</option>
+    <option selected>Video 10s 1080p</option>
+  </select>
+
+  <label>Quality</label>
+  <select id="quality">
+    <option>2K</option>
+    <option>4K</option>
+    <option>8K (PRO)</option>
+  </select>
+</div>
+
+<div class="row">
+  <button id="btnLogin">Login</button>
+  <button id="btnBasic">BASIC</button>
+  <button id="btnPlus">PLUS</button>
+  <button id="btnPro" class="primary">PRO</button>
+  <button id="btnCr">+200 cr</button>
+</div>
+
+<div class="row">
+  <button id="btnGen" class="primary" style="min-width:180px">Generate</button>
+</div>
+
+<pre id="out">{ "hint": "apasă pe Login, PRO, +200 cr și apoi Generate" }</pre>
+
+<script>
+  const out = document.getElementById('out');
+  const promptEl = document.getElementById('prompt');
+  const typeEl   = document.getElementById('type');
+  const qualEl   = document.getElementById('quality');
+
+  function show(x){ out.textContent = JSON.stringify(x, null, 2); }
+
+  async function call(url, opts = {}) {
+    try {
+      const r = await fetch(url, { credentials:'include', ...opts });
+      const ct = r.headers.get('content-type') || '';
+      const data = ct.includes('application/json') ? await r.json() : await r.text();
+      show({ http:r.status, data });
+      return { r, data };
+    } catch (e) {
+      show({ ok:false, error:String(e) });
+      return null;
+    }
+  }
+
+  document.getElementById('btnLogin').onclick = () =>
+    call('/api/mock-login?email=' + encodeURIComponent('itudorache53@gmail.com'));
+  document.getElementById('btnBasic').onclick = () => call('/api/sub/mock-activate/BASIC');
+  document.getElementById('btnPlus').onclick  = () => call('/api/sub/mock-activate/PLUS');
+  document.getElementById('btnPro').onclick   = () => call('/api/sub/mock-activate/PRO');
+  document.getElementById('btnCr').onclick    = () => call('/api/credits/mock-add/200');
+
+  document.getElementById('btnGen').onclick = async () => {
+    const body = JSON.stringify({
+      prompt:  promptEl.value.trim(),
+      type:    typeEl.value,
+      quality: qualEl.value
+    });
+    const res = await call('/api/gen/mock', { method:'POST', headers:{ 'Content-Type':'application/json' }, body });
+    if (res && res.data && res.data.url) {
+      // deschide rezultatul în același tab:
+      window.location.href = res.data.url;
+    }
+  };
+</script>
