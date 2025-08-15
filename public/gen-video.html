@@ -1,79 +1,27 @@
 <!doctype html>
 <html lang="ro">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Generate Video</title><link rel="stylesheet" href="/style.css">
-<style>
-  .wrap{max-width:900px;margin:0 auto;padding:24px}
-  textarea,input,select{width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--fg)}
-  button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-weight:600;cursor:pointer}
-  .primary{background:linear-gradient(90deg,var(--accent),var(--pink));border-color:transparent;color:#0b0b0f}
-  video{max-width:100%;border-radius:12px;border:1px solid var(--line);margin-top:10px}
-  .muted{color:var(--muted)}
-</style>
+<meta charset="utf-8">
+<title>Generate Video</title>
+<link rel="stylesheet" href="/style.css">
+<style>.wrap{max-width:900px;margin:0 auto;padding:24px}</style>
 </head>
-<body>
-<div class="wrap">
-  <nav class="muted" style="margin-bottom:8px"><a href="/">← Acasă</a></nav>
+<body class="wrap">
   <h1>Generate Video</h1>
-
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <input id="email" placeholder="email (login rapid)">
-    <button onclick="login()">Login</button>
+  <textarea id="story" placeholder="Storyboard (AI-fantasy only)" style="width:100%;height:120px"></textarea>
+  <div>
+    <select id="sec"><option value="10">10s</option><option value="20">20s</option></select>
+    <select id="q"><option>1080p</option><option>4k</option></select>
   </div>
-
-  <p class="muted" style="margin:10px 0">Video 15s (120 credite). Pentru demo, worker-ul întoarce un placeholder.</p>
-
-  <label>Storyboard / Prompt</label>
-  <textarea id="story" placeholder="Describe the short video..."></textarea>
-
-  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-    <select id="seconds" style="max-width:200px">
-      <option value="3">Short 3s (25 cr)</option>
-      <option value="5">Short 5s (40 cr)</option>
-      <option value="8">Short 8s (55 cr)</option>
-      <option value="15">Video 15s (120 cr)</option>
-    </select>
-    <button class="primary" onclick="createJob()">Generate</button>
-  </div>
-
-  <div id="status" class="muted" style="margin-top:8px"></div>
-  <div id="result"></div>
-</div>
-
+  <input id="neg" placeholder="negative extra (se combină cu lock)" style="width:100%;margin-top:6px">
+  <button onclick="go()">Generează</button>
+  <pre id="out"></pre>
 <script>
-const $ = s => document.querySelector(s);
-async function api(path, method='POST', body){
-  const r = await fetch(path, { method, credentials:'include', headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined });
-  let j={}; try{ j=await r.json(); }catch{}; if(!r.ok) throw new Error(j.error||r.statusText); return j;
-}
-async function login(){ const email=$('#email').value.trim(); if(!email){$('#status').textContent='Introdu email';return;}
-  try{ await api('/api/login','POST',{email}); $('#status').textContent='Logat'; }catch(e){ $('#status').textContent=e.message; } }
-async function createJob(){
-  const storyboard = $('#story').value.trim(); const seconds = Number($('#seconds').value);
-  if(!storyboard){ $('#status').textContent='Scrie storyboard'; return; }
-  $('#status').textContent='Se creează job...';
-  try{
-    const j = await api('/api/jobs','POST',{ kind: seconds<=8?'short':'video', options:{ storyboard, seconds }});
-    $('#status').textContent = `Job #${j.job_id} creat (debited ${j.debited} cr). Așteaptă...`;
-    poll(j.job_id);
-  }catch(e){
-    if(/INSUFFICIENT_CREDITS/.test(e.message)) $('#status').textContent='Nu ai suficiente credite. Mergi la Premium și fă mock subscribe.';
-    else $('#status').textContent=e.message;
-  }
-}
-async function poll(id){
-  const timer = setInterval(async ()=>{
-    try{
-      const s = await fetch(`/api/jobs/${id}`, {credentials:'include'}).then(r=>r.json());
-      if(s.status==='completed'){
-        clearInterval(timer); $('#status').textContent='Gata ✔';
-        const out = JSON.parse(s.output_json||'{}');
-        if(out.url) $('#result').innerHTML = `<video controls src="${out.url}"></video>`;
-      }else if(s.status==='failed'){ clearInterval(timer); $('#status').textContent='Job failed'; }
-      else{ $('#status').textContent=`${s.status}...`; }
-    }catch(e){ clearInterval(timer); $('#status').textContent=e.message; }
-  }, 1500);
+const j=(u,o)=>fetch(u,{method:o?.method||'GET',headers:{'Content-Type':'application/json'},credentials:'include',body:o?.body?JSON.stringify(o.body):undefined}).then(r=>r.json());
+async function go(){
+  const options = { storyboard: story.value, seconds:Number(sec.value), quality:q.value, negative:neg.value };
+  const r = await j('/api/jobs',{method:'POST',body:{kind:'video', options}});
+  out.textContent = JSON.stringify(r,null,2);
 }
 </script>
 </body>
