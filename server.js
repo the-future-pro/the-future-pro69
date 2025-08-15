@@ -1,6 +1,7 @@
-// The Future — PRO (full server)
-// Features: tiers BASIC/PLUS/PRO, quality gating, fixed negative packs, chat offer + unlock,
-// image/video generation jobs (demo worker), preview blur, credits charging, personas CRUD basic.
+// The Future — PRO (full server, ready-to-paste)
+// Features: tiers BASIC/PLUS/PRO, quality gating, fixed negative packs,
+// chat offer + unlock, image/video generation jobs (demo worker),
+// preview blur, credits charging, personas CRUD basic.
 
 import express from 'express';
 import cors from 'cors';
@@ -15,7 +16,7 @@ import SQLiteStoreFactory from 'connect-sqlite3';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname  = path.dirname(__filename);
 
 const app = express();
 app.set('trust proxy', 1);
@@ -30,7 +31,12 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: new SQLiteStore({ db: 'sessions.sqlite', dir: __dirname }),
-  cookie: { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' }
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: true,                       // Render = HTTPS => secure cookie
+    maxAge: 1000*60*60*24*30            // 30 zile
+  }
 }));
 
 // ---------------- DB ----------------
@@ -40,9 +46,9 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT UNIQUE,
     age_verified INTEGER DEFAULT 0,
-    credits INTEGER DEFAULT 100,          -- demo start
+    credits INTEGER DEFAULT 100,
     sub_expires_at INTEGER DEFAULT 0,
-    sub_tier TEXT DEFAULT 'BASIC',        -- BASIC|PLUS|PRO
+    sub_tier TEXT DEFAULT 'BASIC',      -- BASIC|PLUS|PRO
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -82,7 +88,7 @@ db.serialize(() => {
     price_credits INTEGER DEFAULT 0,
     duration_sec INTEGER DEFAULT 0,
     status TEXT DEFAULT 'ready',
-    meta_json TEXT,                       -- {negative, quality, ...}
+    meta_json TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -98,7 +104,7 @@ db.serialize(() => {
     user_id INTEGER,
     type TEXT,                 -- credits|sub|image|video
     amount_cents INTEGER DEFAULT 0,
-    currency TEXT DEFAULT 'CR', -- CR = credits
+    currency TEXT DEFAULT 'CR',
     meta_json TEXT,
     status TEXT DEFAULT 'created',
     provider TEXT DEFAULT 'internal',
@@ -182,16 +188,14 @@ function mergeNeg(kind, userExtra=''){
 function qualityAllowed(u, kind, opt){
   const tier = userTier(u);
   if(kind==='image'){
-    // opt.quality: 1024 | 2048 | 8k
     if(opt.quality==='8k')   return tier==='PRO';
     if(opt.quality==='2048') return tier==='PLUS' || tier==='PRO';
-    return true; // 1024 for all
+    return true; // 1024 pentru toți
   }
   if(kind==='video'){
-    // opt.seconds: 10|20 ; opt.quality: 1080p | 4k
-    if(opt.quality==='4k')     return tier==='PRO' && Number(opt.seconds)===20;
-    if(Number(opt.seconds)===20) return tier==='PLUS' || tier==='PRO';
-    return true; // 10s 1080p for all
+    if(opt.quality==='4k')        return tier==='PRO' && Number(opt.seconds)===20;
+    if(Number(opt.seconds)===20)  return tier==='PLUS' || tier==='PRO';
+    return true; // 10s 1080p pentru toți
   }
   return true;
 }
@@ -207,7 +211,6 @@ function computePriceBase(kind, opt, base){
     const sec = Number(opt.seconds||10);
     const q = opt.quality || '1080p';
     if(sec<=10) return Number(base.video10 || 90);
-    // 20s
     if(q==='4k') return Number(base.video20 || 150) + 70; // +70 cr 4K
     return Number(base.video20 || 150);
   }
@@ -227,26 +230,40 @@ async function chargeCredits(userId, amount, reason='unlock', meta={}){
 
 // --------------- Auth ---------------
 app.post('/api/login', async (req,res)=>{
-  const { email } = req.body||{};
-  if(!email) return res.status(400).json({ error:'Email required' });
-  let u = await get(`SELECT * FROM users WHERE email=?`,[email]);
-  if(!u){
-    const r = await run(`INSERT INTO users(email) VALUES(?)`,[email]);
-    u = await get(`SELECT * FROM users WHERE id=?`,[r.lastID]);
+  try{
+    const { email } = req.body||{};
+    if(!email) return res.status(400).json({ error:'Email required' });
+
+    let u = await get(`SELECT * FROM users WHERE email=?`,[email]);
+    if(!u){
+      const r = await run(`INSERT INTO users(email) VALUES(?)`,[email]);
+      u = await get(`SELECT * FROM users WHERE id=?`,[r.lastID]);
+    }
+
+    // regenerează sesiunea ca să forțăm setarea cookie-ului pe Render
+    req.session.regenerate(err=>{
+      if(err) return res.status(500).json({ ok:false, error:'session_regenerate_failed' });
+      req.session.user_id = u.id;
+      req.session.save(err2=>{
+        if(err2) return res.status(500).json({ ok:false, error:'session_save_failed' });
+        res.json({ ok:true, user:{ id:u.id, email:u.email }});
+      });
+    });
+  }catch(e){
+    res.status(500).json({ ok:false, error:String(e.message||e) });
   }
-  req.session.user_id = u.id;
-  res.json({ ok:true, user:{ id:u.id, email:u.email }});
 });
 
 app.use(async (req,res,next)=>{
   if(!req.session?.user_id) return next();
-  const u = await get(`SELECT id,email,credits,sub_expires_at,sub_tier FROM users WHERE id=?`,[req.session.user_id]).catch(()=>null);
+  const u = await get(`SELECT id,email,credits,sub_expires_at,sub_tier FROM users WHERE id=?`,
+                      [req.session.user_id]).catch(()=>null);
   if(u) req.user = u;
   next();
 });
 
 const requireLogin = (req,res,next)=> !req.user ? res.status(401).json({ok:false,error:'login_required'}) : next();
-const requireSub = (req,res,next)=>{
+const requireSub   = (req,res,next)=>{
   if(!ENFORCE_SUB_REQUIRED) return next();
   if(!req.user) return res.status(401).json({ok:false,error:'login_required'});
   if(!hasActiveSub(req.user)) return res.status(402).json({ok:false,error:'subscription_required'});
@@ -275,10 +292,18 @@ app.post('/api/sub/mock-activate', requireLogin, async (req,res)=>{
 
 // --------------- Personas ---------------
 const allowedTypes = ['female','male','anime'];
-const allowedRoles = ['Asistentă medicală','Profesoară','Secretară','Asistentă birou','Girlfriend','Goth','MILF','Boyfriend','CEO/Boss','Personal Trainer','Catgirl','Elf Queen'];
+const allowedRoles = [
+  'Asistentă medicală','Profesoară','Secretară','Asistentă birou',
+  'Girlfriend','Goth','MILF','Boyfriend','CEO/Boss','Personal Trainer',
+  'Catgirl','Elf Queen'
+];
 
 app.get('/api/personas', async (req,res)=>{
-  const rows = await all(`SELECT id,slug,name,type,role,category,appearance_json AS appearance,tone,tags_json AS tags,media_prices_json AS mediaPrices,preset FROM personas ORDER BY preset DESC, type, role, name`);
+  const rows = await all(`SELECT id,slug,name,type,role,category,
+                                 appearance_json AS appearance,
+                                 tone,tags_json AS tags,media_prices_json AS mediaPrices,preset
+                          FROM personas
+                          ORDER BY preset DESC, type, role, name`);
   res.json({ ok:true, items: rows.map(r=>({
     ...r,
     appearance: r.appearance? JSON.parse(r.appearance):{},
@@ -288,11 +313,14 @@ app.get('/api/personas', async (req,res)=>{
 });
 
 app.get('/api/personas/:slug', async (req,res)=>{
-  const p = await get(`SELECT id,slug,name,type,role,category,appearance_json AS appearance,tone,tags_json AS tags,media_prices_json AS mediaPrices FROM personas WHERE slug=?`,[req.params.slug]);
+  const p = await get(`SELECT id,slug,name,type,role,category,
+                              appearance_json AS appearance,
+                              tone,tags_json AS tags,media_prices_json AS mediaPrices
+                       FROM personas WHERE slug=?`,[req.params.slug]);
   if(!p) return res.status(404).json({ok:false,error:'persona_not_found'});
-  p.appearance = p.appearance? JSON.parse(p.appearance):{};
-  p.tags = p.tags? JSON.parse(p.tags):[];
-  p.mediaPrices = p.mediaPrices? JSON.parse(p.mediaPrices):{};
+  p.appearance   = p.appearance? JSON.parse(p.appearance):{};
+  p.tags         = p.tags? JSON.parse(p.tags):[];
+  p.mediaPrices  = p.mediaPrices? JSON.parse(p.mediaPrices):{};
   res.json({ ok:true, persona:p });
 });
 
@@ -313,7 +341,10 @@ app.post('/api/personas', requireLogin, requireSub, async (req,res)=>{
   try{
     await run(`INSERT INTO personas(slug,name,type,role,category,appearance_json,tone,tags_json,media_prices_json,opener_templates_json,preset)
                VALUES(?,?,?,?,?,?,?,?,?,?,0)`,
-              [slug,name,type,role,category||'Roleplay', JSON.stringify(appearance||{}), tone||'', JSON.stringify(tags||[]), JSON.stringify(normMP), JSON.stringify(openerTemplates||[]), 0]);
+              [slug,name,type,role,category||'Roleplay',
+               JSON.stringify(appearance||{}), tone||'',
+               JSON.stringify(tags||[]), JSON.stringify(normMP),
+               JSON.stringify(openerTemplates||[]), 0]);
     res.json({ ok:true, slug });
   }catch(e){
     if(String(e.message||'').includes('UNIQUE')) return res.status(409).json({ok:false,error:'slug_exists'});
@@ -352,9 +383,9 @@ app.post('/api/chat/:slug/send', requireLogin, requireSub, async (req,res)=>{
              VALUES(?,?,?,?,?,?)`, [p.id, req.user.id, 'user','text', text, ts]);
 
   const upsellMap = {
-    'Profesoară': 'Ți-am pregătit o „lecție” privată — vrei un preview blurat? 😈',
-    'Asistentă medicală': 'Un control complet… îți trimit un teaser? 🩺',
-    'Secretară': 'Am un fișier „confidențial”. Îți trimit un preview blurat? 📂'
+    'Profesoară':        'Ți-am pregătit o „lecție” privată — vrei un preview blurat? 😈',
+    'Asistentă medicală':'Un control complet… îți trimit un teaser? 🩺',
+    'Secretară':         'Am un fișier „confidențial”. Îți trimit un preview blurat? 📂'
   };
   const auto = upsellMap[p.role] || 'Ți-am pregătit un teaser blurat. Îl vrei?';
   await run(`INSERT INTO chat_messages(persona_id,user_id,sender_type,kind,text,created_at)
@@ -419,18 +450,21 @@ app.post('/api/media/:id/unlock', requireLogin, requireSub, async (req,res)=>{
 app.post('/api/jobs', requireLogin, requireSub, async (req,res)=>{
   const { kind, options } = req.body||{};
   if(!kind) return res.status(400).json({ok:false,error:'kind_required'});
-  if(kind!=='image' && kind!=='short' && kind!=='video') return res.status(400).json({ok:false,error:'invalid_kind'});
+  if(kind!=='image' && kind!=='short' && kind!=='video')
+    return res.status(400).json({ok:false,error:'invalid_kind'});
 
   const opt = options||{};
   if(kind==='image'){
     const quality = opt.quality || '1024';
-    if(!qualityAllowed(req.user, 'image', {quality})) return res.status(403).json({ok:false,error:'quality_not_allowed_for_tier'});
+    if(!qualityAllowed(req.user, 'image', {quality}))
+      return res.status(403).json({ok:false,error:'quality_not_allowed_for_tier'});
     const base = { image:20, video10:90, video20:150 };
     const price = computePriceBase('image', {quality}, base);
     try{ await chargeCredits(req.user.id, price, 'image_job', {quality}); }
     catch(e){ return res.status(402).json({ok:false,error:'INSUFFICIENT_CREDITS'}); }
     const input = { kind, prompt: opt.prompt||'', negative: mergeNeg('image', opt.negative||''), quality };
-    const r = await run(`INSERT INTO jobs(user_id,kind,status,input_json,created_at) VALUES(?,?,?,?,?)`,
+    const r = await run(`INSERT INTO jobs(user_id,kind,status,input_json,created_at)
+                         VALUES(?,?,?,?,?)`,
                         [req.user.id,'image','queued',JSON.stringify(input), nowSec()]);
     return res.json({ ok:true, job_id: r.lastID, debited: price });
   }
@@ -446,14 +480,19 @@ app.post('/api/jobs', requireLogin, requireSub, async (req,res)=>{
   try{ await chargeCredits(req.user.id, price, 'video_job', {seconds,quality}); }
   catch(e){ return res.status(402).json({ok:false,error:'INSUFFICIENT_CREDITS'}); }
 
-  const input = { kind:(seconds<=10?'short':'video'), storyboard: opt.storyboard||'', negative: mergeNeg('video', opt.negative||''), seconds, quality };
-  const r = await run(`INSERT INTO jobs(user_id,kind,status,input_json,created_at) VALUES(?,?,?,?,?)`,
+  const input = { kind:(seconds<=10?'short':'video'),
+                  storyboard: opt.storyboard||'',
+                  negative: mergeNeg('video', opt.negative||''),
+                  seconds, quality };
+  const r = await run(`INSERT INTO jobs(user_id,kind,status,input_json,created_at)
+                       VALUES(?,?,?,?,?)`,
                       [req.user.id,(seconds<=10?'short':'video'),'queued',JSON.stringify(input), nowSec()]);
   return res.json({ ok:true, job_id: r.lastID, debited: price });
 });
 
 app.get('/api/jobs/:id', requireLogin, async (req,res)=>{
-  const j = await get(`SELECT id, kind, status, input_json, output_json FROM jobs WHERE id=? AND user_id=?`,
+  const j = await get(`SELECT id, kind, status, input_json, output_json
+                       FROM jobs WHERE id=? AND user_id=?`,
                       [Number(req.params.id), req.user.id]);
   if(!j) return res.status(404).json({ok:false,error:'job_not_found'});
   res.json(j);
@@ -469,18 +508,26 @@ setInterval(async ()=>{
     await run(`UPDATE jobs SET status='running' WHERE id=?`,[j.id]);
     await new Promise(r=>setTimeout(r, j.kind==='image'?1500:2500));
     const url = (j.kind==='image')? '/demo/ai1.jpg' : '/demo/video-placeholder.mp4';
-    await run(`UPDATE jobs SET status='completed', output_json=? WHERE id=?`,[JSON.stringify({url}), j.id]);
-  }catch(e){ console.error(e); } finally{ busy=false; }
+    await run(`UPDATE jobs SET status='completed', output_json=? WHERE id=?`,
+              [JSON.stringify({url}), j.id]);
+  }catch(e){ console.error(e); }
+  finally{ busy=false; }
 }, 1200);
 
 // --------------- Admin / Stats ---------------
 app.get('/api/admin/stats', async (req,res)=>{
-  const users = await get('SELECT COUNT(*) c FROM users');
-  const orders = await get('SELECT COUNT(*) c FROM orders');
-  const jobs = await get('SELECT COUNT(*) c FROM jobs');
-  const personas = await get('SELECT COUNT(*) c FROM personas');
-  const msgs = await get('SELECT COUNT(*) c FROM chat_messages');
-  res.json({ users:users?.c||0, orders:orders?.c||0, jobs:jobs?.c||0, personas:personas?.c||0, chat_messages:msgs?.c||0 });
+  const users     = await get('SELECT COUNT(*) c FROM users');
+  const orders    = await get('SELECT COUNT(*) c FROM orders');
+  const jobs      = await get('SELECT COUNT(*) c FROM jobs');
+  const personas  = await get('SELECT COUNT(*) c FROM personas');
+  const msgs      = await get('SELECT COUNT(*) c FROM chat_messages');
+  res.json({
+    users:users?.c||0,
+    orders:orders?.c||0,
+    jobs:jobs?.c||0,
+    personas:personas?.c||0,
+    chat_messages:msgs?.c||0
+  });
 });
 
 // --------------- Static ---------------
