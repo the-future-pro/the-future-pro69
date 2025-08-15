@@ -19,7 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 const app = express();
-app.set('trust proxy', 1);
+app.set('trust proxy', 1); // necesar pe Render pentru secure cookies
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '6mb' }));
@@ -34,7 +34,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
-    secure: true,                       // Render = HTTPS => secure cookie
+    secure: true,                       // Render servește HTTPS => secure cookie
     maxAge: 1000*60*60*24*30            // 30 zile
   }
 }));
@@ -48,7 +48,7 @@ db.serialize(() => {
     age_verified INTEGER DEFAULT 0,
     credits INTEGER DEFAULT 100,
     sub_expires_at INTEGER DEFAULT 0,
-    sub_tier TEXT DEFAULT 'BASIC',      -- BASIC|PLUS|PRO
+    sub_tier TEXT DEFAULT 'BASIC',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -56,13 +56,13 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT UNIQUE,
     name TEXT,
-    type TEXT,       -- female|male|anime
-    role TEXT,       -- Asistentă medicală|Profesoară|Secretară|...
+    type TEXT,
+    role TEXT,
     category TEXT,
     appearance_json TEXT,
     tone TEXT,
     tags_json TEXT,
-    media_prices_json TEXT, -- {image,video10,video20}
+    media_prices_json TEXT,
     opener_templates_json TEXT,
     preset INTEGER DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -122,7 +122,7 @@ db.serialize(() => {
     created_at INTEGER
   )`);
 
-  // safe migrations (ignore errors if already exists)
+  // safe migrations (ignoră erorile dacă există deja)
   db.run(`ALTER TABLE media ADD COLUMN duration_sec INTEGER DEFAULT 0`, ()=>{});
   db.run(`ALTER TABLE media ADD COLUMN meta_json TEXT`, ()=>{});
   db.run(`ALTER TABLE users ADD COLUMN sub_tier TEXT DEFAULT 'BASIC'`, ()=>{});
@@ -254,28 +254,6 @@ app.post('/api/login', async (req,res)=>{
   }
 });
 
-// GET login rapid pentru test (setează cookie-ul de sesiune)
-app.get('/api/login/easy', async (req, res) => {
-  try {
-    const email = String(req.query.email || 'test@example.com');
-    let u = await get(`SELECT * FROM users WHERE email=?`, [email]);
-    if (!u) {
-      const r = await run(`INSERT INTO users(email) VALUES(?)`, [email]);
-      u = await get(`SELECT * FROM users WHERE id=?`, [r.lastID]);
-    }
-    req.session.regenerate(err => {
-      if (err) return res.status(500).json({ ok:false, error:'session_regenerate_failed' });
-      req.session.user_id = u.id;
-      req.session.save(err2 => {
-        if (err2) return res.status(500).json({ ok:false, error:'session_save_failed' });
-        res.json({ ok:true, user:{ id:u.id, email:u.email }});
-      });
-    });
-  } catch (e) {
-    res.status(500).json({ ok:false, error:String(e.message||e) });
-  }
-});
-
 app.use(async (req,res,next)=>{
   if(!req.session?.user_id) return next();
   const u = await get(`SELECT id,email,credits,sub_expires_at,sub_tier FROM users WHERE id=?`,
@@ -304,20 +282,49 @@ app.get('/api/me',(req,res)=>{
   });
 });
 
-// Mock subscribe (POST) — set tier & extend sub
-app.post('/api/sub/mock-activate', requireLogin, async (req,res)=>{
-  const until = nowSec() + SUB_DEFAULT_DAYS*86400;
-  const tier = (req.body.tier || 'PRO').toUpperCase(); // BASIC|PLUS|PRO
-  await run(`UPDATE users SET sub_expires_at=?, sub_tier=? WHERE id=?`,[until, tier, req.user.id]);
+// ===== Debug & test helpers (GET) =====
+
+// Login rapid din link (setează cookie)
+app.get('/api/login/easy', async (req, res) => {
+  try {
+    const email = String(req.query.email || 'demo@demo.ro').trim().toLowerCase();
+    if (!email) return res.status(400).json({ ok:false, error:'email_required' });
+
+    let u = await get(`SELECT * FROM users WHERE email=?`, [email]);
+    if (!u) {
+      const r = await run(`INSERT INTO users(email) VALUES(?)`, [email]);
+      u = await get(`SELECT * FROM users WHERE id=?`, [r.lastID]);
+    }
+
+    req.session.regenerate(err => {
+      if (err) return res.status(500).json({ ok:false, error:'session_regenerate_failed' });
+      req.session.user_id = u.id;
+      req.session.save(err2 => {
+        if (err2) return res.status(500).json({ ok:false, error:'session_save_failed' });
+        res.json({ ok:true, user:{ id:u.id, email:u.email } });
+      });
+    });
+  } catch (e) {
+    res.status(500).json({ ok:false, error:String(e.message||e) });
+  }
+});
+
+// Activează abonamentul din link (mock) — GET alias
+app.get('/api/sub/mock-activate/:tier?', requireLogin, async (req, res) => {
+  const until = nowSec() + SUB_DEFAULT_DAYS * 86400;
+  const tier  = String(req.params.tier || 'PRO').toUpperCase(); // BASIC|PLUS|PRO
+  await run(`UPDATE users SET sub_expires_at=?, sub_tier=? WHERE id=?`, [until, tier, req.user.id]);
   res.json({ ok:true, subActive:true, until, subTier:tier });
 });
 
-// Mock subscribe (GET) — /api/sub/mock-activate/PRO
-app.get('/api/sub/mock-activate/:tier?', requireLogin, async (req,res)=>{
-  const until = nowSec() + SUB_DEFAULT_DAYS*86400;
-  const tier = String(req.params.tier || 'PRO').toUpperCase();
-  await run(`UPDATE users SET sub_expires_at=?, sub_tier=? WHERE id=?`,[until, tier, req.user.id]);
-  res.json({ ok:true, subActive:true, until, subTier:tier });
+// Vezi ce cookie primește serverul
+app.get('/api/debug/cookies', (req, res) => {
+  res.json({
+    cookies: req.cookies || {},
+    session_id: req.sessionID || null,
+    user_id: req.session?.user_id || null,
+    secure: req.secure,
+  });
 });
 
 // --------------- Personas ---------------
@@ -423,7 +430,7 @@ app.post('/api/chat/:slug/send', requireLogin, requireSub, async (req,res)=>{
   res.json({ ok:true });
 });
 
-// Offer preview (image/video) with quality + negative + pricing
+// Offer preview (image/video) cu quality + negative + pricing
 app.post('/api/chat/:slug/offer', requireLogin, requireSub, async (req,res)=>{
   const { kind='image', duration=0, quality, price, negative='' } = req.body||{};
   const p = await get(`SELECT id, media_prices_json FROM personas WHERE slug=?`,[req.params.slug]);
@@ -501,7 +508,7 @@ app.post('/api/jobs', requireLogin, requireSub, async (req,res)=>{
 
   // short/video (10s/20s)
   const seconds = Number(opt.seconds|| (kind==='short'?10:20));
-  const quality = opt.quality || (seconds===20?'1080p':'1080p');
+  const quality = opt.quality || '1080p';
   if(!qualityAllowed(req.user, 'video', {seconds, quality}))
     return res.status(403).json({ok:false,error:'quality_not_allowed_for_tier'});
 
@@ -560,17 +567,9 @@ app.get('/api/admin/stats', async (req,res)=>{
   });
 });
 
-// --------------- Static & Pretty routes ---------------
+// --------------- Static ---------------
 app.use('/demo', express.static(path.join(__dirname,'public','demo')));
 app.use(express.static(path.join(__dirname,'public')));
-
-// rute frumoase pentru pagini (ca să meargă /premium /gen-image /gen-video /chat)
-const send = f => (req,res)=> res.sendFile(path.join(__dirname,'public',f));
-app.get('/',            send('index.html'));
-app.get('/premium',     send('premium.html'));
-app.get('/gen-image',   send('gen-image.html'));
-app.get('/gen-video',   send('gen-video.html'));
-app.get('/chat',        send('chat.html'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, ()=> console.log(`The Future — PRO running on http://localhost:${PORT}`));
