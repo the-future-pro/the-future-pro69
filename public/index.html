@@ -1,18 +1,118 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>The Future — PRO</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    :root{
+      --bg: #0b0b10;
+      --fg: #e7e8ee;
+      --muted:#9aa0ad;
+      --card:#111320;
+      --card2:#121525;
+      --accent1:#9b5cff;
+      --accent2:#00d0ff;
+      --accent3:#ff2e88;
+      --glass: rgba(255,255,255,0.06);
+      --br:14px;
+    }
+    body{
+      margin:0; background: radial-gradient(1200px 500px at 20% -10%,rgba(155,92,255,.25),transparent),
+                          radial-gradient(900px 500px at 120% 10%,rgba(0,208,255,.25),transparent),
+                          var(--bg);
+      color:var(--fg); font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:28px 20px 56px;}
+    header{display:flex;align-items:center;gap:14px; margin:8px 0 6px;}
+    .logo{width:44px; height:44px; border-radius:12px; background:
+      linear-gradient(135deg,var(--accent1),var(--accent3)); display:grid;place-items:center;
+      font-weight:800; letter-spacing:1px;}
+    .logo span{filter:drop-shadow(0 6px 24px rgba(155,92,255,.65));}
+    h1{font-size:28px;margin:0}
+    .sub{color:var(--muted); margin:6px 0 22px}
+    .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
+    @media (max-width:980px){ .grid{grid-template-columns:repeat(2,1fr);} }
+    @media (max-width:520px){ .grid{grid-template-columns:1fr;} }
+
+    .card{
+      display:block; background:linear-gradient(180deg,var(--card),var(--card2));
+      border-radius:var(--br); padding:18px; text-decoration:none; color:var(--fg);
+      border:1px solid rgba(255,255,255,.05); position:relative; overflow:hidden;
+      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.35);
+      border-color: rgba(155,92,255,.35); }
+    .card .tag{font-size:12px; color:var(--muted); margin-bottom:6px}
+    .card h3{margin:6px 0 10px; font-size:20px}
+    .card p{margin:0; color:#cfd3df; line-height:1.35}
+    .badge{position:absolute; top:12px; right:12px; padding:4px 8px; font-size:12px;
+      border-radius:999px; background:linear-gradient(135deg,var(--accent1),var(--accent2));}
+    .cta{
+      margin-top:22px; display:flex; gap:12px; flex-wrap:wrap
+    }
+    .btn{
+      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px;
+      text-decoration:none; color:var(--fg); background:var(--glass); border:1px solid rgba(255,255,255,.08);
+    }
+    .btn:hover{border-color:rgba(255,255,255,.18)}
+    footer{margin-top:36px; color:var(--muted); font-size:13px}
+  </style>
 </head>
 <body>
-  <h1>The Future — PRO</h1>
-  <p>AI NSFW (legal) – imagini & video, chat cu parteneri AI, abonamente + PPV.</p>
-  <p>
-    <a href="/premium">Premium</a> ·
-    <a href="/gen-image">Image Gen</a> ·
-    <a href="/gen-video">Video Gen</a> ·
-    <a href="/chat">Chat</a>
-  </p>
+  <div class="wrap">
+    <header>
+      <div class="logo"><span>AI</span></div>
+      <div>
+        <h1>The Future — PRO</h1>
+        <div class="sub">AI NSFW (legal) — imagini & video ultra-realiste, chat cu parteneri AI, abonamente + PPV.</div>
+      </div>
+    </header>
+
+    <section class="grid">
+      <a class="card" href="/premium">
+        <div class="badge">Login + Abonamente</div>
+        <div class="tag">Start aici</div>
+        <h3>Premium</h3>
+        <p>Autentificare, activare BASIC/PLUS/PRO, creare & management Parteneri AI.</p>
+      </a>
+
+      <a class="card" href="/gen-image">
+        <div class="tag">Generator</div>
+        <h3>Image Gen</h3>
+        <p>Poze ultra-realiste, calitate 1024/2048/8K (în funcție de abonament), pachete negative fixe.</p>
+      </a>
+
+      <a class="card" href="/gen-video">
+        <div class="tag">Generator</div>
+        <h3>Video Gen</h3>
+        <p>Clipuri scurte 10–20s, 1080p/4K (în funcție de abonament), pre-vizualizare blurată & unlock cu credite.</p>
+      </a>
+
+      <a class="card" href="/chat.html">
+        <div class="tag">Monetizare</div>
+        <h3>Chat</h3>
+        <p>Parteneri AI (Femeie/Bărbat/Anime + roluri “Asistentă, Profesoară, Secretară” etc.) cu oferte media blurate & unlock.</p>
+      </a>
+    </section>
+
+    <div class="cta">
+      <a class="btn" href="/api/admin/stats">📊 Stats</a>
+      <a class="btn" href="https://github.com/the-future-pro/the-future-pro69">🗂 GitHub</a>
+    </div>
+
+    <footer>© The Future — PRO. Toate drepturile rezervate.</footer>
+  </div>
+
+  <script>
+    // opțional: afișează rapid stats pe butonul de Stats (nu afectează nimic dacă eșuează)
+    fetch('/api/admin/stats').then(r=>r.json()).then(s=>{
+      const btn=document.querySelector('.btn[href="/api/admin/stats"]');
+      if(s && btn){
+        btn.innerHTML = `📊 Stats · ${s.users||0} users · ${s.jobs||0} jobs · ${s.chat_messages||0} msgs`;
+      }
+    }).catch(()=>{});
+  </script>
 </body>
 </html>
