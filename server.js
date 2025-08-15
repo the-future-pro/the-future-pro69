@@ -1,51 +1,41 @@
-// --- SESSIONS (fix Render cookie) ---
-const SQLiteStore = SQLiteStoreFactory(session);
+// --- The Future — PRO (HEAD) ---
+// Imports + setup (ready-to-paste)
+
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import sqlite3 from 'sqlite3';
+import SQLiteStoreFactory from 'connect-sqlite3';   // <— FIX: import lipsă
+
+dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+
+const app = express();
 app.set('trust proxy', 1);
+app.use(cors({ origin: true, credentials: true }));
+app.use(morgan('dev'));
+app.use(express.json({ limit: '6mb' }));
+app.use(cookieParser());
+
+// Session store (SQLite)
+const SQLiteStore = SQLiteStoreFactory(session);
 app.use(session({
-  name: 'sid',
   secret: process.env.SESSION_SECRET || 'change-this-secret',
   resave: false,
   saveUninitialized: false,
-  proxy: true, // IMPORTANT pe Render
   store: new SQLiteStore({ db: 'sessions.sqlite', dir: __dirname }),
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
-    secure: true,
-    maxAge: 1000*60*60*24*30
+    secure: true,                       // Render = HTTPS
+    maxAge: 1000*60*60*24*30            // 30 zile
   }
 }));
 
-// --- DEBUG + LOGIN EASY (pentru test rapid din browser) ---
-app.get('/api/login/easy', async (req, res) => {
-  try{
-    const email = String(req.query.email||'test@example.com').trim().toLowerCase();
-    if(!email) return res.status(400).json({ ok:false, error:'email_required' });
-
-    let u = await get(`SELECT * FROM users WHERE email=?`,[email]);
-    if(!u){
-      const r = await run(`INSERT INTO users(email) VALUES(?)`,[email]);
-      u = await get(`SELECT * FROM users WHERE id=?`,[r.lastID]);
-    }
-
-    req.session.regenerate(err=>{
-      if(err) return res.status(500).json({ ok:false, error:'session_regenerate_failed' });
-      req.session.user_id = u.id;
-      req.session.save(err2=>{
-        if(err2) return res.status(500).json({ ok:false, error:'session_save_failed' });
-        res.json({ ok:true, user:{ id:u.id, email:u.email }});
-      });
-    });
-  }catch(e){
-    res.status(500).json({ ok:false, error:String(e.message||e) });
-  }
-});
-
-app.get('/api/debug/session', (req,res)=>{
-  res.json({
-    ok:true,
-    sid: req.sessionID || null,
-    user_id: req.session?.user_id || null,
-    cookies_in: req.headers.cookie || null
-  });
-});
+// --- restul codului tău server.js rămâne la fel sub acest bloc ---
