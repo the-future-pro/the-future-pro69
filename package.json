@@ -1,5 +1,5 @@
 {
-  "name": "the-future-pro",
+  "name": "the-future-pro69",
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",
@@ -14,7 +14,6 @@
     "express": "^4.19.2",
     "express-session": "^1.17.3",
     "morgan": "^1.10.0",
-    "sqlite3": "^5.1.7",
-    "stripe": "^14.0.0"
+    "sqlite3": "^5.1.7"
   }
 }
