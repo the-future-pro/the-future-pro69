@@ -1,48 +1,120 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8"/>
   <title>Generate Image</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css"/>
+  <style>
+    .wrap{max-width:900px;margin:24px auto;padding:16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+    .muted{opacity:.65}
+    .badge{padding:2px 8px;border-radius:999px;border:1px solid #334155;font-size:12px}
+    .ok{color:#16a34a;border-color:#16a34a}
+    .no{color:#e11d48;border-color:#e11d48}
+    .disabled{pointer-events:none;opacity:.5}
+  </style>
 </head>
-<body>
-  <div class="wrap">
-    <h1>Generate Image</h1>
+<body class="wrap">
+  <h1>Generate Image</h1>
 
-    <label for="prompt">Prompt</label>
-    <input id="prompt" placeholder="o pisică pe acoperiș, stil cinematic">
-
-    <label for="neg">Negative extra (opțional)</label>
-    <input id="neg" placeholder="blurry, watermark, logo">
-
-    <label for="quality">Calitate</label>
-    <select id="quality">
-      <option value="1024">1024 (BASIC)</option>
-      <option value="2048">2048 (PLUS)</option>
-      <option value="8k">8K (PRO)</option>
-    </select>
-
-    <div style="margin-top:12px">
-      <button class="primary" onclick="go()">Generează</button>
-    </div>
-
-    <pre id="out"></pre>
+  <div class="row">
+    <span id="me" class="badge">user: -</span>
+    <span id="sub" class="badge">abonament: -</span>
+    <a class="badge" href="/premium">Premium</a>
+    <a class="badge" href="/login-demo.html?email=itudorache53@gmail.com">Login rapid</a>
+    <a class="badge" href="/api/logout">Logout</a>
   </div>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
-    const show = (x) => { $('out').textContent = JSON.stringify(x, null, 2); };
+  <div class="row">
+    <input id="prompt" placeholder="prompt" style="flex:1"/>
+  </div>
+  <div class="row">
+    <input id="neg" placeholder="negative extra (se combină cu lock)" style="flex:1"/>
+  </div>
+  <div class="row">
+    <select id="quality">
+      <option value="1024">1024 (BASIC)</option>
+      <option value="2048" data-tier="PLUS">2048 (PLUS)</option>
+      <option value="8k"   data-tier="PRO">8K (PRO)</option>
+    </select>
+    <button id="go">Generează</button>
+  </div>
 
-    async function go(){
-      const data = {
-        prompt: $('prompt').value.trim(),
-        negative: $('neg').value.trim(),
-        quality: $('quality').value
-      };
-      // mock: ping la server + arăt parametrii trimiși
-      const ping = await fetch('/api/ping', { credentials: 'include' }).then(r=>r.json()).catch(()=>({ok:false}));
-      show({ ok:true, ping, request:data, note:"UI demo — integrezi apoi cu generatorul real" });
+  <pre id="out"></pre>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const out = $('#out');
+    const show = (x)=>out.textContent = (typeof x==='string') ? x : JSON.stringify(x,null,2);
+
+    let user = null;
+    let sub  = {active:false, sub:null};
+
+    function paintBadges(){
+      $('#me').textContent  = user ? `user: ${user.email}` : 'user: -';
+      if(sub.active){
+        $('#sub').textContent = `abonament: ${sub.sub.tier} (activ)`;
+        $('#sub').className = 'badge ok';
+      } else {
+        $('#sub').textContent = `abonament: inactiv`;
+        $('#sub').className = 'badge no';
+      }
     }
+
+    function gateQuality(){
+      const sel = $('#quality');
+      const tierOK = sub.active ? (sub.sub.tier || 'BASIC') : 'BASIC';
+
+      // deblochează doar ce e permis
+      for (const opt of sel.options){
+        const req = opt.getAttribute('data-tier'); // null | PLUS | PRO
+        let enabled = true;
+        if (req === 'PLUS' && !['PLUS','PRO'].includes(tierOK)) enabled = false;
+        if (req === 'PRO'  && !['PRO'].includes(tierOK))       enabled = false;
+        opt.disabled = !enabled;
+      }
+
+      // dacă opțiunea curentă e interzisă, mută pe prima permisă
+      if (sel.selectedOptions[0].disabled){
+        for (const opt of sel.options){ if(!opt.disabled){ sel.value = opt.value; break; } }
+      }
+
+      // dacă nu ai abonament suficient, arată link de upgrade
+      const needUpgrade = [...sel.options].some(o=>o.disabled);
+      if (needUpgrade && !document.getElementById('upgrade')){
+        const a = document.createElement('a');
+        a.id='upgrade';
+        a.className='badge no';
+        a.href='/upgrade.html';
+        a.textContent='Upgrade necesar';
+        sel.parentElement.appendChild(a);
+      }
+    }
+
+    async function boot(){
+      try {
+        const r1 = await fetch('/api/me', {credentials:'include'});
+        const j1 = await r1.json();
+        if (j1.ok) user = j1.user;
+
+        const r2 = await fetch('/api/sub/check', {credentials:'include'});
+        const j2 = await r2.json();
+        if (j2.ok){ sub = {active:j2.active, sub:j2.sub}; }
+
+        paintBadges();
+        gateQuality();
+      } catch(e){ console.error(e); }
+    }
+
+    $('#go').onclick = async ()=>{
+      // doar demo – aici ai pune apelul real la modelul tău
+      const q = $('#quality').value;
+      const p = $('#prompt').value.trim();
+      const n = $('#neg').value.trim();
+      show({ok:true, note:'mock generate', quality:q, prompt:p, negative:n, user, sub});
+    };
+
+    boot();
   </script>
 </body>
 </html>
