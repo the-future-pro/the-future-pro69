@@ -1,41 +1,92 @@
 <!doctype html>
-<html>
+<html lang="ro">
 <head>
   <meta charset="utf-8" />
   <title>Login Demo</title>
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .container{max-width:720px;margin:24px auto;padding:16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+    .ok{color:#16a34a}
+    .err{color:#e11d48}
+  </style>
 </head>
 <body class="container">
   <h1>Login Demo</h1>
 
-  <input id="email" placeholder="email" style="width:280px" />
-  <button id="btnLogin">Login</button>
-  <div id="msg" class="mt"></div>
-
-  <div class="mt">
-    <button id="btnAge">Mock Verify Age</button>
-    <button id="btnSub">Mock Subscribe</button>
+  <div class="row">
+    <input id="email" placeholder="email" style="width:280px" />
+    <button id="btnLogin">Login</button>
+    <a class="btn" href="/api/logout">Logout</a>
+    <a class="btn" href="/premium">Premium</a>
   </div>
 
+  <div class="row">
+    <button data-tier="BASIC">Mock Subscribe BASIC</button>
+    <button data-tier="PLUS">Mock Subscribe PLUS</button>
+    <button data-tier="PRO">Mock Subscribe PRO</button>
+  </div>
+
+  <div class="row">
+    <button id="btnMe">/api/me</button>
+    <button id="btnSubCheck">/api/sub/check</button>
+  </div>
+
+  <pre id="msg" class="mt"></pre>
+
   <script>
-    const $ = id => document.getElementById(id);
-    $('btnLogin').onclick = async () => {
-      const r = await fetch('/api/login', {
-        method:'POST', credentials:'include',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({email: $('email').value})
-      });
+    const $ = (id) => document.getElementById(id);
+    const out = $('msg');
+    const show = (x, ok=true) => {
+      out.className = ok ? 'ok' : 'err';
+      out.textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2);
+    };
+
+    async function login(email){
+      const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), {credentials:'include'});
       const j = await r.json();
-      $('msg').textContent = r.ok ? 'Logged in' : (j.error || 'Error');
+      show(j, r.ok && j.ok);
+      return j;
+    }
+
+    $('btnLogin').onclick = async () => {
+      const email = $('email').value.trim();
+      if(!email) return show('Setează un email!', false);
+      await login(email);
     };
-    $('btnAge').onclick = async () => {
-      const r = await fetch('/api/verify-age/mock',{method:'POST',credentials:'include'});
-      $('msg').textContent = (await r.json()).ok ? 'Age verified' : 'Error';
+
+    for (const b of document.querySelectorAll('[data-tier]')){
+      b.onclick = async () => {
+        const tier = b.getAttribute('data-tier');
+        const r = await fetch('/api/sub/mock-activate/' + tier, {credentials:'include'});
+        const j = await r.json();
+        show(j, r.ok && j.ok);
+      };
+    }
+
+    $('btnMe').onclick = async () => {
+      const r = await fetch('/api/me', {credentials:'include'});
+      const j = await r.json();
+      show(j, r.ok);
     };
-    $('btnSub').onclick = async () => {
-      const r = await fetch('/api/subscribe/mock',{method:'POST',credentials:'include'});
-      $('msg').textContent = (await r.json()).ok ? 'Subscribed' : 'Error';
+
+    $('btnSubCheck').onclick = async () => {
+      const r = await fetch('/api/sub/check', {credentials:'include'});
+      const j = await r.json();
+      show(j, r.ok);
     };
+
+    // Autologin + redirect: ?email=...&to=/premium
+    (async ()=>{
+      const q = new URLSearchParams(location.search);
+      const email = q.get('email');
+      const to = q.get('to');
+      if (email){
+        $('email').value = email;
+        const j = await login(email);
+        if (to && j && j.ok) setTimeout(()=>location.href = to, 600);
+      }
+    })();
   </script>
 </body>
 </html>
