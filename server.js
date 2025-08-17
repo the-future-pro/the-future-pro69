@@ -1,4 +1,4 @@
-// server.js (ESM, production-ready)
+// server.js (ESM, production-ready, all-in-one)
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -6,9 +6,10 @@ import session from 'express-session';
 import connectSqlite3 from 'connect-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import sqlite3 from 'sqlite3';
 import { fileURLToPath } from 'url';
 
-// --- __dirname pentru ESM
+// --- __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
@@ -16,14 +17,16 @@ const __dirname  = path.dirname(__filename);
 const app = express();
 app.set('trust proxy', 1); // necesar pe Render/HTTPS
 
-// --- middlewares de bază
+// --- middlewares
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// --- asigurăm directorul pentru fișierele de sesiune
-const SESS_DIR = path.join(__dirname, 'db');
-try { fs.mkdirSync(SESS_DIR, { recursive: true }); } catch { /* ignore */ }
+// --- directoare DB
+const DATA_DIR  = path.join(__dirname, 'db');
+const SESS_DIR  = DATA_DIR;                       // reuse aceeași rădăcină
+const DB_FILE   = path.join(DATA_DIR, 'app.sqlite');
+fs.mkdirSync(DATA_DIR, { recursive: true });
 
 // --- sesiuni pe disc (SQLite)
 const SQLiteStore = connectSqlite3(session);
@@ -39,13 +42,13 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production', // pe Render e HTTPS
       maxAge: Number(process.env.SESSION_MAX_AGE_MS || 30 * 24 * 60 * 60 * 1000) // 30 zile
     }
   })
 );
 
-// --- static /public (gen-image.html, admin.html etc.)
+// --- servește /public (gen-image.html, admin.html, etc.)
 app.use(
   express.static(path.join(__dirname, 'public'), {
     maxAge: '1h',
@@ -53,20 +56,30 @@ app.use(
   })
 );
 
-// --- stats simple pentru admin
-const stats = {
-  startedAt: new Date().toISOString(),
-  apiHits: 0,
-  perPath: {}
-};
-app.use((req, _res, next) => {
-  if (req.path.startsWith('/api/')) {
-    stats.apiHits++;
-    const key = req.path.split('?')[0];
-    stats.perPath[key] = (stats.perPath[key] || 0) + 1;
-  }
-  next();
+// --- DB de evenimente (login/abonamente) -------------------------------------
+const db = new sqlite3.Database(DB_FILE);
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kind   TEXT NOT NULL,
+      email  TEXT,
+      tier   TEXT,
+      until  INTEGER,
+      created_at INTEGER NOT NULL
+    )
+  `);
 });
+
+function logEvent({ kind, email = null, tier = null, until = null }) {
+  return new Promise((resolve) => {
+    db.run(
+      `INSERT INTO events(kind,email,tier,until,created_at) VALUES (?,?,?,?,?)`,
+      [kind, email, tier, until, Date.now()],
+      () => resolve() // nu blocăm flow-ul chiar dacă apare o eroare
+    );
+  });
+}
 
 // ----------------- API -----------------
 const TIERS = ['BASIC', 'PLUS', 'PRO'];
@@ -83,12 +96,19 @@ app.get('/api/me', (req, res) => {
 app.get(['/api/mock-login', '/api/debug/login'], (req, res) => {
   const email = (req.query.email || '').trim() || 'user@example.com';
   req.session.user = { id: Date.now() % 100000, email };
-  req.session.save(() => res.json({ ok: true, user: req.session.user }));
+  req.session.save(async () => {
+    await logEvent({ kind: 'login', email }).catch(()=>{});
+    res.json({ ok: true, user: req.session.user });
+  });
 });
 
-// logout
+// logout (păstrăm emailul înainte de destroy)
 app.get(['/api/logout', '/api/debug/logout'], (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
+  const email = req.session?.user?.email || null;
+  req.session.destroy(async () => {
+    await logEvent({ kind: 'logout', email }).catch(()=>{});
+    res.json({ ok: true });
+  });
 });
 
 // activare „abonament” mock
@@ -100,7 +120,15 @@ app.get('/api/sub/mock-activate/:tier', (req, res) => {
   const until = Date.now() + days * 24 * 60 * 60 * 1000;
 
   req.session.sub = { tier, until };
-  req.session.save(() => res.json({ ok: true, sub: req.session.sub }));
+  req.session.save(async () => {
+    await logEvent({
+      kind: 'sub_activate',
+      email: req.session.user?.email || null,
+      tier,
+      until
+    }).catch(()=>{});
+    res.json({ ok: true, sub: req.session.sub });
+  });
 });
 
 // verificare abonament
@@ -115,26 +143,59 @@ app.get('/api/debug/cookie', (req, res) => {
   res.json({ cookie: req.headers.cookie || '' });
 });
 
-// --- ADMIN: stats (ca să nu mai vezi "Cannot GET /api/admin/stats")
-app.get('/api/admin/stats', (_req, res) => {
-  const mem = process.memoryUsage();
-  res.json({
-    ok: true,
-    startedAt: stats.startedAt,
-    uptimeSec: Math.floor(process.uptime()),
-    apiHits: stats.apiHits,
-    perPath: stats.perPath,
-    memoryMB: {
-      rss: Math.round(mem.rss / 1024 / 1024),
-      heapUsed: Math.round(mem.heapUsed / 1024 / 1024)
-    },
-    node: process.version,
-    env: process.env.NODE_ENV || 'development'
+// --- API: admin stats (protejate prin token simplu)
+app.get('/api/admin/stats', (req, res) => {
+  const token = req.query.token || '';
+  const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'admin123';
+  if (token !== ADMIN_TOKEN) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
+
+  const now = Date.now();
+  const dayAgo = now - 24 * 60 * 60 * 1000;
+
+  db.serialize(() => {
+    db.get(
+      `SELECT COUNT(DISTINCT email) AS users FROM events WHERE kind='login' AND email IS NOT NULL`,
+      (e1, r1) => {
+        if (e1) return res.status(500).json({ ok: false, error: String(e1) });
+        db.get(
+          `SELECT COUNT(*) AS subs_active FROM events WHERE kind='sub_activate' AND (until IS NOT NULL AND until > ?)`,
+          [now],
+          (e2, r2) => {
+            if (e2) return res.status(500).json({ ok: false, error: String(e2) });
+            db.get(
+              `SELECT COUNT(*) AS logins_24h FROM events WHERE kind='login' AND created_at > ?`,
+              [dayAgo],
+              (e3, r3) => {
+                if (e3) return res.status(500).json({ ok: false, error: String(e3) });
+                res.json({
+                  ok: true,
+                  stats: {
+                    users: r1?.users || 0,
+                    subs_active: r2?.subs_active || 0,
+                    logins_24h: r3?.logins_24h || 0
+                  }
+                });
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+});
+
+// debug: ultimele 50 evenimente
+app.get('/api/debug/events', (_req, res) => {
+  db.all(`SELECT * FROM events ORDER BY id DESC LIMIT 50`, (err, rows) => {
+    if (err) return res.status(500).json({ ok: false, error: String(err) });
+    res.json({ ok: true, rows });
   });
 });
 
 // --------------- UI de test ---------------
-// /premium — inline (nu depinde de /public)
+// /premium — totul inline (nu depinde de /public)
 app.get('/premium', (_req, res) => {
   res.type('html').send(`<!doctype html>
 <html lang="ro"><meta charset="utf-8"/>
@@ -168,15 +229,18 @@ app.get('/premium', (_req, res) => {
 <script>
   const out = document.getElementById('out');
   const show = (x) => out.textContent = JSON.stringify(x, null, 2);
+
   document.getElementById('btnLogin').onclick = async () => {
     const email = document.getElementById('email').value.trim();
     const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials: 'include' });
     show(await r.json());
   };
+
   document.getElementById('btnMe').onclick = async () => {
     const r = await fetch('/api/me', { credentials: 'include' });
     show(await r.json());
   };
+
   for (const b of document.querySelectorAll('[data-tier]')) {
     b.onclick = async () => {
       const tier = b.getAttribute('data-tier');
@@ -188,7 +252,7 @@ app.get('/premium', (_req, res) => {
 </html>`);
 });
 
-// redirect simplu către UI-ul de test
+// redirect root -> /premium
 app.get('/', (_req, res) => res.redirect('/premium'));
 
 // --------------- start server ---------------
