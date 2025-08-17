@@ -1,127 +1,142 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8">
-  <title>Generate Video</title>
+  <meta charset="utf-8"/>
+  <title>Generate Video (real)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <link rel="stylesheet" href="/style.css">
   <style>
-    .wrap{max-width:980px;margin:24px auto;padding:16px}
-    textarea,input,select,button{width:100%;margin:8px 0;padding:10px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    pre{background:#0f172a;color:#e6e9ef;border:1px solid #223047;border-radius:12px;padding:12px;overflow:auto}
-    video{width:100%;max-height:480px;margin-top:12px;border-radius:12px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#111827;border:1px solid #2a3343;margin-right:8px}
+    body{background:#0b0f16;color:#e6e9ef;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:16px}
+    h1{margin:8px 0 16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1100px}
+    textarea,input,select,button{width:100%;border-radius:12px;border:1px solid #223047;background:#0f1624;color:#e6e9ef;padding:12px}
+    button{cursor:pointer}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+    .pill{background:#112033;border:1px solid #223047;border-radius:999px;padding:6px 10px;font-size:12px}
+    pre{background:#0f172a;border:1px solid #223047;border-radius:12px;padding:12px;overflow:auto;min-height:220px}
+    .ok{color:#86efac} .bad{color:#fca5a5}
   </style>
 </head>
-<body class="wrap">
-  <div>
-    <span class="pill" id="pillUser">user: -</span>
-    <span class="pill" id="pillSub">abonament: -</span>
-    <button id="btnLoginQuick" class="pill">Login rapid</button>
-    <a id="btnLogout" class="pill" href="/api/logout">Logout</a>
-  </div>
-
-  <h2>Generate Video</h2>
+<body>
+  <h1>Generate Video</h1>
 
   <div class="row">
+    <span id="userInfo" class="pill">user: –</span>
+    <span id="subInfo" class="pill">abonament: –</span>
+    <button id="btnQuickLogin" style="width:auto">Login rapid</button>
+    <button id="btnMockPro"    style="width:auto">Premium (mock)</button>
+    <button id="btnLogout"     style="width:auto">Logout</button>
+  </div>
+
+  <div class="grid">
     <div>
       <label>Storyboard / descriere scenă</label>
-      <textarea id="story" rows="7" placeholder="Ex: slow camera push-in, soft light, cinematic look..."></textarea>
+      <textarea id="storyboard" rows="7" placeholder="Ex: slow push-in camera through neon-lit alley, cinematic, depth of field, soft light..."></textarea>
     </div>
     <div>
       <label>Negative prompt (extra)</label>
-      <textarea id="neg" rows="7" placeholder="bad hands, extra fingers, flicker, watermark..."></textarea>
+      <textarea id="negative" rows="7" placeholder="artifacts, bad hands, extra fingers, flicker, temporal inconsistency, watermark, logo..."></textarea>
     </div>
   </div>
 
-  <div class="row">
+  <div class="grid" style="margin-top:12px">
     <div>
       <label>Durată</label>
-      <select id="sec">
-        <option value="10">10s</option>
-        <option value="20" selected>20s (PLUS/PRO)</option>
+      <select id="seconds">
+        <option value="5">5s (BASIC)</option>
+        <option value="10" selected>10s (PLUS)</option>
+        <option value="20">20s (PRO)</option>
       </select>
     </div>
     <div>
       <label>Calitate</label>
       <select id="quality">
+        <option value="540p">540p</option>
+        <option value="720p" selected>720p</option>
         <option value="1080p">1080p</option>
-        <option value="4k" selected>4K (PRO)</option>
       </select>
     </div>
   </div>
 
-  <button id="btnGo">Generează (real)</button>
+  <div class="row" style="margin-top:12px">
+    <button id="btnGenerate">Generează</button>
+    <a id="videoLink" class="pill" href="#" target="_blank" style="display:none">Deschide video</a>
+  </div>
 
-  <pre id="out">{ "hint":"apasă Generează" }</pre>
-  <div id="videoBox"></div>
+  <pre id="out">{ "hint": "completează câmpurile și apasă Generează" }</pre>
 
-<script>
-  const $ = (id) => document.getElementById(id);
-  const out = $('out');
-  const setOut = (x) => out.textContent = JSON.stringify(x, null, 2);
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const show = (x) => $('out').textContent = JSON.stringify(x, null, 2);
 
-  async function refreshMe(){
-    const r = await fetch('/api/sub/check', {credentials:'include'});
-    const j = await r.json();
-    const r2 = await fetch('/api/me', {credentials:'include'});
-    const j2 = await r2.json();
-    $('pillUser').textContent = 'user: ' + (j2.user?.email || '-');
-    $('pillSub').textContent  = 'abonament: ' + (j.sub?.tier ? `${j.sub.tier} (activ)` : '—');
-  }
+    async function refreshStatus(){
+      const [me, sub] = await Promise.all([
+        fetch('/api/me', {credentials:'include'}).then(r=>r.json()).catch(()=>({})),
+        fetch('/api/sub/check', {credentials:'include'}).then(r=>r.json()).catch(()=>({}))
+      ]);
+      if(me.ok && me.user){
+        $('userInfo').textContent = `user: ${me.user.email}`;
+        $('userInfo').className = 'pill ok';
+      } else {
+        $('userInfo').textContent = 'user: (neautentificat)';
+        $('userInfo').className = 'pill bad';
+      }
+      if(sub.ok && sub.active){
+        $('subInfo').textContent = `abonament: ${sub.sub.tier} (activ)`;
+        $('subInfo').className = 'pill ok';
+      } else {
+        $('subInfo').textContent = 'abonament: inactiv';
+        $('subInfo').className = 'pill bad';
+      }
+    }
 
-  $('btnLoginQuick').onclick = async () => {
-    const email = prompt('Email', 'itudorache53@gmail.com') || 'user@example.com';
-    await fetch('/api/mock-login?email=' + encodeURIComponent(email), {credentials:'include'});
-    await fetch('/api/sub/mock-activate/PRO', {credentials:'include'});
-    refreshMe();
-  };
-
-  $('btnGo').onclick = async () => {
-    try{
-      setOut({status:'starting'});
-      $('videoBox').innerHTML = '';
-      const payload = {
-        storyboard: $('story').value.trim(),
-        negativeExtra: $('neg').value.trim(),
-        seconds: Number($('sec').value),
-        quality: $('quality').value
-      };
-      const r = await fetch('/api/video/start', {
+    $('btnQuickLogin').onclick = async () => {
+      const email = prompt('Email pentru login', 'itudorache53@gmail.com') || 'user@example.com';
+      const r = await fetch('/api/login', {
         method:'POST',
-        credentials:'include',
         headers:{'Content-Type':'application/json'},
+        credentials:'include',
+        body: JSON.stringify({email})
+      });
+      show(await r.json());
+      refreshStatus();
+    };
+
+    $('btnMockPro').onclick = async () => {
+      const r = await fetch('/api/sub/mock-activate/PRO', {credentials:'include'});
+      show(await r.json());
+      refreshStatus();
+    };
+
+    $('btnLogout').onclick = async () => {
+      await fetch('/api/logout', {credentials:'include'});
+      refreshStatus();
+      show({ok:true, message:'logged out'});
+    };
+
+    $('btnGenerate').onclick = async () => {
+      $('videoLink').style.display = 'none';
+      const payload = {
+        seconds: Number($('seconds').value),
+        quality: $('quality').value,
+        storyboard: $('storyboard').value.trim(),
+        negativeExtra: $('negative').value.trim()
+      };
+      const r = await fetch('/api/video', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'include',
         body: JSON.stringify(payload)
       });
       const j = await r.json();
-      setOut(j);
-      if(!j.ok) return;
-
-      const id = j.id;
-      // poll
-      async function poll(){
-        const rs = await fetch('/api/video/status/' + id, {credentials:'include'});
-        const js = await rs.json();
-        setOut(js);
-        if(js.status === 'succeeded' && js.output){
-          const url = Array.isArray(js.output) ? js.output[0] : js.output;
-          const v = document.createElement('video');
-          v.controls = true; v.loop = true; v.src = url; v.autoplay = true;
-          $('videoBox').innerHTML = ''; $('videoBox').appendChild(v);
-          return;
-        }
-        if(js.status === 'failed' || js.error){
-          return;
-        }
-        setTimeout(poll, 2500);
+      show(j);
+      if (j.ok && j.url) {
+        $('videoLink').href = j.url;
+        $('videoLink').style.display = 'inline-block';
       }
-      poll();
-    }catch(e){
-      setOut({ok:false, error:String(e)});
-    }
-  };
+    };
 
-  refreshMe();
-</script>
+    refreshStatus();
+  </script>
 </body>
 </html>
