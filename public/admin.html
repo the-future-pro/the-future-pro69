@@ -1,26 +1,36 @@
 <!doctype html>
 <html lang="ro">
-<head>
-  <meta charset="utf-8">
-  <title>Admin Stats</title>
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <div class="wrap">
-    <h1>Admin Stats</h1>
-    <button class="primary" onclick="load()">Refresh</button>
-    <pre id="out"></pre>
-  </div>
-  <script>
-    const out = document.getElementById('out');
-    function show(x){ out.textContent = JSON.stringify(x, null, 2); }
-    async function load(){
-      try{
-        const r = await fetch('/api/admin/stats', { credentials:'include' });
-        show(await r.json());
-      }catch(e){ show({ok:false, error:String(e)}) }
+<meta charset="utf-8">
+<title>Admin Stats</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .wrap{max-width:900px;margin:24px auto;padding:16px}
+  pre{background:#0f172a;border:1px solid #223047;border-radius:12px;padding:16px;overflow:auto;color:#e6e9ef}
+  button{padding:10px 16px;border-radius:10px;border:1px solid #2a3343;background:#1e293b;color:#e6e9ef;cursor:pointer}
+</style>
+<div class="wrap">
+  <h1>Admin Stats</h1>
+  <button id="btn">Refresh</button>
+  <pre id="out">Aștept comanda…</pre>
+</div>
+<script>
+  const out = document.getElementById('out');
+  const show = (x) => out.textContent = typeof x==='string' ? x : JSON.stringify(x, null, 2);
+
+  async function load() {
+    let token = localStorage.getItem('ADMIN_TOKEN');
+    if (!token) {
+      token = prompt('Admin token (setat în Render > ENV):', 'admin123') || '';
+      localStorage.setItem('ADMIN_TOKEN', token);
     }
-    load();
-  </script>
-</body>
+    try {
+      const r = await fetch('/api/admin/stats?token=' + encodeURIComponent(token));
+      show(await r.json());
+    } catch (e) {
+      show(String(e));
+    }
+  }
+  document.getElementById('btn').onclick = load;
+  load();
+</script>
 </html>
