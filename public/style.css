@@ -1,5 +1,28 @@
-/* ====== Landing polish (poate fi adăugat la final) ====== */
-:root{ --ui-radius:14px; }
-.wrap input, .wrap button, .wrap select, .wrap textarea {
-  border-radius: var(--ui-radius);
+/* Tema dark comună */
+:root{
+  --bg:#0b0f16; --panel:#0f172a; --line:#223047;
+  --ink:#e6e9ef; --muted:#a7b0c0; --btn:#1e293b; --primary:#3b82f6;
+  --input:#111827;
 }
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,Arial;margin:0}
+a{color:#9ec5ff;text-decoration:none}
+.wrap{max-width:900px;margin:0 auto;padding:24px}
+
+/* Form controls */
+input,select,button{
+  font-size:16px;border-radius:12px;border:1px solid var(--line);
+  background:var(--input);color:var(--ink);padding:12px 14px;
+}
+button{cursor:pointer;background:var(--btn)}
+button.primary{background:var(--primary)}
+label{display:block;margin:10px 0 6px;color:var(--muted)}
+
+/* Output box */
+pre{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:16px;overflow:auto;min-height:140px;
+}
+
+/* Titluri */
+h1{font-size:28px;margin:0 0 16px}
