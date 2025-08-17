@@ -1,4 +1,4 @@
-// server.js (ESM, production-ready, all-in-one)
+// server.js (ESM, production-ready, all-in-one + protected routes)
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -24,7 +24,7 @@ app.use(cookieParser());
 
 // --- directoare DB
 const DATA_DIR  = path.join(__dirname, 'db');
-const SESS_DIR  = DATA_DIR;                       // reuse aceeași rădăcină
+const SESS_DIR  = DATA_DIR; // reuse aceeași rădăcină
 const DB_FILE   = path.join(DATA_DIR, 'app.sqlite');
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -56,7 +56,7 @@ app.use(
   })
 );
 
-// --- DB de evenimente (login/abonamente) -------------------------------------
+// --- DB de evenimente (login/abonamente)
 const db = new sqlite3.Database(DB_FILE);
 db.serialize(() => {
   db.run(`
@@ -70,13 +70,12 @@ db.serialize(() => {
     )
   `);
 });
-
 function logEvent({ kind, email = null, tier = null, until = null }) {
   return new Promise((resolve) => {
     db.run(
       `INSERT INTO events(kind,email,tier,until,created_at) VALUES (?,?,?,?,?)`,
       [kind, email, tier, until, Date.now()],
-      () => resolve() // nu blocăm flow-ul chiar dacă apare o eroare
+      () => resolve()
     );
   });
 }
@@ -102,7 +101,7 @@ app.get(['/api/mock-login', '/api/debug/login'], (req, res) => {
   });
 });
 
-// logout (păstrăm emailul înainte de destroy)
+// logout
 app.get(['/api/logout', '/api/debug/logout'], (req, res) => {
   const email = req.session?.user?.email || null;
   req.session.destroy(async () => {
@@ -143,7 +142,7 @@ app.get('/api/debug/cookie', (req, res) => {
   res.json({ cookie: req.headers.cookie || '' });
 });
 
-// --- API: admin stats (protejate prin token simplu)
+// --- ADMIN: stats (protejate prin token simplu)
 app.get('/api/admin/stats', (req, res) => {
   const token = req.query.token || '';
   const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'admin123';
@@ -194,8 +193,31 @@ app.get('/api/debug/events', (_req, res) => {
   });
 });
 
+// ------------- MIDDLEWARE-URI PROTEJARE -------------
+function requireLogin(req, res, next) {
+  if (!req.session?.user) {
+    return res.status(401).json({ ok: false, error: 'login_required' });
+  }
+  next();
+}
+function requirePro(req, res, next) {
+  const sub = req.session?.sub;
+  const active = !!(sub && sub.tier === 'PRO' && sub.until > Date.now());
+  if (!active) {
+    return res.status(402).json({ ok: false, error: 'pro_required' });
+  }
+  next();
+}
+
+// rute protejate (exemple)
+app.get('/api/private/me', requireLogin, (req, res) => {
+  res.json({ ok: true, user: req.session.user, sub: req.session.sub || null });
+});
+app.get('/api/pro/feature', requireLogin, requirePro, (_req, res) => {
+  res.json({ ok: true, message: 'Ai acces la feature-ul PRO 🚀' });
+});
+
 // --------------- UI de test ---------------
-// /premium — totul inline (nu depinde de /public)
 app.get('/premium', (_req, res) => {
   res.type('html').send(`<!doctype html>
 <html lang="ro"><meta charset="utf-8"/>
@@ -235,12 +257,10 @@ app.get('/premium', (_req, res) => {
     const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials: 'include' });
     show(await r.json());
   };
-
   document.getElementById('btnMe').onclick = async () => {
     const r = await fetch('/api/me', { credentials: 'include' });
     show(await r.json());
   };
-
   for (const b of document.querySelectorAll('[data-tier]')) {
     b.onclick = async () => {
       const tier = b.getAttribute('data-tier');
