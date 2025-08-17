@@ -1,160 +1,127 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8">
   <title>Generate Video</title>
-  <link rel="stylesheet" href="/style.css"/>
+  <link rel="stylesheet" href="/style.css">
   <style>
-    .wrap{max-width:920px;margin:24px auto;padding:16px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
-    .col{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px}
-    textarea{min-height:120px}
-    select,input,textarea,button,a{font-size:16px;border-radius:12px;border:1px solid #2a3343;background:#111827;color:#e6e9ef;padding:12px}
-    button{background:#1e293b;cursor:pointer}
-    button.primary{background:#3b82f6}
-    .badge{padding:4px 10px;border-radius:999px;border:1px solid #334155;font-size:12px}
-    .ok{color:#16a34a;border-color:#16a34a}
-    .no{color:#e11d48;border-color:#e11d48}
-    .hint{opacity:.7;font-size:13px}
-    .disabled{opacity:.5;pointer-events:none}
-    pre{background:#0f172a;border:1px solid #223047;border-radius:12px;padding:16px;overflow:auto;color:#e6e9ef}
+    .wrap{max-width:980px;margin:24px auto;padding:16px}
+    textarea,input,select,button{width:100%;margin:8px 0;padding:10px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    pre{background:#0f172a;color:#e6e9ef;border:1px solid #223047;border-radius:12px;padding:12px;overflow:auto}
+    video{width:100%;max-height:480px;margin-top:12px;border-radius:12px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#111827;border:1px solid #2a3343;margin-right:8px}
   </style>
 </head>
 <body class="wrap">
-  <h1>Generate Video</h1>
-
-  <div class="row">
-    <span id="me" class="badge">user: -</span>
-    <span id="sub" class="badge">abonament: -</span>
-    <a class="badge" href="/premium">Premium</a>
-    <a class="badge" href="/login-demo.html?email=itudorache53@gmail.com&to=%2Fgen-video.html">Login rapid</a>
-    <a class="badge" href="/api/logout">Logout</a>
+  <div>
+    <span class="pill" id="pillUser">user: -</span>
+    <span class="pill" id="pillSub">abonament: -</span>
+    <button id="btnLoginQuick" class="pill">Login rapid</button>
+    <a id="btnLogout" class="pill" href="/api/logout">Logout</a>
   </div>
 
+  <h2>Generate Video</h2>
+
   <div class="row">
-    <div class="col">
+    <div>
       <label>Storyboard / descriere scenă</label>
-      <textarea id="story" placeholder="Ex: slow camera push-in, soft light, sensual mood, elegant lingerie, subtle movements..."></textarea>
-      <span class="hint">Scrie pe scurt ce se întâmplă în 10–20s. Mișcare lentă, atmosferă, cadru, lumină.</span>
+      <textarea id="story" rows="7" placeholder="Ex: slow camera push-in, soft light, cinematic look..."></textarea>
     </div>
-    <div class="col">
+    <div>
       <label>Negative prompt (extra)</label>
-      <textarea id="neg" placeholder="artifacts, bad hands, extra fingers, flicker, temporal inconsistency, watermark, logo..."></textarea>
-      <span class="hint">Se combină cu pachetul “fixed negative” (anatomie, flicker, watermark etc.).</span>
+      <textarea id="neg" rows="7" placeholder="bad hands, extra fingers, flicker, watermark..."></textarea>
     </div>
   </div>
 
   <div class="row">
-    <div class="col">
+    <div>
       <label>Durată</label>
-      <select id="seconds">
-        <option value="10">10s (ALL)</option>
-        <option value="20" data-tier="PLUS">20s (PLUS/PRO)</option>
+      <select id="sec">
+        <option value="10">10s</option>
+        <option value="20" selected>20s (PLUS/PRO)</option>
       </select>
     </div>
-    <div class="col">
+    <div>
       <label>Calitate</label>
       <select id="quality">
-        <option value="1080p">1080p (ALL)</option>
-        <option value="4k" data-tier="PRO">4K (PRO)</option>
+        <option value="1080p">1080p</option>
+        <option value="4k" selected>4K (PRO)</option>
       </select>
-    </div>
-    <div class="col" style="align-self:flex-end">
-      <button id="go" class="primary">Generează (demo)</button>
-      <a id="upgrade" class="badge no" href="/upgrade.html" style="display:none">Upgrade necesar</a>
     </div>
   </div>
 
-  <pre id="out">{ "hint": "apasă Generează — vezi payloadul pregătit pentru model (demo)" }</pre>
+  <button id="btnGo">Generează (real)</button>
 
-  <script>
-    const $ = (s)=>document.querySelector(s);
-    const out = $('#out');
-    const show = (x)=> out.textContent = typeof x==='string' ? x : JSON.stringify(x,null,2);
+  <pre id="out">{ "hint":"apasă Generează" }</pre>
+  <div id="videoBox"></div>
 
-    let user = null;
-    let sub  = {active:false, sub:null};
+<script>
+  const $ = (id) => document.getElementById(id);
+  const out = $('out');
+  const setOut = (x) => out.textContent = JSON.stringify(x, null, 2);
 
-    function paintBadges(){
-      $('#me').textContent  = user ? `user: ${user.email}` : 'user: -';
-      if(sub.active){
-        $('#sub').textContent = `abonament: ${sub.sub.tier} (activ)`;
-        $('#sub').className = 'badge ok';
-      } else {
-        $('#sub').textContent = `abonament: inactiv`;
-        $('#sub').className = 'badge no';
-      }
-    }
+  async function refreshMe(){
+    const r = await fetch('/api/sub/check', {credentials:'include'});
+    const j = await r.json();
+    const r2 = await fetch('/api/me', {credentials:'include'});
+    const j2 = await r2.json();
+    $('pillUser').textContent = 'user: ' + (j2.user?.email || '-');
+    $('pillSub').textContent  = 'abonament: ' + (j.sub?.tier ? `${j.sub.tier} (activ)` : '—');
+  }
 
-    function gateSelects(){
-      // reguli:
-      // - 20s permis doar PLUS/PRO
-      // - 4K permis doar PRO (și de obicei cu 20s)
-      const tier = sub.active ? (sub.sub.tier||'BASIC') : 'BASIC';
-      const secSel = $('#seconds');
-      const qSel   = $('#quality');
+  $('btnLoginQuick').onclick = async () => {
+    const email = prompt('Email', 'itudorache53@gmail.com') || 'user@example.com';
+    await fetch('/api/mock-login?email=' + encodeURIComponent(email), {credentials:'include'});
+    await fetch('/api/sub/mock-activate/PRO', {credentials:'include'});
+    refreshMe();
+  };
 
-      for(const opt of secSel.options){
-        const req = opt.getAttribute('data-tier'); // null|PLUS
-        let enabled = true;
-        if(req==='PLUS' && !['PLUS','PRO'].includes(tier)) enabled=false;
-        opt.disabled = !enabled;
-      }
-      if(secSel.selectedOptions[0].disabled){
-        for(const o of secSel.options){ if(!o.disabled){ secSel.value=o.value; break; } }
-      }
-
-      for(const opt of qSel.options){
-        const req = opt.getAttribute('data-tier'); // null|PRO
-        let enabled = true;
-        if(req==='PRO' && tier!=='PRO') enabled=false;
-        opt.disabled = !enabled;
-      }
-      if(qSel.selectedOptions[0].disabled){
-        for(const o of qSel.options){ if(!o.disabled){ qSel.value=o.value; break; } }
-      }
-
-      // dacă există opțiuni blocate, arată link-ul de upgrade
-      const blocked = [...secSel.options, ...qSel.options].some(o=>o.disabled);
-      $('#upgrade').style.display = blocked ? '' : 'none';
-    }
-
-    async function boot(){
-      try{
-        const r1 = await fetch('/api/me',{credentials:'include'});
-        const j1 = await r1.json();
-        if(j1.ok) user = j1.user;
-
-        const r2 = await fetch('/api/sub/check',{credentials:'include'});
-        const j2 = await r2.json();
-        if(j2.ok){ sub = {active:j2.active, sub:j2.sub}; }
-
-        paintBadges();
-        gateSelects();
-      }catch(e){ console.error(e); }
-    }
-
-    $('#go').onclick = async ()=>{
-      const seconds = Number($('#seconds').value);
-      const quality = $('#quality').value;
-      const story   = $('#story').value.trim();
-      const neg     = $('#neg').value.trim();
-
-      // UI demo: doar arătăm payload-ul. Când legăm modelul, se face POST către backend.
+  $('btnGo').onclick = async () => {
+    try{
+      setOut({status:'starting'});
+      $('videoBox').innerHTML = '';
       const payload = {
-        kind: seconds<=10 ? 'short' : 'video',
-        options: {
-          seconds, quality,
-          storyboard: story,
-          negativeExtra: neg,
-          // negative final = FIXED_NEG_VIDEO + safe words + negativeExtra (se face pe backend)
-        },
-        user, sub
+        storyboard: $('story').value.trim(),
+        negativeExtra: $('neg').value.trim(),
+        seconds: Number($('sec').value),
+        quality: $('quality').value
       };
-      show({ ok:true, note:'demo (fără apel la model)', payload });
-    };
+      const r = await fetch('/api/video/start', {
+        method:'POST',
+        credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const j = await r.json();
+      setOut(j);
+      if(!j.ok) return;
 
-    boot();
-  </script>
+      const id = j.id;
+      // poll
+      async function poll(){
+        const rs = await fetch('/api/video/status/' + id, {credentials:'include'});
+        const js = await rs.json();
+        setOut(js);
+        if(js.status === 'succeeded' && js.output){
+          const url = Array.isArray(js.output) ? js.output[0] : js.output;
+          const v = document.createElement('video');
+          v.controls = true; v.loop = true; v.src = url; v.autoplay = true;
+          $('videoBox').innerHTML = ''; $('videoBox').appendChild(v);
+          return;
+        }
+        if(js.status === 'failed' || js.error){
+          return;
+        }
+        setTimeout(poll, 2500);
+      }
+      poll();
+    }catch(e){
+      setOut({ok:false, error:String(e)});
+    }
+  };
+
+  refreshMe();
+</script>
 </body>
 </html>
