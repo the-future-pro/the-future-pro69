@@ -1,4 +1,4 @@
-// server.js (ESM, production-ready, all-in-one + protected routes)
+// server.js (ESM, production-ready) — with Replicate video
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -6,49 +6,41 @@ import session from 'express-session';
 import connectSqlite3 from 'connect-sqlite3';
 import path from 'path';
 import fs from 'fs';
-import sqlite3 from 'sqlite3';
 import { fileURLToPath } from 'url';
 
-// --- __dirname in ESM
+// --- ESM __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 // --- app
 const app = express();
-app.set('trust proxy', 1); // necesar pe Render/HTTPS
+app.set('trust proxy', 1); // Render/HTTPS
 
 // --- middlewares
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 
-// --- directoare DB
-const DATA_DIR  = path.join(__dirname, 'db');
-const SESS_DIR  = DATA_DIR; // reuse aceeași rădăcină
-const DB_FILE   = path.join(DATA_DIR, 'app.sqlite');
-fs.mkdirSync(DATA_DIR, { recursive: true });
-
-// --- sesiuni pe disc (SQLite)
+// --- sessions (SQLite on disk)
+const SESS_DIR = path.join(__dirname, 'db');
+try { fs.mkdirSync(SESS_DIR, { recursive: true }); } catch {}
 const SQLiteStore = connectSqlite3(session);
 app.use(
   session({
-    store: new SQLiteStore({
-      db: 'sessions.sqlite',
-      dir: SESS_DIR
-    }),
+    store: new SQLiteStore({ db: 'sessions.sqlite', dir: SESS_DIR }),
     secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
     resave: false,
     saveUninitialized: true,
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production', // pe Render e HTTPS
-      maxAge: Number(process.env.SESSION_MAX_AGE_MS || 30 * 24 * 60 * 60 * 1000) // 30 zile
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: Number(process.env.SESSION_MAX_AGE_MS || 30 * 24 * 60 * 60 * 1000)
     }
   })
 );
 
-// --- servește /public (gen-image.html, admin.html, etc.)
+// --- static
 app.use(
   express.static(path.join(__dirname, 'public'), {
     maxAge: '1h',
@@ -56,168 +48,146 @@ app.use(
   })
 );
 
-// --- DB de evenimente (login/abonamente)
-const db = new sqlite3.Database(DB_FILE);
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      kind   TEXT NOT NULL,
-      email  TEXT,
-      tier   TEXT,
-      until  INTEGER,
-      created_at INTEGER NOT NULL
-    )
-  `);
-});
-function logEvent({ kind, email = null, tier = null, until = null }) {
-  return new Promise((resolve) => {
-    db.run(
-      `INSERT INTO events(kind,email,tier,until,created_at) VALUES (?,?,?,?,?)`,
-      [kind, email, tier, until, Date.now()],
-      () => resolve()
-    );
-  });
-}
-
-// ----------------- API -----------------
+// ---------------- Helpers & Guards ----------------
 const TIERS = ['BASIC', 'PLUS', 'PRO'];
 
+function requireAuth(req, res, next) {
+  if (req.session?.user) return next();
+  return res.status(401).json({ ok:false, error:'login_required' });
+}
+function requireSub(tierRequired = 'BASIC') {
+  return (req, res, next) => {
+    const sub = req.session?.sub;
+    if (!sub || sub.until <= Date.now())
+      return res.status(402).json({ ok:false, error:'subscription_required' });
+    const ord = (t) => TIERS.indexOf(t);
+    if (ord(sub.tier) < ord(tierRequired))
+      return res.status(403).json({ ok:false, error:'tier_too_low', have: sub.tier, need: tierRequired });
+    next();
+  };
+}
+
+// --------------- Basic APIs ---------------
 app.get('/api/ping', (_req, res) => res.json({ ok: true }));
 
-// stare user
 app.get('/api/me', (req, res) => {
   if (req.session?.user) return res.json({ ok: true, user: req.session.user });
   return res.json({ ok: false, error: 'login_required' });
 });
 
-// login mock (aliasuri incluse)
 app.get(['/api/mock-login', '/api/debug/login'], (req, res) => {
   const email = (req.query.email || '').trim() || 'user@example.com';
   req.session.user = { id: Date.now() % 100000, email };
-  req.session.save(async () => {
-    await logEvent({ kind: 'login', email }).catch(()=>{});
-    res.json({ ok: true, user: req.session.user });
-  });
+  req.session.save(() => res.json({ ok: true, user: req.session.user }));
 });
 
-// logout
 app.get(['/api/logout', '/api/debug/logout'], (req, res) => {
-  const email = req.session?.user?.email || null;
-  req.session.destroy(async () => {
-    await logEvent({ kind: 'logout', email }).catch(()=>{});
-    res.json({ ok: true });
-  });
+  req.session.destroy(() => res.json({ ok: true }));
 });
 
-// activare „abonament” mock
 app.get('/api/sub/mock-activate/:tier', (req, res) => {
   const tier = String(req.params.tier || '').toUpperCase();
   if (!TIERS.includes(tier)) return res.status(400).json({ ok: false, error: 'invalid_tier' });
-
   const days = Number(process.env.SUB_DEFAULT_DAYS || 30);
   const until = Date.now() + days * 24 * 60 * 60 * 1000;
-
   req.session.sub = { tier, until };
-  req.session.save(async () => {
-    await logEvent({
-      kind: 'sub_activate',
-      email: req.session.user?.email || null,
-      tier,
-      until
-    }).catch(()=>{});
-    res.json({ ok: true, sub: req.session.sub });
-  });
+  req.session.save(() => res.json({ ok: true, sub: req.session.sub }));
 });
 
-// verificare abonament
 app.get('/api/sub/check', (req, res) => {
   const sub = req.session?.sub || null;
   const active = !!(sub && sub.until > Date.now());
   res.json({ ok: true, active, sub });
 });
 
-// debug cookie
 app.get('/api/debug/cookie', (req, res) => {
   res.json({ cookie: req.headers.cookie || '' });
 });
 
-// --- ADMIN: stats (protejate prin token simplu)
-app.get('/api/admin/stats', (req, res) => {
-  const token = req.query.token || '';
-  const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'admin123';
-  if (token !== ADMIN_TOKEN) {
-    return res.status(401).json({ ok: false, error: 'unauthorized' });
+// --------------- Admin debug (opțional) ---------------
+app.get('/api/admin/stats', requireAuth, requireSub('PRO'), async (_req, res) => {
+  try {
+    // demo stats (înlocuiește cu ce vrei)
+    const users = 1;
+    const subsActive = 2;
+    const logins24h = 4;
+    res.json({ ok:true, stats:{ users, subs_active: subsActive, logins_24h: logins24h }});
+  } catch (e) {
+    res.status(500).json({ ok:false, error:'server_error', detail:String(e) });
   }
-
-  const now = Date.now();
-  const dayAgo = now - 24 * 60 * 60 * 1000;
-
-  db.serialize(() => {
-    db.get(
-      `SELECT COUNT(DISTINCT email) AS users FROM events WHERE kind='login' AND email IS NOT NULL`,
-      (e1, r1) => {
-        if (e1) return res.status(500).json({ ok: false, error: String(e1) });
-        db.get(
-          `SELECT COUNT(*) AS subs_active FROM events WHERE kind='sub_activate' AND (until IS NOT NULL AND until > ?)`,
-          [now],
-          (e2, r2) => {
-            if (e2) return res.status(500).json({ ok: false, error: String(e2) });
-            db.get(
-              `SELECT COUNT(*) AS logins_24h FROM events WHERE kind='login' AND created_at > ?`,
-              [dayAgo],
-              (e3, r3) => {
-                if (e3) return res.status(500).json({ ok: false, error: String(e3) });
-                res.json({
-                  ok: true,
-                  stats: {
-                    users: r1?.users || 0,
-                    subs_active: r2?.subs_active || 0,
-                    logins_24h: r3?.logins_24h || 0
-                  }
-                });
-              }
-            );
-          }
-        );
-      }
-    );
-  });
 });
 
-// debug: ultimele 50 evenimente
-app.get('/api/debug/events', (_req, res) => {
-  db.all(`SELECT * FROM events ORDER BY id DESC LIMIT 50`, (err, rows) => {
-    if (err) return res.status(500).json({ ok: false, error: String(err) });
-    res.json({ ok: true, rows });
-  });
-});
+// --------------- Replicate: VIDEO ---------------
+const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN || '';
+const REPLICATE_MODEL     = process.env.REPLICATE_MODEL || '';   // ex: "luma/dream-machine"
+const REPLICATE_VERSION   = process.env.REPLICATE_VERSION || ''; // optional
+const REPLICATE_POLL_MS   = Number(process.env.REPLICATE_POLL_MS || 2500);
 
-// ------------- MIDDLEWARE-URI PROTEJARE -------------
-function requireLogin(req, res, next) {
-  if (!req.session?.user) {
-    return res.status(401).json({ ok: false, error: 'login_required' });
+// helper: call Replicate
+async function replicateJSON(path, opts = {}) {
+  const u = `https://api.replicate.com/v1/${path.replace(/^\/+/, '')}`;
+  const r = await fetch(u, {
+    ...opts,
+    headers: {
+      'Authorization': `Bearer ${REPLICATE_API_TOKEN}`,
+      'Content-Type': 'application/json',
+      ...(opts.headers || {})
+    }
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const msg = j?.error?.message || j?.message || r.statusText;
+    throw new Error(`Replicate ${r.status}: ${msg}`);
   }
-  next();
-}
-function requirePro(req, res, next) {
-  const sub = req.session?.sub;
-  const active = !!(sub && sub.tier === 'PRO' && sub.until > Date.now());
-  if (!active) {
-    return res.status(402).json({ ok: false, error: 'pro_required' });
-  }
-  next();
+  return j;
 }
 
-// rute protejate (exemple)
-app.get('/api/private/me', requireLogin, (req, res) => {
-  res.json({ ok: true, user: req.session.user, sub: req.session.sub || null });
-});
-app.get('/api/pro/feature', requireLogin, requirePro, (_req, res) => {
-  res.json({ ok: true, message: 'Ai acces la feature-ul PRO 🚀' });
+/**
+ * Start job video
+ * body: { storyboard, negativeExtra, seconds, quality }
+ */
+app.post('/api/video/start', requireAuth, requireSub('PLUS'), async (req, res) => {
+  try {
+    if (!REPLICATE_API_TOKEN || !REPLICATE_MODEL)
+      return res.status(500).json({ ok:false, error:'replicate_not_configured' });
+
+    const { storyboard = '', negativeExtra = '', seconds = 10, quality = '4k' } = req.body || {};
+
+    // Construiește payload-ul în formatul modelului ales.
+    // Cele mai multe modele acceptă o cheie "prompt" / "story" + setări.
+    const input = {
+      prompt: storyboard,
+      negative_prompt: negativeExtra,
+      duration: Number(seconds) || 10,
+      quality
+    };
+
+    const body = {
+      model: REPLICATE_MODEL,
+      input
+    };
+    if (REPLICATE_VERSION) body.version = REPLICATE_VERSION;
+
+    const j = await replicateJSON('predictions', { method:'POST', body: JSON.stringify(body) });
+    // j.id — prediction id
+    res.json({ ok:true, id: j.id, status: j.status, urls: j.urls });
+  } catch (e) {
+    res.status(500).json({ ok:false, error:String(e.message || e) });
+  }
 });
 
-// --------------- UI de test ---------------
+// Status job
+app.get('/api/video/status/:id', requireAuth, requireSub('PLUS'), async (req, res) => {
+  try {
+    const j = await replicateJSON(`predictions/${encodeURIComponent(req.params.id)}`);
+    // când e gata: j.status === "succeeded" și j.output conține URL video
+    res.json({ ok:true, status: j.status, output: j.output || null, error: j.error || null });
+  } catch (e) {
+    res.status(500).json({ ok:false, error:String(e.message || e) });
+  }
+});
+
+// --------------- Premium UI de test ---------------
 app.get('/premium', (_req, res) => {
   res.type('html').send(`<!doctype html>
 <html lang="ro"><meta charset="utf-8"/>
@@ -227,7 +197,7 @@ app.get('/premium', (_req, res) => {
   body{background:#0b0f16;color:#e6e9ef;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:24px}
   h1{font-size:40px;margin:0 0 24px}
   .row{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
-  input,button,a{font-size:16px;border-radius:12px;border:1px solid #2a3343;background:#111827;color:#e6e9ef;padding:12px 16px;text-decoration:none}
+  input,button,a,select{font-size:16px;border-radius:12px;border:1px solid #2a3343;background:#111827;color:#e6e9ef;padding:12px 16px;text-decoration:none}
   button{background:#1e293b;cursor:pointer}
   button.primary{background:#3b82f6}
   pre{background:#0f172a;border:1px solid #223047;border-radius:12px;padding:16px;overflow:auto}
@@ -257,10 +227,12 @@ app.get('/premium', (_req, res) => {
     const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials: 'include' });
     show(await r.json());
   };
+
   document.getElementById('btnMe').onclick = async () => {
     const r = await fetch('/api/me', { credentials: 'include' });
     show(await r.json());
   };
+
   for (const b of document.querySelectorAll('[data-tier]')) {
     b.onclick = async () => {
       const tier = b.getAttribute('data-tier');
@@ -272,9 +244,9 @@ app.get('/premium', (_req, res) => {
 </html>`);
 });
 
-// redirect root -> /premium
+// redirect
 app.get('/', (_req, res) => res.redirect('/premium'));
 
-// --------------- start server ---------------
+// start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server ready on :' + PORT));
