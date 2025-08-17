@@ -8,7 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
-// --- rezolvăm __dirname în ESM
+// --- __dirname pentru ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
@@ -16,7 +16,7 @@ const __dirname  = path.dirname(__filename);
 const app = express();
 app.set('trust proxy', 1); // necesar pe Render/HTTPS
 
-// --- middlewares
+// --- middlewares de bază
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -39,19 +39,34 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production', // pe Render e HTTPS
+      secure: process.env.NODE_ENV === 'production',
       maxAge: Number(process.env.SESSION_MAX_AGE_MS || 30 * 24 * 60 * 60 * 1000) // 30 zile
     }
   })
 );
 
-// --- servește /public dacă ai fișiere statice (ex: /generator)
+// --- static /public (gen-image.html, admin.html etc.)
 app.use(
   express.static(path.join(__dirname, 'public'), {
     maxAge: '1h',
     setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=3600')
   })
 );
+
+// --- stats simple pentru admin
+const stats = {
+  startedAt: new Date().toISOString(),
+  apiHits: 0,
+  perPath: {}
+};
+app.use((req, _res, next) => {
+  if (req.path.startsWith('/api/')) {
+    stats.apiHits++;
+    const key = req.path.split('?')[0];
+    stats.perPath[key] = (stats.perPath[key] || 0) + 1;
+  }
+  next();
+});
 
 // ----------------- API -----------------
 const TIERS = ['BASIC', 'PLUS', 'PRO'];
@@ -71,7 +86,7 @@ app.get(['/api/mock-login', '/api/debug/login'], (req, res) => {
   req.session.save(() => res.json({ ok: true, user: req.session.user }));
 });
 
-// logout (alias)
+// logout
 app.get(['/api/logout', '/api/debug/logout'], (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
@@ -100,8 +115,26 @@ app.get('/api/debug/cookie', (req, res) => {
   res.json({ cookie: req.headers.cookie || '' });
 });
 
+// --- ADMIN: stats (ca să nu mai vezi "Cannot GET /api/admin/stats")
+app.get('/api/admin/stats', (_req, res) => {
+  const mem = process.memoryUsage();
+  res.json({
+    ok: true,
+    startedAt: stats.startedAt,
+    uptimeSec: Math.floor(process.uptime()),
+    apiHits: stats.apiHits,
+    perPath: stats.perPath,
+    memoryMB: {
+      rss: Math.round(mem.rss / 1024 / 1024),
+      heapUsed: Math.round(mem.heapUsed / 1024 / 1024)
+    },
+    node: process.version,
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
 // --------------- UI de test ---------------
-// /premium — totul inline pentru a nu depinde de alte fișiere
+// /premium — inline (nu depinde de /public)
 app.get('/premium', (_req, res) => {
   res.type('html').send(`<!doctype html>
 <html lang="ro"><meta charset="utf-8"/>
@@ -135,18 +168,15 @@ app.get('/premium', (_req, res) => {
 <script>
   const out = document.getElementById('out');
   const show = (x) => out.textContent = JSON.stringify(x, null, 2);
-
   document.getElementById('btnLogin').onclick = async () => {
     const email = document.getElementById('email').value.trim();
     const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials: 'include' });
     show(await r.json());
   };
-
   document.getElementById('btnMe').onclick = async () => {
     const r = await fetch('/api/me', { credentials: 'include' });
     show(await r.json());
   };
-
   for (const b of document.querySelectorAll('[data-tier]')) {
     b.onclick = async () => {
       const tier = b.getAttribute('data-tier');
