@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Quick Login</title>
+<link rel="stylesheet" href="/style.css" />
+<body class="container">
+  <h1>Quick Login</h1>
+  <p>Autologin pe baza parametrului <code>?email=</code>, apoi redirect.</p>
+  <pre id="out">...</pre>
+  <script>
+    const out = document.getElementById('out');
+    const q = new URLSearchParams(location.search);
+    const email = q.get('email') || 'user@example.com';
+    const to = q.get('to') || '/premium';
+
+    (async () => {
+      try {
+        const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials: 'include' });
+        const j = await r.json();
+        out.textContent = JSON.stringify(j, null, 2);
+        if (j.ok) location.href = to;
+      } catch (e) {
+        out.textContent = 'Erroare: ' + e.message;
+      }
+    })();
+  </script>
+</body>
