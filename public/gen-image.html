@@ -1,29 +1,48 @@
 <!doctype html>
 <html lang="ro">
 <head>
-<meta charset="utf-8">
-<title>Generate Image</title>
-<link rel="stylesheet" href="/style.css">
-<style>.wrap{max-width:900px;margin:0 auto;padding:24px}</style>
+  <meta charset="utf-8">
+  <title>Generate Image</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body class="wrap">
-  <h1>Generate Image</h1>
-  <input id="prompt" placeholder="prompt" style="width:100%">
-  <input id="neg" placeholder="negative extra (se combină cu lock)" style="width:100%;margin-top:6px">
-  <select id="quality" style="margin-top:6px">
-    <option value="1024">1024 (BASIC)</option>
-    <option value="2048">2048 (PLUS)</option>
-    <option value="8k">8K (PRO)</option>
-  </select>
-  <button onclick="go()">Generează</button>
-  <pre id="out"></pre>
-<script>
-const j=(u,o)=>fetch(u,{method:o?.method||'GET',headers:{'Content-Type':'application/json'},credentials:'include',body:o?.body?JSON.stringify(o.body):undefined}).then(r=>r.json());
-async function go(){
-  const options = { prompt: prompt.value, negative: neg.value, quality: quality.value };
-  const r = await j('/api/jobs',{method:'POST',body:{kind:'image', options}});
-  out.textContent = JSON.stringify(r,null,2);
-}
-</script>
+<body>
+  <div class="wrap">
+    <h1>Generate Image</h1>
+
+    <label for="prompt">Prompt</label>
+    <input id="prompt" placeholder="o pisică pe acoperiș, stil cinematic">
+
+    <label for="neg">Negative extra (opțional)</label>
+    <input id="neg" placeholder="blurry, watermark, logo">
+
+    <label for="quality">Calitate</label>
+    <select id="quality">
+      <option value="1024">1024 (BASIC)</option>
+      <option value="2048">2048 (PLUS)</option>
+      <option value="8k">8K (PRO)</option>
+    </select>
+
+    <div style="margin-top:12px">
+      <button class="primary" onclick="go()">Generează</button>
+    </div>
+
+    <pre id="out"></pre>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const show = (x) => { $('out').textContent = JSON.stringify(x, null, 2); };
+
+    async function go(){
+      const data = {
+        prompt: $('prompt').value.trim(),
+        negative: $('neg').value.trim(),
+        quality: $('quality').value
+      };
+      // mock: ping la server + arăt parametrii trimiși
+      const ping = await fetch('/api/ping', { credentials: 'include' }).then(r=>r.json()).catch(()=>({ok:false}));
+      show({ ok:true, ping, request:data, note:"UI demo — integrezi apoi cu generatorul real" });
+    }
+  </script>
 </body>
 </html>
