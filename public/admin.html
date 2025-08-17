@@ -1,4 +1,26 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admin</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="wrap"><h1>Admin Stats</h1><button class="btn" onclick="load()">Refresh</button><pre id="s"></pre></div>
-<script>async function load(){const r=await fetch('/api/admin/stats');document.getElementById('s').textContent=await r.text();}document.addEventListener('DOMContentLoaded',load);</script>
-</body></html>
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <title>Admin Stats</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <h1>Admin Stats</h1>
+    <button class="primary" onclick="load()">Refresh</button>
+    <pre id="out"></pre>
+  </div>
+  <script>
+    const out = document.getElementById('out');
+    function show(x){ out.textContent = JSON.stringify(x, null, 2); }
+    async function load(){
+      try{
+        const r = await fetch('/api/admin/stats', { credentials:'include' });
+        show(await r.json());
+      }catch(e){ show({ok:false, error:String(e)}) }
+    }
+    load();
+  </script>
+</body>
+</html>
