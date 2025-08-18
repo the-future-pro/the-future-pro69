@@ -2,141 +2,166 @@
 <html lang="ro">
 <head>
   <meta charset="utf-8"/>
-  <title>Generate Video (real)</title>
+  <title>Generate Video</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <link rel="stylesheet" href="/style.css">
   <style>
-    body{background:#0b0f16;color:#e6e9ef;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:16px}
-    h1{margin:8px 0 16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1100px}
-    textarea,input,select,button{width:100%;border-radius:12px;border:1px solid #223047;background:#0f1624;color:#e6e9ef;padding:12px}
+    :root{--bg:#0b0f16;--card:#0f172a;--muted:#93a1b1;--fg:#e6e9ef;--pri:#3b82f6;--bd:#223047}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Roboto,Arial}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+    h1{margin:0 0 16px;font-size:28px}
+    .row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .pill,button,input,select,textarea{border:1px solid var(--bd);border-radius:12px;background:#0f1624;color:var(--fg);padding:10px 14px;font-size:15px}
+    .pill{background:var(--card)}
     button{cursor:pointer}
-    .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-    .pill{background:#112033;border:1px solid #223047;border-radius:999px;padding:6px 10px;font-size:12px}
-    pre{background:#0f172a;border:1px solid #223047;border-radius:12px;padding:12px;overflow:auto;min-height:220px}
-    .ok{color:#86efac} .bad{color:#fca5a5}
+    .primary{background:var(--pri);border-color:transparent}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media (min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    textarea{min-height:140px;resize:vertical}
+    .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+    pre{background:#0b1222;border:1px solid var(--bd);border-radius:12px;padding:14px;overflow:auto;min-height:220px}
+    video{width:100%;max-height:460px;border-radius:12px;border:1px solid var(--bd);background:#000}
+    .ok{color:#86efac}.bad{color:#fca5a5}
   </style>
 </head>
 <body>
-  <h1>Generate Video</h1>
+  <div class="wrap">
+    <h1>Generate Video</h1>
 
-  <div class="row">
-    <span id="userInfo" class="pill">user: –</span>
-    <span id="subInfo" class="pill">abonament: –</span>
-    <button id="btnQuickLogin" style="width:auto">Login rapid</button>
-    <button id="btnMockPro"    style="width:auto">Premium (mock)</button>
-    <button id="btnLogout"     style="width:auto">Logout</button>
-  </div>
-
-  <div class="grid">
-    <div>
-      <label>Storyboard / descriere scenă</label>
-      <textarea id="storyboard" rows="7" placeholder="Ex: slow push-in camera through neon-lit alley, cinematic, depth of field, soft light..."></textarea>
+    <div class="row">
+      <span id="who" class="pill">user: –</span>
+      <span id="sub" class="pill">abonament: –</span>
+      <button id="btnQuickLogin" class="primary" style="width:auto">Login rapid</button>
+      <button id="btnMockPro" style="width:auto">Premium (mock)</button>
+      <button id="btnLogout" style="width:auto">Logout</button>
     </div>
-    <div>
-      <label>Negative prompt (extra)</label>
-      <textarea id="negative" rows="7" placeholder="artifacts, bad hands, extra fingers, flicker, temporal inconsistency, watermark, logo..."></textarea>
-    </div>
-  </div>
 
-  <div class="grid" style="margin-top:12px">
-    <div>
-      <label>Durată</label>
-      <select id="seconds">
-        <option value="5">5s (BASIC)</option>
-        <option value="10" selected>10s (PLUS)</option>
-        <option value="20">20s (PRO)</option>
-      </select>
+    <div class="grid">
+      <div class="card">
+        <label><b>Storyboard / descriere scenă</b></label>
+        <textarea id="story" placeholder="Ex: slow camera push-in, soft light, elegant, cinematic grade, subtle movements..."></textarea>
+      </div>
+      <div class="card">
+        <label><b>Negative prompt (extra)</b></label>
+        <textarea id="neg" placeholder="artifacts, bad hands, extra fingers, flicker, temporal inconsistency, watermark, logo..."></textarea>
+      </div>
     </div>
-    <div>
-      <label>Calitate</label>
-      <select id="quality">
-        <option value="540p">540p</option>
-        <option value="720p" selected>720p</option>
-        <option value="1080p">1080p</option>
-      </select>
+
+    <div class="row">
+      <label>Durată
+        <select id="seconds">
+          <option value="10">10s (PLUS)</option>
+          <option value="20" selected>20s (PRO)</option>
+        </select>
+      </label>
+      <label>Calitate
+        <select id="quality">
+          <option value="720p">720p</option>
+          <option value="1080p" selected>1080p</option>
+        </select>
+      </label>
+      <button id="btnGen" class="primary" style="flex:1">Generează</button>
     </div>
-  </div>
 
-  <div class="row" style="margin-top:12px">
-    <button id="btnGenerate">Generează</button>
-    <a id="videoLink" class="pill" href="#" target="_blank" style="display:none">Deschide video</a>
-  </div>
+    <div id="videoWrap" class="card" style="display:none">
+      <video id="vid" controls playsinline></video>
+    </div>
 
-  <pre id="out">{ "hint": "completează câmpurile și apasă Generează" }</pre>
+    <pre id="out">{ "hint": "completează câmpurile și apasă Generează" }</pre>
+  </div>
 
   <script>
     const $ = (id) => document.getElementById(id);
     const show = (x) => $('out').textContent = JSON.stringify(x, null, 2);
 
-    async function refreshStatus(){
-      const [me, sub] = await Promise.all([
-        fetch('/api/me', {credentials:'include'}).then(r=>r.json()).catch(()=>({})),
-        fetch('/api/sub/check', {credentials:'include'}).then(r=>r.json()).catch(()=>({}))
-      ]);
-      if(me.ok && me.user){
-        $('userInfo').textContent = `user: ${me.user.email}`;
-        $('userInfo').className = 'pill ok';
-      } else {
-        $('userInfo').textContent = 'user: (neautentificat)';
-        $('userInfo').className = 'pill bad';
-      }
-      if(sub.ok && sub.active){
-        $('subInfo').textContent = `abonament: ${sub.sub.tier} (activ)`;
-        $('subInfo').className = 'pill ok';
-      } else {
-        $('subInfo').textContent = 'abonament: inactiv';
-        $('subInfo').className = 'pill bad';
-      }
+    async function refreshMe() {
+      try {
+        const me = await fetch('/api/me', { credentials:'include' }).then(r=>r.json());
+        const sub = await fetch('/api/sub/check', { credentials:'include' }).then(r=>r.json()).catch(()=>({}));
+
+        if (me.ok && me.user) {
+          $('who').textContent = 'user: ' + (me.user.email || me.user.id);
+          $('who').className = 'pill ok';
+        } else {
+          $('who').textContent = 'user: (neautentificat)';
+          $('who').className = 'pill bad';
+        }
+
+        if (sub.ok && sub.active && sub.sub) {
+          $('sub').textContent = `abonament: ${sub.sub.tier} (activ)`;
+          $('sub').className = 'pill ok';
+        } else {
+          $('sub').textContent = 'abonament: inactiv';
+          $('sub').className = 'pill bad';
+        }
+      } catch(_) {}
     }
 
+    // Login rapid – folosește mock-ul GET (simplu, fără CORS headache)
     $('btnQuickLogin').onclick = async () => {
-      const email = prompt('Email pentru login', 'itudorache53@gmail.com') || 'user@example.com';
-      const r = await fetch('/api/login', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'include',
-        body: JSON.stringify({email})
-      });
+      const email = prompt('Email pentru login rapid:', 'itudorache53@gmail.com') || 'user@example.com';
+      const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials:'include' });
       show(await r.json());
-      refreshStatus();
+      refreshMe();
     };
 
     $('btnMockPro').onclick = async () => {
-      const r = await fetch('/api/sub/mock-activate/PRO', {credentials:'include'});
+      const r = await fetch('/api/sub/mock-activate/PRO', { credentials:'include' });
       show(await r.json());
-      refreshStatus();
+      refreshMe();
     };
 
     $('btnLogout').onclick = async () => {
-      await fetch('/api/logout', {credentials:'include'});
-      refreshStatus();
-      show({ok:true, message:'logged out'});
+      await fetch('/api/logout', { credentials:'include' });
+      $('videoWrap').style.display = 'none';
+      $('vid').src = '';
+      show({ ok:true, message:'logged out' });
+      refreshMe();
     };
 
-    $('btnGenerate').onclick = async () => {
-      $('videoLink').style.display = 'none';
-      const payload = {
-        seconds: Number($('seconds').value),
-        quality: $('quality').value,
-        storyboard: $('storyboard').value.trim(),
-        negativeExtra: $('negative').value.trim()
-      };
-      const r = await fetch('/api/video', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'include',
-        body: JSON.stringify(payload)
-      });
-      const j = await r.json();
-      show(j);
-      if (j.ok && j.url) {
-        $('videoLink').href = j.url;
-        $('videoLink').style.display = 'inline-block';
+    $('btnGen').onclick = async () => {
+      $('videoWrap').style.display = 'none';
+      $('vid').src = '';
+
+      const storyboard = ($('story').value || '').trim();
+      if (!storyboard) { show({ ok:false, error:'missing_prompt', hint:'Scrie storyboard/descriere.' }); return; }
+
+      const negative = ($('neg').value || '').trim();
+      const seconds  = Number($('seconds').value);
+      const quality  = $('quality').value;
+
+      // Construim promptul final pentru /api/video (serverul tău citește `prompt`)
+      const prompt = negative ? `${storyboard}\nNEGATIVE: ${negative}` : storyboard;
+
+      show({ ok:true, status:'sending', prompt, seconds, quality });
+
+      try {
+        const r = await fetch('/api/video', {
+          method:'POST',
+          credentials:'include',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ prompt, seconds, quality, negativeExtra: negative })
+        });
+        const j = await r.json();
+        show(j);
+
+        // dacă backend-ul întoarce un URL/array cu URL-uri, afișăm player-ul
+        let url = null;
+        if (j && j.url) url = j.url;
+        else if (j && j.output && typeof j.output === 'string') url = j.output;
+        else if (j && j.output && Array.isArray(j.output) && j.output.length) url = j.output[0];
+
+        if (url && /^https?:\/\//.test(url)) {
+          $('vid').src = url;
+          $('videoWrap').style.display = 'block';
+        }
+      } catch (e) {
+        show({ ok:false, error:'request_failed', detail:String(e) });
       }
     };
 
-    refreshStatus();
+    refreshMe();
   </script>
 </body>
 </html>
