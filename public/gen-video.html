@@ -40,7 +40,7 @@
     <div class="grid">
       <div class="card">
         <label><b>Storyboard / descriere scenă</b></label>
-        <textarea id="story" placeholder="Ex: slow camera push-in, soft light, elegant, cinematic grade, subtle movements..."></textarea>
+        <textarea id="story" placeholder="Ex: slow camera push-in, soft light, cinematic, subtle movements..."></textarea>
       </div>
       <div class="card">
         <label><b>Negative prompt (extra)</b></label>
@@ -61,7 +61,7 @@
           <option value="1080p" selected>1080p</option>
         </select>
       </label>
-      <button id="btnGen" class="primary" style="flex:1">Generează</button>
+      <button id="btnGenerate" class="primary" style="flex:1">Generează</button>
     </div>
 
     <div id="videoWrap" class="card" style="display:none">
@@ -77,7 +77,7 @@
 
     async function refreshMe() {
       try {
-        const me = await fetch('/api/me', { credentials:'include' }).then(r=>r.json());
+        const me  = await fetch('/api/me',        { credentials:'include' }).then(r=>r.json());
         const sub = await fetch('/api/sub/check', { credentials:'include' }).then(r=>r.json()).catch(()=>({}));
 
         if (me.ok && me.user) {
@@ -95,10 +95,9 @@
           $('sub').textContent = 'abonament: inactiv';
           $('sub').className = 'pill bad';
         }
-      } catch(_) {}
+      } catch {}
     }
 
-    // Login rapid – folosește mock-ul GET (simplu, fără CORS headache)
     $('btnQuickLogin').onclick = async () => {
       const email = prompt('Email pentru login rapid:', 'itudorache53@gmail.com') || 'user@example.com';
       const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials:'include' });
@@ -120,7 +119,7 @@
       refreshMe();
     };
 
-    $('btnGen').onclick = async () => {
+    $('btnGenerate').onclick = async () => {
       $('videoWrap').style.display = 'none';
       $('vid').src = '';
 
@@ -131,9 +130,9 @@
       const seconds  = Number($('seconds').value);
       const quality  = $('quality').value;
 
-      // Construim promptul final pentru /api/video (serverul tău citește `prompt`)
       const prompt = negative ? `${storyboard}\nNEGATIVE: ${negative}` : storyboard;
 
+      // arată imediat că s-a apăsat butonul
       show({ ok:true, status:'sending', prompt, seconds, quality });
 
       try {
@@ -146,7 +145,6 @@
         const j = await r.json();
         show(j);
 
-        // dacă backend-ul întoarce un URL/array cu URL-uri, afișăm player-ul
         let url = null;
         if (j && j.url) url = j.url;
         else if (j && j.output && typeof j.output === 'string') url = j.output;
