@@ -1,4 +1,4 @@
-// server.js (prod-ready, ESM)
+// server.js (prod-ready, ESM) — include lipire segmente video cu ffmpeg + Replicate
 import express from "express";
 import session from "express-session";
 import connectSqlite3 from "connect-sqlite3";
@@ -13,6 +13,11 @@ import Replicate from "replicate";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+
+// NEW: ffmpeg pentru lipirea segmentelor
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 dotenv.config();
 
@@ -46,7 +51,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production", // pe Render e HTTPS => true
     maxAge: 30 * 24 * 60 * 60 * 1000
   }
 }));
@@ -73,6 +78,38 @@ const subRequired = (req, res, next) => {
   if (!active) return res.status(402).json({ ok: false, error: "subscription_required" });
   next();
 };
+
+// mic utilitar: descarcă URL în fișier
+async function downloadToFile(url, destPath) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("download failed: " + r.status);
+  const file = fs.createWriteStream(destPath);
+  await new Promise((resolve, reject) => {
+    r.body.pipe(file);
+    r.body.on("error", reject);
+    file.on("finish", resolve);
+  });
+}
+
+// concatenează segmente MP4 (fără re-encodare)
+async function concatMp4Files(inputFiles, outPath) {
+  const listFile = outPath + ".txt";
+  fs.writeFileSync(
+    listFile,
+    inputFiles.map(f => `file '${f.replace(/'/g, "'\\''")}'`).join("\n"),
+    "utf8"
+  );
+  await new Promise((resolve, reject) => {
+    ffmpeg()
+      .input(listFile)
+      .inputOptions(["-f concat", "-safe 0"])
+      .outputOptions(["-c copy"])
+      .on("end", resolve)
+      .on("error", reject)
+      .save(outPath);
+  });
+  fs.unlinkSync(listFile);
+}
 
 // ================== SANITY ROUTES ==================
 app.get("/api/ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
@@ -120,47 +157,98 @@ app.post("/api/subscribe/mock", requireLogin, (req, res) => {
   res.json({ ok: true, sub: req.session.user.sub });
 });
 
-// ================== REPLICATE (video) ==================
+// ================== REPLICATE (video cu segmente) ==================
 const replicate =
   process.env.REPLICATE_API_TOKEN
     ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
     : null;
 
-// POST /api/video  -> generează video cu modelul din env
+// expunem un folder public pentru videourile rezultate
+const PUBLIC_DIR = path.join(__dirname, "public");
+const OUT_DIR = path.join(PUBLIC_DIR, process.env.PUBLIC_VIDEOS_DIR || "videos");
+fs.mkdirSync(OUT_DIR, { recursive: true });
+app.use("/" + (process.env.PUBLIC_VIDEOS_DIR || "videos"), express.static(OUT_DIR, { maxAge: "1h" }));
+
 app.post("/api/video", requireLogin, subRequired, async (req, res) => {
   try {
-    const prompt = (req.body?.prompt || "").toString().trim();
+    const prompt   = (req.body?.prompt || req.body?.storyboard || "").toString().trim();
+    const negative = (req.body?.negativeExtra || "").toString().trim();
+    const seconds  = Number(req.body?.seconds || 10);     // 10 sau 20 din UI
+    const quality  = (req.body?.quality || "720p");       // informativ, modelul alege rezoluția
+
     if (!prompt) return res.status(400).json({ ok: false, error: "missing_prompt" });
 
-    if (!replicate || !process.env.REPLICATE_MODEL || !process.env.REPLICATE_VERSION) {
-      // demo fallback dacă nu sunt chei/versiuni
+    // fallback DEMO dacă nu avem cheie sau model
+    if (!replicate || !process.env.REPLICATE_MODEL) {
       return res.json({
         ok: true,
         note: "demo (fără apel real la model)",
-        payload: {
-          kind: "video",
-          options: { seconds: 20, quality: "720p", prompt }
-        }
+        payload: { kind: "video", options: { seconds, quality, prompt, negative } }
       });
     }
 
-    const model = process.env.REPLICATE_MODEL;     // ex: "luma/dream-machine" sau "luma/ray"
-    const version = process.env.REPLICATE_VERSION; // ex: hashul versiunii
+    const model   = process.env.REPLICATE_MODEL;          // ex: "luma/ray-2-720p"
+    const version = process.env.REPLICATE_VERSION || "";  // opțional
+    const segLen  = Number(process.env.SEG_BASE_SECONDS || 5); // segment ~5s
+    const segments = Math.max(1, Math.ceil(seconds / segLen));
 
-    const prediction = await replicate.predictions.create({
-      version,
-      input: {
-        prompt,             // promptul primit
-        // câteva opțiuni uzuale (ajustează după schema modelului ales)
-        num_frames: 240,    // ~10s @24fps
-        fps: 24
-      },
-      // opțional: webhook pentru status
-      // webhook: process.env.RENDER_EXTERNAL_URL + "/api/video/webhook",
-      // webhook_events_filter: ["completed"]
-    });
+    const tempDir = fs.mkdtempSync(path.join(OUT_DIR, "tmp-"));
+    const segFiles = [];
 
-    return res.json({ ok: true, id: prediction.id, status: prediction.status, output: prediction.output || null });
+    for (let i = 0; i < segments; i++) {
+      // pornim predicția
+      const pred = version
+        ? await replicate.predictions.create({
+            version,
+            input: {
+              prompt: prompt + (negative ? `\nNEGATIVE: ${negative}` : ""),
+              aspect_ratio: "16:9",
+              loop: false
+            }
+          })
+        : await replicate.predictions.create({
+            model,
+            input: {
+              prompt: prompt + (negative ? `\nNEGATIVE: ${negative}` : ""),
+              aspect_ratio: "16:9",
+              loop: false
+            }
+          });
+
+      // poll până se termină
+      let p = pred;
+      while (p.status === "starting" || p.status === "processing") {
+        await new Promise(r => setTimeout(r, 1500));
+        p = await replicate.predictions.get(p.id);
+      }
+      if (p.status !== "succeeded") {
+        throw new Error("segment failed: " + (p.error || p.status));
+      }
+
+      // extragem URL-ul rezultat
+      const outUrl =
+        typeof p.output === "string"
+          ? p.output
+          : (Array.isArray(p.output) ? p.output[0] : (p.output?.url || p.output));
+      if (!outUrl) throw new Error("no output url from replicate");
+
+      const segPath = path.join(tempDir, `seg-${i}.mp4`);
+      await downloadToFile(outUrl, segPath);
+      segFiles.push(segPath);
+    }
+
+    // lipire segmente într-un singur mp4 (rapid, fără re-encodare)
+    const outName = `vid-${Date.now()}.mp4`;
+    const outPath = path.join(OUT_DIR, outName);
+    await concatMp4Files(segFiles, outPath);
+
+    // curățare temp
+    for (const f of segFiles) { try { fs.unlinkSync(f); } catch {} }
+    try { fs.rmdirSync(tempDir); } catch {}
+
+    // URL public
+    const publicUrl = `/${process.env.PUBLIC_VIDEOS_DIR || "videos"}/${outName}`;
+    return res.json({ ok: true, url: publicUrl, secondsRequested: seconds, segments });
   } catch (err) {
     console.error("video generation failed:", err);
     return res.status(500).json({ ok: false, error: "video_generation_failed" });
