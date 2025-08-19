@@ -1,4 +1,4 @@
-// server.js (prod-ready, ESM) — include lipire segmente video cu ffmpeg + Replicate
+// server.js (ESM, prod-ready) — Replicate + lipire segmente cu ffmpeg
 import express from "express";
 import session from "express-session";
 import connectSqlite3 from "connect-sqlite3";
@@ -14,10 +14,10 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
-// NEW: ffmpeg pentru lipirea segmentelor
+// ffmpeg pentru concat
 import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
-ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfmpegPath(ffmpegPath || "");
 
 dotenv.config();
 
@@ -51,7 +51,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production", // pe Render e HTTPS => true
+    secure: process.env.NODE_ENV === "production",
     maxAge: 30 * 24 * 60 * 60 * 1000
   }
 }));
@@ -79,16 +79,12 @@ const subRequired = (req, res, next) => {
   next();
 };
 
-// mic utilitar: descarcă URL în fișier
+// mic utilitar: descarcă URL în fișier (compatibil Node fetch web streams)
 async function downloadToFile(url, destPath) {
   const r = await fetch(url);
   if (!r.ok) throw new Error("download failed: " + r.status);
-  const file = fs.createWriteStream(destPath);
-  await new Promise((resolve, reject) => {
-    r.body.pipe(file);
-    r.body.on("error", reject);
-    file.on("finish", resolve);
-  });
+  const ab = await r.arrayBuffer();
+  fs.writeFileSync(destPath, Buffer.from(ab));
 }
 
 // concatenează segmente MP4 (fără re-encodare)
@@ -108,7 +104,7 @@ async function concatMp4Files(inputFiles, outPath) {
       .on("error", reject)
       .save(outPath);
   });
-  fs.unlinkSync(listFile);
+  try { fs.unlinkSync(listFile); } catch {}
 }
 
 // ================== SANITY ROUTES ==================
@@ -137,6 +133,13 @@ app.get("/api/sub/mock-activate/:tier", (req, res) => {
   req.session.save(() => res.json({ ok: true, sub: req.session.sub }));
 });
 
+// ✅ lipsea: verificare abonament pentru UI
+app.get("/api/sub/check", (req, res) => {
+  const sub = req.session?.sub || req.session?.user?.sub || null;
+  const active = !!(sub && sub.until && sub.until > Date.now());
+  res.json({ ok: true, active, sub: sub || null });
+});
+
 // ================== RUTELE TALE ==================
 app.post("/api/login", (req, res) => {
   const { email } = req.body || {};
@@ -163,7 +166,7 @@ const replicate =
     ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
     : null;
 
-// expunem un folder public pentru videourile rezultate
+// folder public pentru videouri
 const PUBLIC_DIR = path.join(__dirname, "public");
 const OUT_DIR = path.join(PUBLIC_DIR, process.env.PUBLIC_VIDEOS_DIR || "videos");
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -173,12 +176,12 @@ app.post("/api/video", requireLogin, subRequired, async (req, res) => {
   try {
     const prompt   = (req.body?.prompt || req.body?.storyboard || "").toString().trim();
     const negative = (req.body?.negativeExtra || "").toString().trim();
-    const seconds  = Number(req.body?.seconds || 10);     // 10 sau 20 din UI
-    const quality  = (req.body?.quality || "720p");       // informativ, modelul alege rezoluția
+    const seconds  = Number(req.body?.seconds || 10);     // 5 / 10 / 20 din UI
+    const quality  = (req.body?.quality || "720p");
 
     if (!prompt) return res.status(400).json({ ok: false, error: "missing_prompt" });
 
-    // fallback DEMO dacă nu avem cheie sau model
+    // DEMO fallback
     if (!replicate || !process.env.REPLICATE_MODEL) {
       return res.json({
         ok: true,
@@ -187,32 +190,28 @@ app.post("/api/video", requireLogin, subRequired, async (req, res) => {
       });
     }
 
-    const model   = process.env.REPLICATE_MODEL;          // ex: "luma/ray-2-720p"
-    const version = process.env.REPLICATE_VERSION || "";  // opțional
-    const segLen  = Number(process.env.SEG_BASE_SECONDS || 5); // segment ~5s
-    const segments = Math.max(1, Math.ceil(seconds / segLen));
+    // Modelul și (opțional) versiunea
+    const model   = process.env.REPLICATE_MODEL;          // ex: "luma/ray-2-720p" sau "luma/ray"
+    const version = process.env.REPLICATE_VERSION || "";  // dacă e setată, o folosim
+
+    // segmentare (ex: 5s per segment → 10s = 2 seg, 20s = 4 seg)
+    const base = Number(process.env.SEG_BASE_SECONDS || 5);
+    const segments = Math.max(1, Math.ceil(seconds / base));
 
     const tempDir = fs.mkdtempSync(path.join(OUT_DIR, "tmp-"));
     const segFiles = [];
 
     for (let i = 0; i < segments; i++) {
-      // pornim predicția
+      const finalPrompt = prompt + (negative ? `\nNEGATIVE: ${negative}` : "");
+
       const pred = version
         ? await replicate.predictions.create({
             version,
-            input: {
-              prompt: prompt + (negative ? `\nNEGATIVE: ${negative}` : ""),
-              aspect_ratio: "16:9",
-              loop: false
-            }
+            input: { prompt: finalPrompt, aspect_ratio: "16:9", loop: false }
           })
         : await replicate.predictions.create({
             model,
-            input: {
-              prompt: prompt + (negative ? `\nNEGATIVE: ${negative}` : ""),
-              aspect_ratio: "16:9",
-              loop: false
-            }
+            input: { prompt: finalPrompt, aspect_ratio: "16:9", loop: false }
           });
 
       // poll până se termină
@@ -225,7 +224,7 @@ app.post("/api/video", requireLogin, subRequired, async (req, res) => {
         throw new Error("segment failed: " + (p.error || p.status));
       }
 
-      // extragem URL-ul rezultat
+      // output URL
       const outUrl =
         typeof p.output === "string"
           ? p.output
@@ -237,7 +236,7 @@ app.post("/api/video", requireLogin, subRequired, async (req, res) => {
       segFiles.push(segPath);
     }
 
-    // lipire segmente într-un singur mp4 (rapid, fără re-encodare)
+    // lipire segmente
     const outName = `vid-${Date.now()}.mp4`;
     const outPath = path.join(OUT_DIR, outName);
     await concatMp4Files(segFiles, outPath);
@@ -248,7 +247,7 @@ app.post("/api/video", requireLogin, subRequired, async (req, res) => {
 
     // URL public
     const publicUrl = `/${process.env.PUBLIC_VIDEOS_DIR || "videos"}/${outName}`;
-    return res.json({ ok: true, url: publicUrl, secondsRequested: seconds, segments });
+    return res.json({ ok: true, url: publicUrl, secondsRequested: seconds, segments, quality });
   } catch (err) {
     console.error("video generation failed:", err);
     return res.status(500).json({ ok: false, error: "video_generation_failed" });
