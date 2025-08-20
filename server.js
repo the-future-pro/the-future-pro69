@@ -1,4 +1,4 @@
-// server.js (ESM, prod-ready) — Replicate + lipire segmente cu ffmpeg
+// server.js (ESM, prod-ready) — Replicate + lipire segmente cu ffmpeg + UI test video
 import express from "express";
 import session from "express-session";
 import connectSqlite3 from "connect-sqlite3";
@@ -133,7 +133,7 @@ app.get("/api/sub/mock-activate/:tier", (req, res) => {
   req.session.save(() => res.json({ ok: true, sub: req.session.sub }));
 });
 
-// ✅ lipsea: verificare abonament pentru UI
+// verificare abonament pt UI
 app.get("/api/sub/check", (req, res) => {
   const sub = req.session?.sub || req.session?.user?.sub || null;
   const active = !!(sub && sub.until && sub.until > Date.now());
@@ -271,6 +271,7 @@ app.get("/premium", (_req, res) => {
   input,button,a{font-size:16px;border-radius:10px;border:1px solid #2a3343;background:#111827;color:#e6e9ef;padding:10px 14px;text-decoration:none}
   button.primary{background:#3b82f6}
   pre{background:#0f172a;border:1px solid #223047;border-radius:10px;padding:14px;overflow:auto}
+  a.pill{display:inline-block;border-radius:999px;border:1px solid #223047;padding:6px 10px}
 </style>
 <h1>Premium</h1>
 <div class="row">
@@ -283,6 +284,10 @@ app.get("/premium", (_req, res) => {
   <button data-tier="PLUS">PLUS</button>
   <button data-tier="PRO" class="primary">PRO</button>
   <button id="btnMe">Vezi /api/me</button>
+</div>
+<div class="row">
+  <button id="btnVideo" class="primary">Generează video</button>
+  <a id="videoLink" href="#" class="pill" style="display:none" target="_blank">Deschide video</a>
 </div>
 <pre id="out">{ "hint": "apasă pe butoane" }</pre>
 <script>
@@ -307,6 +312,31 @@ app.get("/premium", (_req, res) => {
       show(await r.json());
     };
   }
+
+  document.getElementById('btnVideo').onclick = async () => {
+    try {
+      document.getElementById('videoLink').style.display = 'none';
+      const r = await fetch('/api/video', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: 'Sunset beach cinematic shot, slow pan, ultra realistic colors',
+          seconds: 10,
+          quality: '720p'
+        })
+      });
+      const j = await r.json();
+      show(j);
+      if (j.ok && j.url) {
+        const a = document.getElementById('videoLink');
+        a.href = j.url;
+        a.style.display = 'inline-block';
+      }
+    } catch (err) {
+      alert("Eroare: " + err.message);
+    }
+  };
 </script>`);
 });
 
