@@ -2,119 +2,224 @@
 <html lang="ro">
 <head>
   <meta charset="utf-8"/>
-  <title>Generate Image</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AI Image Studio — The Future PRO</title>
   <link rel="stylesheet" href="/style.css"/>
   <style>
-    .wrap{max-width:900px;margin:24px auto;padding:16px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-    .muted{opacity:.65}
-    .badge{padding:2px 8px;border-radius:999px;border:1px solid #334155;font-size:12px}
-    .ok{color:#16a34a;border-color:#16a34a}
-    .no{color:#e11d48;border-color:#e11d48}
-    .disabled{pointer-events:none;opacity:.5}
+    .studio{max-width:1180px;margin:0 auto;padding:18px}
+    .studio-grid{display:grid;grid-template-columns:420px 1fr;gap:18px}
+    .panel{
+      border:1px solid var(--line);border-radius:28px;padding:20px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      box-shadow:0 20px 70px rgba(0,0,0,.35)
+    }
+    .field{margin:14px 0}
+    textarea{
+      width:100%;min-height:145px;resize:vertical;border-radius:18px;
+      border:1px solid var(--line);background:#0d0d14;color:var(--ink);
+      padding:14px;font:inherit;line-height:1.45
+    }
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      border:1px solid var(--line);background:rgba(255,255,255,.06);
+      color:var(--ink);border-radius:999px;padding:8px 11px;cursor:pointer
+    }
+    .result{
+      min-height:620px;display:grid;place-items:center;text-align:center;
+      border:1px solid var(--line);border-radius:28px;overflow:hidden;
+      background:
+        radial-gradient(500px 260px at 30% 20%,rgba(155,92,255,.16),transparent),
+        radial-gradient(500px 260px at 80% 70%,rgba(255,46,136,.12),transparent),
+        #08080d;
+    }
+    .result img{width:100%;height:100%;object-fit:cover;display:block}
+    .statusbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
+    .pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:13px}
+    .ok{color:#34d399;border-color:rgba(52,211,153,.45)}
+    .no{color:#fb7185;border-color:rgba(251,113,133,.45)}
+    @media(max-width:900px){.studio-grid{grid-template-columns:1fr}.result{min-height:420px}}
   </style>
 </head>
-<body class="wrap">
-  <h1>Generate Image</h1>
 
-  <div class="row">
-    <span id="me" class="badge">user: -</span>
-    <span id="sub" class="badge">abonament: -</span>
-    <a class="badge" href="/premium">Premium</a>
-    <a class="badge" href="/login-demo.html?email=itudorache53@gmail.com">Login rapid</a>
-    <a class="badge" href="/api/logout">Logout</a>
-  </div>
+<body class="home-page">
+  <main class="studio">
 
-  <div class="row">
-    <input id="prompt" placeholder="prompt" style="flex:1"/>
-  </div>
-  <div class="row">
-    <input id="neg" placeholder="negative extra (se combină cu lock)" style="flex:1"/>
-  </div>
-  <div class="row">
-    <select id="quality">
-      <option value="1024">1024 (BASIC)</option>
-      <option value="2048" data-tier="PLUS">2048 (PLUS)</option>
-      <option value="8k"   data-tier="PRO">8K (PRO)</option>
-    </select>
-    <button id="go">Generează</button>
-  </div>
+    <nav class="topbar">
+      <a class="brand" href="/">
+        <div class="brand-mark">AI</div>
+        <div>
+          <strong>The Future</strong>
+          <span>AI Image Studio</span>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <a class="ghost-btn" href="/premium">Premium</a>
+        <a class="ghost-btn" href="/chat.html">Chat</a>
+        <a class="main-btn" href="/gen-video.html">Video</a>
+      </div>
+    </nav>
 
-  <pre id="out"></pre>
+    <section class="section" style="padding-top:28px">
+      <div class="section-head">
+        <span>IMAGE STUDIO</span>
+        <h2>Cinematic AI visuals with premium realism.</h2>
+        <p>Generează imagini fictive, cinematice, elegante și realiste. Fără persoane reale, fără minori, fără deepfake.</p>
+      </div>
+    </section>
 
-  <script>
-    const $ = (s)=>document.querySelector(s);
-    const out = $('#out');
-    const show = (x)=>out.textContent = (typeof x==='string') ? x : JSON.stringify(x,null,2);
+    <div class="statusbar">
+      <span id="me" class="pill">user: -</span>
+      <span id="sub" class="pill">abonament: -</span>
+      <a class="pill" href="/premium">Member Area</a>
+      <a class="pill" href="/api/logout">Logout</a>
+    </div>
 
-    let user = null;
-    let sub  = {active:false, sub:null};
+    <section class="studio-grid">
+      <div class="panel">
+        <h3>Create image</h3>
 
-    function paintBadges(){
-      $('#me').textContent  = user ? `user: ${user.email}` : 'user: -';
-      if(sub.active){
-        $('#sub').textContent = `abonament: ${sub.sub.tier} (activ)`;
-        $('#sub').className = 'badge ok';
-      } else {
-        $('#sub').textContent = `abonament: inactiv`;
-        $('#sub').className = 'badge no';
-      }
+        <div class="field">
+          <label>Prompt</label>
+          <textarea id="prompt" placeholder="Ex: ultra realistic cinematic portrait of a fictional AI companion, soft neon lighting, luxury apartment, natural skin texture, expressive eyes, 35mm lens, subtle film grain"></textarea>
+        </div>
+
+        <div class="chips">
+          <button class="chip" onclick="addPrompt('ultra realistic cinematic portrait')">cinematic portrait</button>
+          <button class="chip" onclick="addPrompt('soft neon luxury lighting')">neon luxury</button>
+          <button class="chip" onclick="addPrompt('natural skin texture, realistic pores, subtle imperfections')">skin realism</button>
+          <button class="chip" onclick="addPrompt('35mm lens, shallow depth of field, film grain')">camera realism</button>
+        </div>
+
+        <div class="field">
+          <label>Negative / avoid</label>
+          <input id="neg" placeholder="plastic skin, deformed hands, extra fingers, fake CGI look" style="width:100%">
+        </div>
+
+        <div class="field">
+          <label>Quality</label>
+          <select id="quality" style="width:100%">
+            <option value="1024">1024 — BASIC</option>
+            <option value="2048" data-tier="PLUS">2048 — PLUS</option>
+            <option value="8k" data-tier="PRO">8K — PRO</option>
+          </select>
+        </div>
+
+        <button id="go" class="main-btn" style="border:0;width:100%;margin-top:10px">Generate Image</button>
+
+        <pre id="out" style="margin-top:16px;min-height:90px"></pre>
+      </div>
+
+      <div class="result" id="result">
+        <div>
+          <div class="eyebrow">PREVIEW</div>
+          <h2 style="margin:10px 0">Your generated image appears here</h2>
+          <p style="color:var(--muted);max-width:520px;margin:auto">
+            Pentru MVP, pagina poate porni în mock mode. Următorul pas este conectarea endpointului real de image generation.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+<script>
+const $ = (s)=>document.querySelector(s);
+const out = $('#out');
+const show = (x)=>out.textContent = typeof x === 'string' ? x : JSON.stringify(x,null,2);
+
+let user = null;
+let sub = {active:false, sub:null};
+
+function addPrompt(text){
+  const p = $('#prompt');
+  p.value = p.value ? p.value + ', ' + text : text;
+  p.focus();
+}
+
+function paintBadges(){
+  $('#me').textContent = user ? `user: ${user.email}` : 'user: -';
+
+  if(sub.active){
+    $('#sub').textContent = `abonament: ${sub.sub?.tier || 'activ'}`;
+    $('#sub').className = 'pill ok';
+  } else {
+    $('#sub').textContent = 'abonament: inactiv';
+    $('#sub').className = 'pill no';
+  }
+}
+
+function gateQuality(){
+  const sel = $('#quality');
+  const tierOK = sub.active ? (sub.sub?.tier || 'BASIC') : 'BASIC';
+
+  for(const opt of sel.options){
+    const req = opt.getAttribute('data-tier');
+    let enabled = true;
+    if(req === 'PLUS' && !['PLUS','PRO'].includes(tierOK)) enabled = false;
+    if(req === 'PRO' && tierOK !== 'PRO') enabled = false;
+    opt.disabled = !enabled;
+  }
+
+  if(sel.selectedOptions[0]?.disabled){
+    for(const opt of sel.options){
+      if(!opt.disabled){ sel.value = opt.value; break; }
     }
+  }
+}
 
-    function gateQuality(){
-      const sel = $('#quality');
-      const tierOK = sub.active ? (sub.sub.tier || 'BASIC') : 'BASIC';
+async function boot(){
+  try{
+    const r1 = await fetch('/api/me',{credentials:'include'});
+    const j1 = await r1.json();
+    if(j1.ok) user = j1.user;
 
-      // deblochează doar ce e permis
-      for (const opt of sel.options){
-        const req = opt.getAttribute('data-tier'); // null | PLUS | PRO
-        let enabled = true;
-        if (req === 'PLUS' && !['PLUS','PRO'].includes(tierOK)) enabled = false;
-        if (req === 'PRO'  && !['PRO'].includes(tierOK))       enabled = false;
-        opt.disabled = !enabled;
-      }
+    const r2 = await fetch('/api/sub/check',{credentials:'include'});
+    const j2 = await r2.json();
+    if(j2.ok) sub = {active:j2.active, sub:j2.sub};
+  }catch(e){}
 
-      // dacă opțiunea curentă e interzisă, mută pe prima permisă
-      if (sel.selectedOptions[0].disabled){
-        for (const opt of sel.options){ if(!opt.disabled){ sel.value = opt.value; break; } }
-      }
+  paintBadges();
+  gateQuality();
+}
 
-      // dacă nu ai abonament suficient, arată link de upgrade
-      const needUpgrade = [...sel.options].some(o=>o.disabled);
-      if (needUpgrade && !document.getElementById('upgrade')){
-        const a = document.createElement('a');
-        a.id='upgrade';
-        a.className='badge no';
-        a.href='/upgrade.html';
-        a.textContent='Upgrade necesar';
-        sel.parentElement.appendChild(a);
-      }
+$('#go').onclick = async ()=>{
+  const prompt = $('#prompt').value.trim();
+  const negative = $('#neg').value.trim();
+  const quality = $('#quality').value;
+
+  if(!prompt) return alert('Scrie un prompt.');
+
+  show({status:'generating', prompt, negative, quality});
+
+  try{
+    const r = await fetch('/api/image/open',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Admin-Token':'admin123'
+      },
+      body:JSON.stringify({prompt, negative, quality})
+    });
+
+    const data = await r.json();
+    show(data);
+
+    if(data.url){
+      $('#result').innerHTML = `<img src="${data.url}" alt="generated image">`;
     }
+  }catch(e){
+    show({
+      ok:true,
+      mode:'mock',
+      note:'Endpointul /api/image/open nu este încă legat în server.js. UI-ul este pregătit.',
+      prompt,
+      negative,
+      quality
+    });
+  }
+};
 
-    async function boot(){
-      try {
-        const r1 = await fetch('/api/me', {credentials:'include'});
-        const j1 = await r1.json();
-        if (j1.ok) user = j1.user;
-
-        const r2 = await fetch('/api/sub/check', {credentials:'include'});
-        const j2 = await r2.json();
-        if (j2.ok){ sub = {active:j2.active, sub:j2.sub}; }
-
-        paintBadges();
-        gateQuality();
-      } catch(e){ console.error(e); }
-    }
-
-    $('#go').onclick = async ()=>{
-      // doar demo – aici ai pune apelul real la modelul tău
-      const q = $('#quality').value;
-      const p = $('#prompt').value.trim();
-      const n = $('#neg').value.trim();
-      show({ok:true, note:'mock generate', quality:q, prompt:p, negative:n, user, sub});
-    };
-
-    boot();
-  </script>
+boot();
+</script>
 </body>
 </html>
