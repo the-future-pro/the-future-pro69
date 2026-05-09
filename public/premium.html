@@ -1,116 +1,226 @@
 <!doctype html>
 <html lang="ro">
 <head>
-<meta charset="utf-8">
-<title>Premium</title>
-<link rel="stylesheet" href="/style.css">
-<style>
-.wrap{max-width:1100px;margin:0 auto;padding:24px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.card{border:1px solid #333;border-radius:12px;padding:12px;background:#0b0b0f}
-small.mono{font-family:monospace;opacity:.8}
-.blurred{filter:blur(14px)}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Premium — The Future PRO</title>
+  <link rel="stylesheet" href="/style.css" />
 </head>
-<body class="wrap">
-  <h1>Premium</h1>
 
-  <div class="card">
-    <h3>Login</h3>
-    <input id="email" placeholder="email" style="width:260px">
-    <button onclick="doLogin()">Login</button>
-    <pre id="meBox" style="white-space:pre-wrap"></pre>
-  </div>
+<body class="home-page">
+  <main class="home-shell">
 
-  <div class="card">
-    <h3>Verifică & Abonează-te (mock)</h3>
-    <button onclick="mockSub('BASIC')">BASIC</button>
-    <button onclick="mockSub('PLUS')">PLUS</button>
-    <button onclick="mockSub('PRO')">PRO</button>
-    <p><small class="mono">Setează abonamentul în contul tău de test. Pe live vei conecta Stripe.</small></p>
-  </div>
+    <nav class="topbar">
+      <a class="brand" href="/">
+        <div class="brand-mark">AI</div>
+        <div>
+          <strong>The Future</strong>
+          <span>Member Area</span>
+        </div>
+      </a>
 
-  <div class="card" id="createBox" style="display:none">
-    <h3>Creează un Partener AI</h3>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px">
-      <input id="p_name" placeholder="Nume (ex. Vanesa Maria)">
-      <select id="p_type">
-        <option value="female">Femeie</option>
-        <option value="male">Bărbat</option>
-        <option value="anime">Anime</option>
-      </select>
-      <select id="p_role">
-        <option>Asistentă medicală</option>
-        <option>Profesoară</option>
-        <option>Secretară</option>
-        <option>Asistentă birou</option>
-        <option>Girlfriend</option>
-        <option>Goth</option>
-        <option>MILF</option>
-        <option>Boyfriend</option>
-        <option>CEO/Boss</option>
-        <option>Personal Trainer</option>
-        <option>Catgirl</option>
-        <option>Elf Queen</option>
-      </select>
-      <input id="p_category" placeholder="Categorie (ex. Roleplay)">
-      <input id="p_tone" placeholder="Ton (ex. tandră, pasională)">
-      <input id="p_img" type="number" placeholder="Preț imagine (credite)" value="20">
-      <input id="p_v10" type="number" placeholder="Preț video 10s (credite)" value="90">
-      <input id="p_v20" type="number" placeholder="Preț video 20s (credite)" value="150">
-    </div>
-    <button onclick="createPersona()">Creează</button>
-    <div id="createMsg"></div>
-  </div>
+      <div class="nav-actions">
+        <a class="ghost-btn" href="/">Home</a>
+        <a class="main-btn" href="/gen-image.html">Create</a>
+      </div>
+    </nav>
 
-  <h3 style="margin-top:24px">Parteneri AI disponibili</h3>
-  <div id="list" class="grid"></div>
+    <section class="section">
+      <div class="section-head">
+        <span>ACCESS</span>
+        <h2>Your private AI experience starts here.</h2>
+        <p>Login, activează un plan de test și accesează companions, chat, imagini și video.</p>
+      </div>
+
+      <div class="split">
+        <div class="lux-card">
+          <h3>Login rapid</h3>
+          <p style="color:var(--muted)">Pentru test MVP. Pe live se va conecta autentificare reală.</p>
+
+          <label>Email</label>
+          <input id="email" placeholder="email@example.com" style="width:100%;margin-bottom:12px">
+
+          <button class="main-btn" onclick="doLogin()" style="border:0;width:100%">Login</button>
+
+          <pre id="meBox" style="margin-top:16px;white-space:pre-wrap">{ "status": "not_logged_in" }</pre>
+        </div>
+
+        <div class="lux-card">
+          <h3>Plan de test</h3>
+          <p style="color:var(--muted)">Activează mock BASIC / PLUS / PRO pentru a testa accesul.</p>
+
+          <div class="plans" style="grid-template-columns:1fr;gap:10px">
+            <button class="ghost-btn" onclick="mockSub('BASIC')" style="border:1px solid var(--line)">BASIC</button>
+            <button class="ghost-btn" onclick="mockSub('PLUS')" style="border:1px solid var(--line)">PLUS</button>
+            <button class="main-btn" onclick="mockSub('PRO')" style="border:0">PRO</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="createBox" style="display:none">
+      <div class="section-head">
+        <span>CREATE</span>
+        <h2>Create an AI companion</h2>
+        <p>Personaje fictive 21+, cu stil, personalitate, rol și prețuri media.</p>
+      </div>
+
+      <div class="lux-card">
+        <div class="feature-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <input id="p_name" placeholder="Nume — ex. Ava Noir">
+
+          <select id="p_type">
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+            <option value="anime">Anime</option>
+          </select>
+
+          <select id="p_role">
+            <option>Girlfriend</option>
+            <option>Goth</option>
+            <option>CEO / Boss</option>
+            <option>Personal Trainer</option>
+            <option>Soft Romantic</option>
+            <option>Cyberpunk Muse</option>
+            <option>Elf Queen</option>
+            <option>Bookish Introvert</option>
+          </select>
+
+          <input id="p_category" placeholder="Categorie — ex. Roleplay">
+          <input id="p_tone" placeholder="Ton — ex. elegant, misterios">
+          <input id="p_img" type="number" placeholder="Preț imagine" value="20">
+          <input id="p_v10" type="number" placeholder="Preț video 10s" value="90">
+          <input id="p_v20" type="number" placeholder="Preț video 20s" value="150">
+        </div>
+
+        <button class="main-btn" onclick="createPersona()" style="border:0;margin-top:16px">Create Companion</button>
+        <pre id="createMsg" style="margin-top:16px;min-height:70px"></pre>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span>COMPANIONS</span>
+        <h2>Available AI companions</h2>
+        <p>Deschide chat-ul și testează experiența DM-style.</p>
+      </div>
+
+      <div id="list" class="feature-grid"></div>
+    </section>
+
+    <footer class="home-footer">
+      <span>© The Future — PRO</span>
+      <div>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </div>
+    </footer>
+
+  </main>
 
 <script>
-const j = (u, o)=>fetch(u,{method:o?.method||'GET',headers:{'Content-Type':'application/json'},credentials:'include',body:o?.body?JSON.stringify(o.body):undefined}).then(r=>r.json());
+const j = (u, o)=>fetch(u,{
+  method:o?.method||'GET',
+  headers:{'Content-Type':'application/json'},
+  credentials:'include',
+  body:o?.body?JSON.stringify(o.body):undefined
+}).then(r=>r.json());
 
 async function refreshMe(){
   const me = await j('/api/me');
   document.getElementById('meBox').textContent = JSON.stringify(me,null,2);
-  document.getElementById('createBox').style.display = (me.logged && me.subActive)?'block':'none';
+
+  const isActive = !!(
+    me.active ||
+    me.subActive ||
+    me.sub?.until > Date.now() ||
+    me.user
+  );
+
+  document.getElementById('createBox').style.display = isActive ? 'block' : 'none';
 }
+
 async function doLogin(){
   const email = document.getElementById('email').value.trim();
-  if(!email) return alert('Email!');
-  await j('/api/login',{method:'POST',body:{email}});
-  refreshMe(); loadPersonas();
+  if(!email) return alert('Scrie emailul.');
+
+  let r;
+  try{
+    r = await j('/api/login',{method:'POST',body:{email}});
+  }catch(e){
+    r = await j('/api/mock-login?email=' + encodeURIComponent(email));
+  }
+
+  await refreshMe();
+  await loadPersonas();
 }
-async function mockSub(tier){ await j('/api/sub/mock-activate',{method:'POST',body:{tier}}); refreshMe(); }
+
+async function mockSub(tier){
+  try{
+    await j('/api/sub/mock-activate',{method:'POST',body:{tier}});
+  }catch(e){
+    await j('/api/sub/mock-activate/' + tier);
+  }
+  await refreshMe();
+}
 
 async function createPersona(){
   const body = {
     name: p_name.value.trim(),
     type: p_type.value,
     role: p_role.value,
-    category: p_category.value.trim()||'Roleplay',
+    category: p_category.value.trim() || 'Roleplay',
     tone: p_tone.value.trim(),
-    mediaPrices: { image:Number(p_img.value||20), video10:Number(p_v10.value||90), video20:Number(p_v20.value||150) }
+    mediaPrices: {
+      image:Number(p_img.value || 20),
+      video10:Number(p_v10.value || 90),
+      video20:Number(p_v20.value || 150)
+    }
   };
+
+  if(!body.name) return alert('Alege un nume pentru companion.');
+
   const r = await j('/api/personas',{method:'POST',body});
-  document.getElementById('createMsg').textContent = JSON.stringify(r);
+  document.getElementById('createMsg').textContent = JSON.stringify(r,null,2);
   if(r.ok) loadPersonas();
 }
+
 async function loadPersonas(){
-  const r = await j('/api/personas');
   const el = document.getElementById('list');
   el.innerHTML = '';
-  (r.items||[]).forEach(p=>{
-    const d = document.createElement('div');
-    d.className='card';
+
+  let r;
+  try{
+    r = await j('/api/personas');
+  }catch(e){
+    r = {items:[]};
+  }
+
+  const fallback = [
+    {name:'Ava Noir', type:'female', role:'Dark Luxury', slug:'ava-noir', tone:'mysterious'},
+    {name:'Mira Vale', type:'female', role:'Girl Next Door', slug:'mira-vale', tone:'warm'},
+    {name:'Kira Voss', type:'female', role:'Cyberpunk Muse', slug:'kira-voss', tone:'confident'},
+    {name:'Luna Sable', type:'female', role:'Goth Romantic', slug:'luna-sable', tone:'intense'}
+  ];
+
+  const items = (r.items && r.items.length) ? r.items : fallback;
+
+  items.forEach(p=>{
+    const d = document.createElement('a');
+    d.className='feature-card';
+    d.href = '/chat.html?slug=' + encodeURIComponent(p.slug || p.name.toLowerCase().replaceAll(' ','-'));
     d.innerHTML = `
-      <div><b>${p.name}</b> — <small>${p.type}/${p.role}</small></div>
-      <div style="margin:6px 0"><small class="mono">Slug: ${p.slug}</small></div>
-      <a href="/chat.html?slug=${encodeURIComponent(p.slug)}">Deschide chat</a>
+      <span class="card-kicker">${p.type || 'AI'} • ${p.role || 'Companion'}</span>
+      <h3>${p.name}</h3>
+      <p>${p.tone ? 'Tone: ' + p.tone : 'Private AI companion with cinematic personality and adaptive chat.'}</p>
     `;
     el.appendChild(d);
   });
 }
-refreshMe(); loadPersonas();
+
+refreshMe();
+loadPersonas();
 </script>
+
 </body>
-</html>
+  </html>
