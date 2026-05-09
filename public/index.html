@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>The Future — AI Companion Platform</title>
   <link rel="stylesheet" href="/style.css" />
+  <script src="/i18n.js"></script>
 </head>
 
 <body class="home-page">
@@ -19,9 +20,19 @@
         </div>
       </a>
 
+      <select id="langSwitcher" class="lang-switcher">
+        <option value="ro">🇷🇴 RO</option>
+        <option value="en">🇺🇸 EN</option>
+        <option value="es">🇪🇸 ES</option>
+        <option value="fr">🇫🇷 FR</option>
+        <option value="de">🇩🇪 DE</option>
+        <option value="it">🇮🇹 IT</option>
+        <option value="pt">🇵🇹 PT</option>
+      </select>
+
       <div class="nav-actions">
         <a class="ghost-btn" href="/premium">Login</a>
-        <a class="main-btn" href="/premium">Enter Platform</a>
+        <a class="main-btn" href="/premium" id="enterTopBtn">Enter Platform</a>
       </div>
     </nav>
 
@@ -33,24 +44,24 @@
       <div class="hero-content">
         <div class="eyebrow">PRIVATE • CINEMATIC • AI COMPANIONS</div>
 
-        <h1>The future of AI companionship.</h1>
+        <h1 id="heroTitle">The future of AI companionship.</h1>
 
-        <p>
+        <p id="heroText">
           Creează personaje AI fictive, realiste și memorabile. Chat privat,
           imagini cinematice, video scurt și experiențe construite în jurul
           atmosferei, emoției și realismului.
         </p>
 
         <div class="hero-actions">
-          <a class="main-btn big" href="/premium">Start now</a>
-          <a class="ghost-btn big" href="/gen-image.html">Try Image Studio</a>
+          <a class="main-btn big" href="/premium"><span id="enterBtn">Start now</span></a>
+          <a class="ghost-btn big" href="/gen-image.html" id="imageBtn">Try Image Studio</a>
         </div>
 
         <div class="trust-row">
-          <span>18+ only</span>
-          <span>Fictional characters</span>
-          <span>Private experience</span>
-          <span>No real-person deepfakes</span>
+          <span id="warn18">18+ only</span>
+          <span id="fictionalOnly">Fictional characters</span>
+          <span id="privateExp">Private experience</span>
+          <span id="noDeepfake">No real-person deepfakes</span>
         </div>
       </div>
 
@@ -168,7 +179,7 @@
           generare imagine/video și monetizare prin abonamente + credite.
         </p>
       </div>
-      <a class="main-btn big" href="/premium">Open Member Area</a>
+      <a class="main-btn big" href="/premium" id="memberBtn">Open Member Area</a>
     </section>
 
     <footer class="home-footer">
@@ -180,5 +191,28 @@
     </footer>
 
   </main>
+
+  <script>
+    const lang = getLang();
+
+    document.getElementById("heroTitle").textContent = lang.hero_title;
+    document.getElementById("heroText").textContent = lang.hero_text;
+    document.getElementById("enterBtn").textContent = lang.enter_btn;
+    document.getElementById("enterTopBtn").textContent = lang.enter_btn;
+    document.getElementById("warn18").textContent = lang.warning_18;
+    document.getElementById("fictionalOnly").textContent = lang.fictional_only;
+    document.getElementById("privateExp").textContent = lang.private_exp;
+    document.getElementById("noDeepfake").textContent = lang.no_deepfake;
+
+    const switcher = document.getElementById("langSwitcher");
+
+    if (switcher) {
+      switcher.value = localStorage.getItem("site_lang") || "ro";
+
+      switcher.addEventListener("change", (e) => {
+        setLang(e.target.value);
+      });
+    }
+  </script>
 </body>
 </html>
