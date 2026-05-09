@@ -2,156 +2,228 @@
 <html lang="ro">
 <head>
   <meta charset="utf-8"/>
-  <title>Video Generator (cookie & open)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AI Video Studio — The Future PRO</title>
+  <link rel="stylesheet" href="/style.css"/>
   <style>
-    body{background:#0b0f16;color:#e6e9ef;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:16px}
-    h1{margin:8px 0 16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1100px}
-    textarea,input,select,button{width:100%;border-radius:12px;border:1px solid #223047;background:#0f1624;color:#e6e9ef;padding:12px}
-    button{cursor:pointer}
-    .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-    .pill{background:#112033;border:1px solid #223047;border-radius:999px;padding:6px 10px;font-size:12px}
-    pre{background:#0f172a;border:1px solid #223047;border-radius:12px;padding:12px;overflow:auto;min-height:160px;max-width:1100px}
-    .ok{color:#86efac} .bad{color:#fca5a5}
-    video{width:100%;max-width:1100px;border-radius:12px;margin-top:10px;border:1px solid #223047;background:#000}
+    .studio{max-width:1180px;margin:0 auto;padding:18px}
+    .video-grid{display:grid;grid-template-columns:420px 1fr;gap:18px}
+    .panel{
+      border:1px solid var(--line);border-radius:28px;padding:20px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      box-shadow:0 20px 70px rgba(0,0,0,.35)
+    }
+    textarea{
+      width:100%;min-height:150px;resize:vertical;border-radius:18px;
+      border:1px solid var(--line);background:#0d0d14;color:var(--ink);
+      padding:14px;font:inherit;line-height:1.45
+    }
+    .field{margin:14px 0}
+    .statusbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
+    .pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:13px}
+    .ok{color:#34d399;border-color:rgba(52,211,153,.45)}
+    .bad{color:#fb7185;border-color:rgba(251,113,133,.45)}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      border:1px solid var(--line);background:rgba(255,255,255,.06);
+      color:var(--ink);border-radius:999px;padding:8px 11px;cursor:pointer
+    }
+    .preview{
+      min-height:620px;border:1px solid var(--line);border-radius:28px;overflow:hidden;
+      background:
+        radial-gradient(500px 260px at 30% 20%,rgba(155,92,255,.16),transparent),
+        radial-gradient(500px 260px at 80% 70%,rgba(255,46,136,.12),transparent),
+        #08080d;
+      display:grid;place-items:center;text-align:center;
+    }
+    .preview video{width:100%;height:100%;max-height:620px;object-fit:cover;display:block;background:#000}
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:900px){.video-grid{grid-template-columns:1fr}.preview{min-height:420px}.mini-grid{grid-template-columns:1fr}}
   </style>
 </head>
-<body>
-  <h1>Generate Video</h1>
 
-  <div class="row">
-    <span id="userInfo" class="pill">user: –</span>
-    <span id="subInfo" class="pill">abonament: –</span>
-    <button id="btnQuickLogin" style="width:auto">Login rapid</button>
-    <button id="btnMockPro"    style="width:auto">Activate PRO (mock)</button>
-    <button id="btnLogout"     style="width:auto">Logout</button>
-  </div>
+<body class="home-page">
+  <main class="studio">
 
-  <div class="grid">
-    <div>
-      <label>Storyboard / descriere scenă</label>
-      <textarea id="storyboard" rows="6" placeholder="Ex: slow push-in camera through neon-lit alley, cinematic, depth of field, soft light..."></textarea>
+    <nav class="topbar">
+      <a class="brand" href="/">
+        <div class="brand-mark">AI</div>
+        <div>
+          <strong>The Future</strong>
+          <span>AI Video Studio</span>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <a class="ghost-btn" href="/premium">Premium</a>
+        <a class="ghost-btn" href="/gen-image.html">Images</a>
+        <a class="main-btn" href="/chat.html">Chat</a>
+      </div>
+    </nav>
+
+    <section class="section" style="padding-top:28px">
+      <div class="section-head">
+        <span>VIDEO STUDIO</span>
+        <h2>Cinematic short scenes with next-level realism.</h2>
+        <p>Generează clipuri scurte, fictive, cinematice și realiste. Pentru MVP, video-ul trebuie folosit limitat ca feature premium.</p>
+      </div>
+    </section>
+
+    <div class="statusbar">
+      <span id="userInfo" class="pill">user: -</span>
+      <span id="subInfo" class="pill">abonament: -</span>
+      <a class="pill" href="/premium">Member Area</a>
+      <a class="pill" href="/api/logout">Logout</a>
     </div>
-    <div>
-      <label>Negative prompt (extra)</label>
-      <textarea id="negative" rows="6" placeholder="artifacts, bad hands, extra fingers, flicker, temporal inconsistency, watermark, logo..."></textarea>
-    </div>
-  </div>
 
-  <div class="grid" style="margin-top:12px">
-    <div>
-      <label>Durată</label>
-      <select id="seconds">
-        <option value="5">5s (BASIC)</option>
-        <option value="10" selected>10s (PLUS)</option>
-        <option value="20">20s (PRO)</option>
-      </select>
-    </div>
-    <div>
-      <label>Calitate</label>
-      <select id="quality">
-        <option value="540p">540p</option>
-        <option value="720p" selected>720p</option>
-        <option value="1080p">1080p</option>
-      </select>
-    </div>
-  </div>
+    <section class="video-grid">
+      <div class="panel">
+        <h3>Create video scene</h3>
 
-  <div class="grid" style="margin-top:12px">
-    <div>
-      <label>Admin token (pentru /api/video/open – fără cookie)</label>
-      <input id="adminToken" placeholder="ex: admin123 (din env ADMIN_TOKEN)"/>
-    </div>
-    <div>
-      <label>Ultimul URL video</label>
-      <input id="lastUrl" readonly placeholder="— va apărea după generare —"/>
-    </div>
-  </div>
+        <div class="field">
+          <label>Storyboard / scene prompt</label>
+          <textarea id="storyboard" placeholder="Ex: cinematic handheld phone-style video of a fictional AI companion in a neon-lit luxury room, subtle movement, natural facial expression, realistic lighting, shallow depth of field"></textarea>
+        </div>
 
-  <div class="row" style="margin-top:12px">
-    <button id="btnGenerateAuth">Generează (autentificat /api/video)</button>
-    <button id="btnGenerateOpen">Generează (OPEN /api/video/open)</button>
-  </div>
+        <div class="chips">
+          <button class="chip" onclick="addPrompt('cinematic handheld camera movement')">handheld</button>
+          <button class="chip" onclick="addPrompt('natural facial expression and subtle breathing')">natural motion</button>
+          <button class="chip" onclick="addPrompt('soft neon lighting, realistic shadows')">neon lighting</button>
+          <button class="chip" onclick="addPrompt('social-media vertical realism, captured moment')">social realism</button>
+        </div>
 
-  <pre id="out">{ "hint": "completează câmpurile și apasă un buton Generează" }</pre>
+        <div class="field">
+          <label>Negative prompt</label>
+          <textarea id="negative" placeholder="artifacts, flicker, temporal inconsistency, distorted face, bad hands, extra fingers, watermark, logo, plastic skin"></textarea>
+        </div>
 
-  <video id="player" controls playsinline></video>
+        <div class="mini-grid">
+          <div class="field">
+            <label>Durată</label>
+            <select id="seconds" style="width:100%">
+              <option value="5">5s — BASIC</option>
+              <option value="10" selected>10s — PLUS</option>
+              <option value="20">20s — PRO</option>
+            </select>
+          </div>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
-    const show = (x) => $('out').textContent = JSON.stringify(x, null, 2);
-    const setBadge = (el, ok, text) => { el.textContent = text; el.className = 'pill ' + (ok?'ok':'bad'); };
+          <div class="field">
+            <label>Calitate</label>
+            <select id="quality" style="width:100%">
+              <option value="540p">540p</option>
+              <option value="720p" selected>720p</option>
+              <option value="1080p">1080p</option>
+            </select>
+          </div>
+        </div>
 
-    async function refreshStatus(){
-      const me  = await fetch('/api/me', {credentials:'include'}).then(r=>r.json()).catch(()=>({}));
-      const sub = await fetch('/api/sub/check', {credentials:'include'}).then(r=>r.json()).catch(()=>({}));
+        <div class="field">
+          <label>Admin token pentru test OPEN</label>
+          <input id="adminToken" placeholder="admin123" style="width:100%">
+        </div>
 
-      if(me.ok && me.user) setBadge($('userInfo'), true,  `user: ${me.user.email}`);
-      else                 setBadge($('userInfo'), false, 'user: neautentificat');
+        <div class="mini-grid">
+          <button id="btnGenerateAuth" class="ghost-btn" style="border:1px solid var(--line)">Generate Auth</button>
+          <button id="btnGenerateOpen" class="main-btn" style="border:0">Generate Open</button>
+        </div>
 
-      if(sub.ok && sub.active && sub.sub) setBadge($('subInfo'), true,  `abonament: ${sub.sub.tier} (activ)`);
-      else                                setBadge($('subInfo'), false, 'abonament: inactiv');
-    }
+        <input id="lastUrl" readonly placeholder="Ultimul URL video" style="width:100%;margin-top:12px">
+        <pre id="out" style="margin-top:16px;min-height:110px">{ "hint": "completează promptul și generează un video" }</pre>
+      </div>
 
-    $('btnQuickLogin').onclick = async () => {
-      const email = prompt('Email pentru login', 'itudorache53@gmail.com') || 'user@example.com';
-      const r = await fetch('/api/mock-login?email=' + encodeURIComponent(email), { credentials:'include' });
-      show(await r.json());
-      refreshStatus();
-    };
+      <div class="preview" id="preview">
+        <div>
+          <div class="eyebrow">VIDEO PREVIEW</div>
+          <h2 style="margin:10px 0">Generated scene appears here</h2>
+          <p style="color:var(--muted);max-width:520px;margin:auto">
+            Pentru buget mic, folosește video rar, ca feature premium. Chat + imagini trebuie să fie baza MVP-ului.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    $('btnMockPro').onclick = async () => {
-      const r = await fetch('/api/sub/mock-activate/PRO', {credentials:'include'});
-      show(await r.json());
-      refreshStatus();
-    };
+<script>
+const $ = (id) => document.getElementById(id);
+const show = (x) => $('out').textContent = JSON.stringify(x, null, 2);
+const setBadge = (el, ok, text) => {
+  el.textContent = text;
+  el.className = 'pill ' + (ok ? 'ok' : 'bad');
+};
 
-    $('btnLogout').onclick = async () => {
-      await fetch('/api/logout', {credentials:'include'});
-      show({ok:true, message:'logged out'});
-      refreshStatus();
-    };
+function addPrompt(text){
+  const p = $('storyboard');
+  p.value = p.value ? p.value + ', ' + text : text;
+  p.focus();
+}
 
-    async function runGenerate(url, opts, headers = {}, withCreds = false){
-      const r = await fetch(url, {
-        method:'POST',
-        headers: { 'Content-Type':'application/json', ...headers },
-        credentials: withCreds ? 'include' : 'omit',
-        body: JSON.stringify(opts)
-      });
-      const j = await r.json().catch(()=>({ok:false,error:'invalid_json'}));
-      show(j);
-      if (j.ok && j.url) {
-        const abs = new URL(j.url, location.origin).href;
-        $('lastUrl').value = abs;
-        $('player').src = abs;
-        try { $('player').play(); } catch {}
-      }
-    }
+async function refreshStatus(){
+  const me = await fetch('/api/me',{credentials:'include'}).then(r=>r.json()).catch(()=>({}));
+  const sub = await fetch('/api/sub/check',{credentials:'include'}).then(r=>r.json()).catch(()=>({}));
 
-    $('btnGenerateAuth').onclick = async () => {
-      const payload = {
-        prompt: ($('storyboard').value || '').trim(),
-        negativeExtra: ($('negative').value || '').trim(),
-        seconds: Number($('seconds').value),
-        quality: $('quality').value
-      };
-      await runGenerate('/api/video', payload, {}, true);
-    };
+  if(me.ok && me.user) setBadge($('userInfo'), true, `user: ${me.user.email}`);
+  else setBadge($('userInfo'), false, 'user: neautentificat');
 
-    $('btnGenerateOpen').onclick = async () => {
-      const token = ($('adminToken').value || '').trim();
-      const payload = {
-        prompt: ($('storyboard').value || '').trim(),
-        negativeExtra: ($('negative').value || '').trim(),
-        seconds: Number($('seconds').value),
-        quality: $('quality').value
-      };
-      await runGenerate('/api/video/open', payload, { 'X-Admin-Token': token }, false);
-    };
+  if(sub.ok && sub.active && sub.sub) setBadge($('subInfo'), true, `abonament: ${sub.sub.tier} activ`);
+  else setBadge($('subInfo'), false, 'abonament: inactiv');
+}
 
-    refreshStatus();
-  </script>
+async function runGenerate(url, opts, headers = {}, withCreds = false){
+  show({status:'generating', request:opts});
+
+  const r = await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json',...headers},
+    credentials:withCreds ? 'include' : 'omit',
+    body:JSON.stringify(opts)
+  });
+
+  const j = await r.json().catch(()=>({ok:false,error:'invalid_json'}));
+  show(j);
+
+  if(j.ok && j.url){
+    const abs = new URL(j.url, location.origin).href;
+    $('lastUrl').value = abs;
+    $('preview').innerHTML = `<video controls playsinline autoplay src="${abs}"></video>`;
+  }
+}
+
+$('btnGenerateAuth').onclick = async ()=>{
+  const payload = {
+    prompt: ($('storyboard').value || '').trim(),
+    negativeExtra: ($('negative').value || '').trim(),
+    seconds: Number($('seconds').value),
+    quality: $('quality').value
+  };
+
+  if(!payload.prompt) return alert('Scrie un storyboard.');
+
+  try{
+    await runGenerate('/api/video', payload, {}, true);
+  }catch(e){
+    show({ok:false,error:'auth_generation_failed',details:String(e)});
+  }
+};
+
+$('btnGenerateOpen').onclick = async ()=>{
+  const token = ($('adminToken').value || '').trim();
+  const payload = {
+    prompt: ($('storyboard').value || '').trim(),
+    negativeExtra: ($('negative').value || '').trim(),
+    seconds: Number($('seconds').value),
+    quality: $('quality').value
+  };
+
+  if(!payload.prompt) return alert('Scrie un storyboard.');
+  if(!token) return alert('Scrie admin token.');
+
+  try{
+    await runGenerate('/api/video/open', payload, {'X-Admin-Token':token}, false);
+  }catch(e){
+    show({ok:false,error:'open_generation_failed',details:String(e)});
+  }
+};
+
+refreshStatus();
+</script>
 </body>
 </html>
