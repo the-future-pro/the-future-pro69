@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "compression": "^1.7.4",
@@ -16,11 +19,11 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.17.3",
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.2",
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
-    "sqlite3": "^5.1.7",
     "replicate": "^0.31.0",
-    "fluent-ffmpeg": "^2.1.2",
-    "ffmpeg-static": "^5.2.0"
+    "sqlite3": "^5.1.7"
   }
 }
