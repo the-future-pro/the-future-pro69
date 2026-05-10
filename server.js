@@ -1,5 +1,5 @@
 // server.js — The Future PRO
-// ESM + Express + Sessions + Replicate Video + Static Pages
+// ESM + Express + Sessions + Replicate Video + Static Pages + Translate API
 
 import express from "express";
 import session from "express-session";
@@ -33,6 +33,7 @@ app.set("trust proxy", 1);
 app.use(helmet({
   contentSecurityPolicy: false
 }));
+
 app.use(compression());
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
@@ -65,10 +66,11 @@ app.use(session({
 // ================== RATE LIMIT ==================
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 60,
+  max: 80,
   standardHeaders: true,
   legacyHeaders: false
 });
+
 app.use("/api/", apiLimiter);
 
 // ================== PATHS ==================
@@ -136,9 +138,186 @@ const replicate = process.env.REPLICATE_API_TOKEN
   ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
   : null;
 
+// ================== TRANSLATION SYSTEM ==================
+// Pentru traducere reală setezi în Render ENV:
+// TRANSLATE_API_URL=https://.../translate
+// TRANSLATE_API_KEY=optional
+//
+// Compatibil cu LibreTranslate-style API:
+// POST { q, source, target, format, api_key }
+
+const TRANSLATE_CACHE = new Map();
+
+const SUPPORTED_LANGS = new Set([
+  "ro", "en", "fr", "es", "de", "it", "pt", "nl", "pl", "hu",
+  "bg", "cs", "sk", "hr", "sr", "tr", "ru", "uk", "ar", "hi",
+  "zh", "ja", "ko"
+]);
+
+function normalizeLang(lang) {
+  const clean = String(lang || "en").toLowerCase().trim();
+  return SUPPORTED_LANGS.has(clean) ? clean : "en";
+}
+
+function cacheKey(text, target, source = "auto") {
+  return `${source}:${target}:${text}`;
+}
+
+async function translateText({ text, target, source = "auto" }) {
+  const cleanText = String(text || "").trim();
+  const targetLang = normalizeLang(target);
+  const sourceLang = String(source || "auto").toLowerCase().trim();
+
+  if (!cleanText) {
+    return {
+      ok: true,
+      translatedText: "",
+      target: targetLang,
+      source: sourceLang,
+      provider: "none"
+    };
+  }
+
+  if (targetLang === "en" && sourceLang === "en") {
+    return {
+      ok: true,
+      translatedText: cleanText,
+      target: targetLang,
+      source: sourceLang,
+      provider: "same_language"
+    };
+  }
+
+  const key = cacheKey(cleanText, targetLang, sourceLang);
+  if (TRANSLATE_CACHE.has(key)) {
+    return {
+      ok: true,
+      translatedText: TRANSLATE_CACHE.get(key),
+      target: targetLang,
+      source: sourceLang,
+      provider: "cache"
+    };
+  }
+
+  const url = process.env.TRANSLATE_API_URL;
+  const apiKey = process.env.TRANSLATE_API_KEY || "";
+
+  if (!url) {
+    return {
+      ok: true,
+      translatedText: cleanText,
+      target: targetLang,
+      source: sourceLang,
+      provider: "not_configured",
+      warning: "TRANSLATE_API_URL is not configured, returning original text"
+    };
+  }
+
+  const body = {
+    q: cleanText,
+    source: sourceLang === "auto" ? "auto" : sourceLang,
+    target: targetLang,
+    format: "text"
+  };
+
+  if (apiKey) {
+    body.api_key = apiKey;
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    throw new Error("translation_provider_failed_" + response.status);
+  }
+
+  const data = await response.json();
+
+  const translated =
+    data.translatedText ||
+    data.translation ||
+    data.text ||
+    cleanText;
+
+  TRANSLATE_CACHE.set(key, translated);
+
+  return {
+    ok: true,
+    translatedText: translated,
+    target: targetLang,
+    source: sourceLang,
+    provider: "external"
+  };
+}
+
 // ================== BASIC API ==================
 app.get("/api/ping", (_req, res) => {
   res.json({ ok: true, ts: Date.now() });
+});
+
+// ================== TRANSLATE API ==================
+app.post("/api/translate", async (req, res) => {
+  try {
+    const text = (req.body?.text || "").toString();
+    const target = normalizeLang(req.body?.target || req.body?.lang || "en");
+    const source = (req.body?.source || "auto").toString();
+
+    const result = await translateText({ text, target, source });
+
+    res.json(result);
+  } catch (err) {
+    console.error("translate failed:", err);
+    res.status(500).json({
+      ok: false,
+      error: "translation_failed",
+      details: String(err?.message || err)
+    });
+  }
+});
+
+app.post("/api/translate/batch", async (req, res) => {
+  try {
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    const target = normalizeLang(req.body?.target || req.body?.lang || "en");
+    const source = (req.body?.source || "auto").toString();
+
+    const results = [];
+
+    for (const item of items) {
+      const text = typeof item === "string" ? item : String(item?.text || "");
+      const id = typeof item === "object" ? item.id : undefined;
+
+      const result = await translateText({ text, target, source });
+
+      results.push({
+        id,
+        text,
+        translatedText: result.translatedText,
+        target,
+        source,
+        provider: result.provider
+      });
+    }
+
+    res.json({
+      ok: true,
+      target,
+      source,
+      items: results
+    });
+  } catch (err) {
+    console.error("translate batch failed:", err);
+    res.status(500).json({
+      ok: false,
+      error: "translation_batch_failed",
+      details: String(err?.message || err)
+    });
+  }
 });
 
 // ================== LOGIN TEST ==================
@@ -286,6 +465,7 @@ app.post("/api/personas", requireLogin, (req, res) => {
   const body = req.body || {};
 
   const name = (body.name || "AI Companion").toString().trim();
+
   const slug = name
     .toLowerCase()
     .normalize("NFD")
@@ -315,6 +495,7 @@ const chatHistory = {};
 app.get("/api/chat/:slug/history", (req, res) => {
   const slug = req.params.slug;
   const after = Number(req.query.after || 0);
+  const lang = normalizeLang(req.query.lang || req.query.target || "en");
 
   if (!chatHistory[slug]) {
     chatHistory[slug] = [
@@ -329,7 +510,11 @@ app.get("/api/chat/:slug/history", (req, res) => {
 
   const items = chatHistory[slug].filter(m => Number(m.id || 0) > after);
 
-  res.json({ ok: true, items });
+  res.json({
+    ok: true,
+    lang,
+    items
+  });
 });
 
 app.post("/api/chat/:slug/send", requireLogin, (req, res) => {
@@ -466,8 +651,8 @@ async function handlerGenerateVideo(req, res) {
 
     const model = process.env.REPLICATE_MODEL;
     const version = process.env.REPLICATE_VERSION || "";
-    const base = Number(process.env.SEG_BASE_SECONDS || 5);
-    const segments = Math.max(1, Math.ceil(seconds / base));
+    const baseSeconds = Number(process.env.SEG_BASE_SECONDS || 5);
+    const segments = Math.max(1, Math.ceil(seconds / baseSeconds));
 
     const tempDir = fs.mkdtempSync(path.join(OUT_DIR, "tmp-"));
     const segFiles = [];
@@ -591,6 +776,10 @@ app.get("/privacy.html", (_req, res) => {
 
 app.get("/terms.html", (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "terms.html"));
+});
+
+app.get("/safety.html", (_req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "safety.html"));
 });
 
 // ================== START ==================
