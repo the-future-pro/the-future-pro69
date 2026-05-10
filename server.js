@@ -30,9 +30,12 @@ const app = express();
 app.set("trust proxy", 1);
 
 // ================== MIDDLEWARE ==================
-app.use(helmet({
-  contentSecurityPolicy: false
-}));
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 app.use(compression());
 app.use(cors({ origin: true, credentials: true }));
@@ -42,38 +45,43 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // ================== SESSION ==================
+
 const SESS_DIR = path.join(__dirname, "db");
 fs.mkdirSync(SESS_DIR, { recursive: true });
 
 const SQLiteStore = connectSqlite3(session);
 
-app.use(session({
-  store: new SQLiteStore({
-    db: "sessions.sqlite",
-    dir: SESS_DIR
-  }),
-  secret: process.env.SESSION_SECRET || "supersecret_dev_change_me",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 30 * 24 * 60 * 60 * 1000
-  }
-}));
+app.use(
+  session({
+    store: new SQLiteStore({
+      db: "sessions.sqlite",
+      dir: SESS_DIR,
+    }),
+    secret: process.env.SESSION_SECRET || "supersecret_dev_change_me",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
 
 // ================== RATE LIMIT ==================
+
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 80,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
 app.use("/api/", apiLimiter);
 
 // ================== PATHS ==================
+
 const PUBLIC_DIR = path.join(__dirname, "public");
 const VIDEOS_DIR_NAME = process.env.PUBLIC_VIDEOS_DIR || "videos";
 const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
@@ -82,10 +90,12 @@ fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 // ================== HELPERS ==================
+
 function requireLogin(req, res, next) {
   if (!req.session?.user) {
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
+
   next();
 }
 
@@ -105,9 +115,13 @@ function subRequired(req, res, next) {
 }
 
 async function downloadToFile(url, destPath) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error("download failed: " + r.status);
-  const ab = await r.arrayBuffer();
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("download failed: " + response.status);
+  }
+
+  const ab = await response.arrayBuffer();
   fs.writeFileSync(destPath, Buffer.from(ab));
 }
 
@@ -116,7 +130,7 @@ async function concatMp4Files(inputFiles, outPath) {
 
   fs.writeFileSync(
     listFile,
-    inputFiles.map(f => `file '${f.replace(/'/g, "'\\''")}'`).join("\n"),
+    inputFiles.map((f) => `file '${f.replace(/'/g, "'\\''")}'`).join("\n"),
     "utf8"
   );
 
@@ -130,28 +144,45 @@ async function concatMp4Files(inputFiles, outPath) {
       .save(outPath);
   });
 
-  try { fs.unlinkSync(listFile); } catch {}
+  try {
+    fs.unlinkSync(listFile);
+  } catch {}
 }
 
 // ================== REPLICATE ==================
+
 const replicate = process.env.REPLICATE_API_TOKEN
   ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
   : null;
 
 // ================== TRANSLATION SYSTEM ==================
-// Pentru traducere reală setezi în Render ENV:
-// TRANSLATE_API_URL=https://.../translate
-// TRANSLATE_API_KEY=optional
-//
-// Compatibil cu LibreTranslate-style API:
-// POST { q, source, target, format, api_key }
 
 const TRANSLATE_CACHE = new Map();
 
 const SUPPORTED_LANGS = new Set([
-  "ro", "en", "fr", "es", "de", "it", "pt", "nl", "pl", "hu",
-  "bg", "cs", "sk", "hr", "sr", "tr", "ru", "uk", "ar", "hi",
-  "zh", "ja", "ko"
+  "ro",
+  "en",
+  "fr",
+  "es",
+  "de",
+  "it",
+  "pt",
+  "nl",
+  "pl",
+  "hu",
+  "bg",
+  "cs",
+  "sk",
+  "hr",
+  "sr",
+  "tr",
+  "ru",
+  "uk",
+  "ar",
+  "hi",
+  "zh",
+  "ja",
+  "ko",
 ]);
 
 function normalizeLang(lang) {
@@ -159,7 +190,7 @@ function normalizeLang(lang) {
   return SUPPORTED_LANGS.has(clean) ? clean : "en";
 }
 
-function cacheKey(text, target, source = "auto") {
+function getCacheKey(text, target, source = "auto") {
   return `${source}:${target}:${text}`;
 }
 
@@ -174,28 +205,29 @@ async function translateText({ text, target, source = "auto" }) {
       translatedText: "",
       target: targetLang,
       source: sourceLang,
-      provider: "none"
+      provider: "none",
     };
   }
 
-  if (targetLang === "en" && sourceLang === "en") {
+  if (targetLang === sourceLang) {
     return {
       ok: true,
       translatedText: cleanText,
       target: targetLang,
       source: sourceLang,
-      provider: "same_language"
+      provider: "same_language",
     };
   }
 
-  const key = cacheKey(cleanText, targetLang, sourceLang);
+  const key = getCacheKey(cleanText, targetLang, sourceLang);
+
   if (TRANSLATE_CACHE.has(key)) {
     return {
       ok: true,
       translatedText: TRANSLATE_CACHE.get(key),
       target: targetLang,
       source: sourceLang,
-      provider: "cache"
+      provider: "cache",
     };
   }
 
@@ -209,7 +241,7 @@ async function translateText({ text, target, source = "auto" }) {
       target: targetLang,
       source: sourceLang,
       provider: "not_configured",
-      warning: "TRANSLATE_API_URL is not configured, returning original text"
+      warning: "TRANSLATE_API_URL is not configured, returning original text",
     };
   }
 
@@ -217,7 +249,7 @@ async function translateText({ text, target, source = "auto" }) {
     q: cleanText,
     source: sourceLang === "auto" ? "auto" : sourceLang,
     target: targetLang,
-    format: "text"
+    format: "text",
   };
 
   if (apiKey) {
@@ -227,9 +259,9 @@ async function translateText({ text, target, source = "auto" }) {
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -237,12 +269,7 @@ async function translateText({ text, target, source = "auto" }) {
   }
 
   const data = await response.json();
-
-  const translated =
-    data.translatedText ||
-    data.translation ||
-    data.text ||
-    cleanText;
+  const translated = data.translatedText || data.translation || data.text || cleanText;
 
   TRANSLATE_CACHE.set(key, translated);
 
@@ -251,31 +278,38 @@ async function translateText({ text, target, source = "auto" }) {
     translatedText: translated,
     target: targetLang,
     source: sourceLang,
-    provider: "external"
+    provider: "external",
   };
 }
 
 // ================== BASIC API ==================
+
 app.get("/api/ping", (_req, res) => {
-  res.json({ ok: true, ts: Date.now() });
+  res.json({
+    ok: true,
+    ts: Date.now(),
+    env: process.env.NODE_ENV || "development",
+  });
 });
 
 // ================== TRANSLATE API ==================
+
 app.post("/api/translate", async (req, res) => {
   try {
-    const text = (req.body?.text || "").toString();
+    const text = String(req.body?.text || "");
     const target = normalizeLang(req.body?.target || req.body?.lang || "en");
-    const source = (req.body?.source || "auto").toString();
+    const source = String(req.body?.source || "auto");
 
     const result = await translateText({ text, target, source });
 
     res.json(result);
   } catch (err) {
     console.error("translate failed:", err);
+
     res.status(500).json({
       ok: false,
       error: "translation_failed",
-      details: String(err?.message || err)
+      details: String(err?.message || err),
     });
   }
 });
@@ -284,7 +318,7 @@ app.post("/api/translate/batch", async (req, res) => {
   try {
     const items = Array.isArray(req.body?.items) ? req.body.items : [];
     const target = normalizeLang(req.body?.target || req.body?.lang || "en");
-    const source = (req.body?.source || "auto").toString();
+    const source = String(req.body?.source || "auto");
 
     const results = [];
 
@@ -300,7 +334,7 @@ app.post("/api/translate/batch", async (req, res) => {
         translatedText: result.translatedText,
         target,
         source,
-        provider: result.provider
+        provider: result.provider,
       });
     }
 
@@ -308,42 +342,50 @@ app.post("/api/translate/batch", async (req, res) => {
       ok: true,
       target,
       source,
-      items: results
+      items: results,
     });
   } catch (err) {
     console.error("translate batch failed:", err);
+
     res.status(500).json({
       ok: false,
       error: "translation_batch_failed",
-      details: String(err?.message || err)
+      details: String(err?.message || err),
     });
   }
 });
 
 // ================== LOGIN TEST ==================
+
 app.get("/api/mock-login", (req, res) => {
-  const email = (req.query.email || "user@example.com").toString().trim();
+  const email = String(req.query.email || "user@example.com").trim();
 
   req.session.user = {
     id: Date.now() % 100000,
-    email
+    email,
   };
 
   req.session.save(() => {
-    res.json({ ok: true, user: req.session.user });
+    res.json({
+      ok: true,
+      user: req.session.user,
+    });
   });
 });
 
 app.post("/api/login", (req, res) => {
-  const email = (req.body?.email || "user@example.com").toString().trim();
+  const email = String(req.body?.email || "user@example.com").trim();
 
   req.session.user = {
     id: Date.now() % 100000,
-    email
+    email,
   };
 
   req.session.save(() => {
-    res.json({ ok: true, user: req.session.user });
+    res.json({
+      ok: true,
+      user: req.session.user,
+    });
   });
 });
 
@@ -357,14 +399,14 @@ app.get("/api/me", (req, res) => {
       logged: true,
       user: req.session.user,
       sub,
-      subActive
+      subActive,
     });
   }
 
   res.json({
     ok: false,
     logged: false,
-    error: "login_required"
+    error: "login_required",
   });
 });
 
@@ -375,22 +417,29 @@ app.get("/api/logout", (req, res) => {
 });
 
 // ================== SUBSCRIPTIONS MOCK ==================
+
 function activateSub(req, res, tierRaw) {
   const tier = String(tierRaw || "").toUpperCase();
 
   if (!["BASIC", "PLUS", "PRO"].includes(tier)) {
-    return res.status(400).json({ ok: false, error: "invalid_tier" });
+    return res.status(400).json({
+      ok: false,
+      error: "invalid_tier",
+    });
   }
 
   const days = Number(process.env.SUB_DEFAULT_DAYS || 30);
 
   req.session.sub = {
     tier,
-    until: Date.now() + days * 24 * 60 * 60 * 1000
+    until: Date.now() + days * 24 * 60 * 60 * 1000,
   };
 
   req.session.save(() => {
-    res.json({ ok: true, sub: req.session.sub });
+    res.json({
+      ok: true,
+      sub: req.session.sub,
+    });
   });
 }
 
@@ -409,11 +458,12 @@ app.get("/api/sub/check", (req, res) => {
   res.json({
     ok: true,
     active,
-    sub
+    sub,
   });
 });
 
 // ================== PERSONAS MOCK ==================
+
 const personas = [
   {
     id: 1,
@@ -423,7 +473,7 @@ const personas = [
     role: "Dark Luxury",
     category: "Cinematic",
     tone: "mysterious, elegant, intense",
-    mediaPrices: { image: 20, video10: 90, video20: 150 }
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
   },
   {
     id: 2,
@@ -433,7 +483,7 @@ const personas = [
     role: "Girl Next Door",
     category: "Romance",
     tone: "warm, sweet, emotional",
-    mediaPrices: { image: 20, video10: 90, video20: 150 }
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
   },
   {
     id: 3,
@@ -443,7 +493,7 @@ const personas = [
     role: "Cyberpunk Muse",
     category: "Futuristic",
     tone: "confident, cold, magnetic",
-    mediaPrices: { image: 20, video10: 90, video20: 150 }
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
   },
   {
     id: 4,
@@ -453,18 +503,20 @@ const personas = [
     role: "Goth Romantic",
     category: "Dark Romance",
     tone: "poetic, intense, obsessive",
-    mediaPrices: { image: 20, video10: 90, video20: 150 }
-  }
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
+  },
 ];
 
 app.get("/api/personas", (_req, res) => {
-  res.json({ ok: true, items: personas });
+  res.json({
+    ok: true,
+    items: personas,
+  });
 });
 
 app.post("/api/personas", requireLogin, (req, res) => {
   const body = req.body || {};
-
-  const name = (body.name || "AI Companion").toString().trim();
+  const name = String(body.name || "AI Companion").trim();
 
   const slug = name
     .toLowerCase()
@@ -481,15 +533,19 @@ app.post("/api/personas", requireLogin, (req, res) => {
     role: body.role || "Companion",
     category: body.category || "Roleplay",
     tone: body.tone || "cinematic, private, elegant",
-    mediaPrices: body.mediaPrices || { image: 20, video10: 90, video20: 150 }
+    mediaPrices: body.mediaPrices || { image: 20, video10: 90, video20: 150 },
   };
 
   personas.push(item);
 
-  res.json({ ok: true, item });
+  res.json({
+    ok: true,
+    item,
+  });
 });
 
 // ================== CHAT MOCK ==================
+
 const chatHistory = {};
 
 app.get("/api/chat/:slug/history", (req, res) => {
@@ -503,17 +559,17 @@ app.get("/api/chat/:slug/history", (req, res) => {
         id: 1,
         sender_type: "persona",
         kind: "text",
-        text: "I am here. Tell me what kind of experience you want to create tonight."
-      }
+        text: "I am here. Tell me what kind of experience you want to create tonight.",
+      },
     ];
   }
 
-  const items = chatHistory[slug].filter(m => Number(m.id || 0) > after);
+  const items = chatHistory[slug].filter((m) => Number(m.id || 0) > after);
 
   res.json({
     ok: true,
     lang,
-    items
+    items,
   });
 });
 
@@ -524,10 +580,13 @@ app.post("/api/chat/:slug/send", requireLogin, (req, res) => {
     chatHistory[slug] = [];
   }
 
-  const text = (req.body?.text || "").toString().trim();
+  const text = String(req.body?.text || "").trim();
 
   if (!text) {
-    return res.status(400).json({ ok: false, error: "missing_text" });
+    return res.status(400).json({
+      ok: false,
+      error: "missing_text",
+    });
   }
 
   const now = Date.now();
@@ -536,14 +595,14 @@ app.post("/api/chat/:slug/send", requireLogin, (req, res) => {
     id: now,
     sender_type: "user",
     kind: "text",
-    text
+    text,
   });
 
   chatHistory[slug].push({
     id: now + 1,
     sender_type: "persona",
     kind: "text",
-    text: "I understand. I’ll keep the experience private, cinematic and tailored to your style."
+    text: "I understand. I’ll keep the experience private, cinematic and tailored to your style.",
   });
 
   res.json({ ok: true });
@@ -558,7 +617,6 @@ app.post("/api/chat/:slug/offer", requireLogin, (req, res) => {
 
   const kind = req.body?.kind || "image";
   const price = kind === "video" ? 90 : 20;
-
   const mediaId = "media-" + Date.now();
 
   chatHistory[slug].push({
@@ -571,8 +629,8 @@ app.post("/api/chat/:slug/offer", requireLogin, (req, res) => {
       price_credits: price,
       preview_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
       full_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
-      duration_sec: kind === "video" ? Number(req.body?.duration || 10) : null
-    }
+      duration_sec: kind === "video" ? Number(req.body?.duration || 10) : null,
+    },
   });
 
   res.json({ ok: true });
@@ -582,24 +640,31 @@ app.post("/api/media/:id/unlock", requireLogin, (req, res) => {
   res.json({
     ok: true,
     unlocked: true,
-    id: req.params.id
+    id: req.params.id,
   });
 });
 
 // ================== IMAGE GENERATION MOCK ==================
+
 app.post("/api/image/open", (req, res) => {
   const adminHeader = req.headers["x-admin-token"];
 
   if (process.env.ADMIN_TOKEN && adminHeader !== process.env.ADMIN_TOKEN) {
-    return res.status(401).json({ ok: false, error: "admin_token_invalid" });
+    return res.status(401).json({
+      ok: false,
+      error: "admin_token_invalid",
+    });
   }
 
-  const prompt = (req.body?.prompt || "").toString().trim();
-  const negative = (req.body?.negative || "").toString().trim();
+  const prompt = String(req.body?.prompt || "").trim();
+  const negative = String(req.body?.negative || "").trim();
   const quality = req.body?.quality || "1024";
 
   if (!prompt) {
-    return res.status(400).json({ ok: false, error: "missing_prompt" });
+    return res.status(400).json({
+      ok: false,
+      error: "missing_prompt",
+    });
   }
 
   res.json({
@@ -608,12 +673,18 @@ app.post("/api/image/open", (req, res) => {
     note: "image endpoint connected; real AI image generation will be added next",
     prompt,
     negative,
-    quality
+    quality,
   });
 });
 
 // ================== VIDEO GENERATION ==================
-app.use("/" + VIDEOS_DIR_NAME, express.static(OUT_DIR, { maxAge: "1h" }));
+
+app.use(
+  "/" + VIDEOS_DIR_NAME,
+  express.static(OUT_DIR, {
+    maxAge: "1h",
+  })
+);
 
 app.post("/api/video", requireLogin, subRequired, handlerGenerateVideo);
 
@@ -621,7 +692,10 @@ app.post("/api/video/open", async (req, res, next) => {
   const adminHeader = req.headers["x-admin-token"];
 
   if (!process.env.ADMIN_TOKEN || adminHeader !== process.env.ADMIN_TOKEN) {
-    return res.status(401).json({ ok: false, error: "admin_token_invalid" });
+    return res.status(401).json({
+      ok: false,
+      error: "admin_token_invalid",
+    });
   }
 
   return handlerGenerateVideo(req, res, next);
@@ -629,13 +703,16 @@ app.post("/api/video/open", async (req, res, next) => {
 
 async function handlerGenerateVideo(req, res) {
   try {
-    const prompt = (req.body?.prompt || req.body?.storyboard || "").toString().trim();
-    const negative = (req.body?.negativeExtra || "").toString().trim();
+    const prompt = String(req.body?.prompt || req.body?.storyboard || "").trim();
+    const negative = String(req.body?.negativeExtra || req.body?.negative || "").trim();
     const seconds = Number(req.body?.seconds || 10);
     const quality = req.body?.quality || "720p";
 
     if (!prompt) {
-      return res.status(400).json({ ok: false, error: "missing_prompt" });
+      return res.status(400).json({
+        ok: false,
+        error: "missing_prompt",
+      });
     }
 
     if (!replicate || !process.env.REPLICATE_MODEL) {
@@ -644,8 +721,13 @@ async function handlerGenerateVideo(req, res) {
         note: "demo mode — no real Replicate call",
         payload: {
           kind: "video",
-          options: { seconds, quality, prompt, negative }
-        }
+          options: {
+            seconds,
+            quality,
+            prompt,
+            negative,
+          },
+        },
       });
     }
 
@@ -663,17 +745,25 @@ async function handlerGenerateVideo(req, res) {
       const pred = version
         ? await replicate.predictions.create({
             version,
-            input: { prompt: finalPrompt, aspect_ratio: "16:9", loop: false }
+            input: {
+              prompt: finalPrompt,
+              aspect_ratio: "16:9",
+              loop: false,
+            },
           })
         : await replicate.predictions.create({
             model,
-            input: { prompt: finalPrompt, aspect_ratio: "16:9", loop: false }
+            input: {
+              prompt: finalPrompt,
+              aspect_ratio: "16:9",
+              loop: false,
+            },
           });
 
       let p = pred;
 
       while (p.status === "starting" || p.status === "processing") {
-        await new Promise(r => setTimeout(r, 1500));
+        await new Promise((r) => setTimeout(r, 1500));
         p = await replicate.predictions.get(p.id);
       }
 
@@ -686,9 +776,11 @@ async function handlerGenerateVideo(req, res) {
           ? p.output
           : Array.isArray(p.output)
             ? p.output[0]
-            : (p.output?.url || p.output);
+            : p.output?.url || p.output;
 
-      if (!outUrl) throw new Error("no output url from replicate");
+      if (!outUrl) {
+        throw new Error("no output url from replicate");
+      }
 
       const segPath = path.join(tempDir, `seg-${i}.mp4`);
       await downloadToFile(outUrl, segPath);
@@ -701,10 +793,14 @@ async function handlerGenerateVideo(req, res) {
     await concatMp4Files(segFiles, outPath);
 
     for (const f of segFiles) {
-      try { fs.unlinkSync(f); } catch {}
+      try {
+        fs.unlinkSync(f);
+      } catch {}
     }
 
-    try { fs.rmdirSync(tempDir); } catch {}
+    try {
+      fs.rmdirSync(tempDir);
+    } catch {}
 
     const publicUrl = `/${VIDEOS_DIR_NAME}/${outName}`;
 
@@ -713,76 +809,72 @@ async function handlerGenerateVideo(req, res) {
       url: publicUrl,
       secondsRequested: seconds,
       segments,
-      quality
+      quality,
     });
-
   } catch (err) {
     console.error("video generation failed:", err);
 
     return res.status(500).json({
       ok: false,
       error: "video_generation_failed",
-      details: String(err?.message || err)
+      details: String(err?.message || err),
     });
   }
 }
 
 // ================== ADMIN STATS ==================
+
 app.get("/api/admin/stats", (_req, res) => {
   res.json({
     ok: true,
     users: 1,
     personas: personas.length,
     chat_messages: Object.values(chatHistory).flat().length,
-    jobs: 0
+    jobs: 0,
   });
 });
 
 // ================== STATIC + HTML ROUTES ==================
-app.use(express.static(PUBLIC_DIR, {
-  maxAge: "1h",
-  setHeaders: (res) => {
-    res.setHeader("Cache-Control", "public, max-age=3600");
+
+app.use(
+  express.static(PUBLIC_DIR, {
+    maxAge: "1h",
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "public, max-age=3600");
+    },
+  })
+);
+
+function sendPage(res, fileName) {
+  res.sendFile(path.join(PUBLIC_DIR, fileName));
+}
+
+app.get("/", (_req, res) => sendPage(res, "index.html"));
+app.get("/premium", (_req, res) => sendPage(res, "premium.html"));
+app.get("/gen-image.html", (_req, res) => sendPage(res, "gen-image.html"));
+app.get("/gen-video.html", (_req, res) => sendPage(res, "gen-video.html"));
+app.get("/chat.html", (_req, res) => sendPage(res, "chat.html"));
+app.get("/upgrade.html", (_req, res) => sendPage(res, "upgrade.html"));
+app.get("/privacy.html", (_req, res) => sendPage(res, "privacy.html"));
+app.get("/terms.html", (_req, res) => sendPage(res, "terms.html"));
+app.get("/safety.html", (_req, res) => sendPage(res, "safety.html"));
+
+// ================== 404 ==================
+
+app.use((req, res) => {
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({
+      ok: false,
+      error: "api_not_found",
+      path: req.path,
+    });
   }
-}));
 
-app.get("/", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
-});
-
-app.get("/premium", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "premium.html"));
-});
-
-app.get("/gen-image.html", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "gen-image.html"));
-});
-
-app.get("/gen-video.html", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "gen-video.html"));
-});
-
-app.get("/chat.html", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "chat.html"));
-});
-
-app.get("/upgrade.html", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "upgrade.html"));
-});
-
-app.get("/privacy.html", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "privacy.html"));
-});
-
-app.get("/terms.html", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "terms.html"));
-});
-
-app.get("/safety.html", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "safety.html"));
+  res.status(404).sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
 
 // ================== START ==================
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
