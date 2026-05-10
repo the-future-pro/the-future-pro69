@@ -1,22 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ro">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>The Future — AI Companion Platform</title>
+  <title>The Future — AI Companion Platform</title>
 
-    <meta
-      name="description"
-      content="The Future — private cinematic AI companion platform with fictional characters, chat, image and video generation."
-    />
+  <meta
+    name="description"
+    content="The Future — private cinematic AI companion platform with fictional characters, chat, image and video generation."
+  />
 
-    <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css?v=3000" />
+  <script src="/i18n.js?v=3000" defer></script>
+</head>
 
-    <script src="/i18n.js" defer></script>
-  </head>
+<body class="home-page">
+  <main class="home-shell">
 
-  <body>
     <nav class="topbar">
       <a class="brand" href="/">
         <div class="brand-mark">AI</div>
@@ -27,7 +28,11 @@
         </div>
       </a>
 
-      <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
+      <select
+        id="langSwitcher"
+        class="lang-switcher"
+        aria-label="Language"
+      ></select>
 
       <div class="nav-actions">
         <a class="ghost-btn" href="/premium" data-i18n="login">Autentificare</a>
@@ -35,222 +40,208 @@
       </div>
     </nav>
 
-    <main>
-      <section class="hero hero-cinematic">
-        <div class="hero-bg"></div>
-        <div class="hero-glow one"></div>
-        <div class="hero-glow two"></div>
+    <section class="hero hero-cinematic">
+      <div class="hero-bg"></div>
+      <div class="hero-glow one"></div>
+      <div class="hero-glow two"></div>
 
-        <div class="hero-content">
-          <div class="eyebrow" data-i18n="eyebrow">
-            PRIVAT • CINEMATIC • COMPANIONS AI
-          </div>
-
-          <h1 data-i18n="hero_title">
-            Linia dintre AI și realitate nu mai există.
-          </h1>
-
-          <p data-i18n="hero_text">
-            Creează personaje AI fictive, ultra-realiste, conversații private,
-            imagini cinematice și experiențe interactive într-un ecosistem premium.
-          </p>
-
-          <div class="hero-actions">
-            <a class="main-btn big" href="/premium" data-i18n="enter_platform">
-              Intră
-            </a>
-
-            <a class="ghost-btn big" href="/gen-image.html" data-i18n="image_btn">
-              Încearcă Image Studio
-            </a>
-          </div>
-
-          <div class="trust-row">
-            <span data-i18n="warning_18">Doar 18+</span>
-            <span data-i18n="fictional_only">Doar personaje fictive</span>
-            <span data-i18n="private_exp">Experiență privată</span>
-            <span data-i18n="no_deepfake">Fără deepfake-uri cu persoane reale</span>
-          </div>
+      <div class="hero-content">
+        <div class="eyebrow" data-i18n="eyebrow">
+          PRIVAT • CINEMATIC • COMPANIONS AI
         </div>
 
-        <div class="hero-preview">
-          <div class="phone-card main">
-            <div class="phone-top">
-              <span class="online-dot"></span>
-              <span>Ava Noir</span>
-            </div>
+        <h1 data-i18n="hero_title">
+          Linia dintre AI și realitate nu mai există.
+        </h1>
 
-            <div class="fake-portrait portrait-a"></div>
+        <p data-i18n="hero_text">
+          Creează personaje AI fictive, ultra-realiste, conversații private, imagini cinematice și experiențe interactive într-un ecosistem premium.
+        </p>
 
-            <div class="phone-copy">
-              <strong data-i18n="ava_card_title">Lux întunecat</strong>
-              <p data-i18n="ava_card_text">
-                Misterioasă, cinematică, adaptivă emoțional.
-              </p>
-            </div>
-          </div>
-
-          <div class="float-card card-one">
-            <span data-i18n="image_realism">Realism imagine</span>
-            <strong data-i18n="image_realism_text">Preview stil 8K</strong>
-          </div>
-
-          <div class="float-card card-two">
-            <span data-i18n="video_scene">Scenă video</span>
-            <strong data-i18n="video_scene_text">Clipuri premium 10–20s</strong>
-          </div>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="section-head">
-          <span data-i18n="explore">EXPLOREAZĂ</span>
-
-          <h2 data-i18n="trending_title">Universul tău privat AI</h2>
-
-          <p data-i18n="trending_text">
-            Totul este construit pentru realism, discreție și experiență cinematică.
-          </p>
-        </div>
-
-        <div class="companion-grid">
-          <a class="companion-card" href="/chat.html?slug=ava-noir">
-            <div class="companion-img portrait-a"></div>
-
-            <div class="companion-info">
-              <span class="live">
-                <i></i>
-                <span data-i18n="online">online</span>
-              </span>
-
-              <h3>Ava Noir</h3>
-              <p data-i18n="ava_role">Lux întunecat • elegantă • misterioasă</p>
-            </div>
+        <div class="hero-actions">
+          <a class="main-btn big" href="/premium" data-i18n="enter_platform">
+            Intră
           </a>
 
-          <a class="companion-card" href="/chat.html?slug=mira-vale">
-            <div class="companion-img portrait-b"></div>
-
-            <div class="companion-info">
-              <span class="live">
-                <i></i>
-                <span data-i18n="online">online</span>
-              </span>
-
-              <h3>Mira Vale</h3>
-              <p data-i18n="mira_role">Fata de alături • caldă • emoțională</p>
-            </div>
-          </a>
-
-          <a class="companion-card" href="/chat.html?slug=kira-voss">
-            <div class="companion-img portrait-c"></div>
-
-            <div class="companion-info">
-              <span class="live">
-                <i></i>
-                <span data-i18n="online">online</span>
-              </span>
-
-              <h3>Kira Voss</h3>
-              <p data-i18n="kira_role">
-                Muză cyberpunk • încrezătoare • magnetică
-              </p>
-            </div>
-          </a>
-
-          <a class="companion-card" href="/chat.html?slug=luna-sable">
-            <div class="companion-img portrait-d"></div>
-
-            <div class="companion-info">
-              <span class="live">
-                <i></i>
-                <span data-i18n="online">online</span>
-              </span>
-
-              <h3>Luna Sable</h3>
-              <p data-i18n="luna_role">Romantic goth • poetică • intensă</p>
-            </div>
+          <a class="ghost-btn big" href="/gen-image.html" data-i18n="image_btn">
+            Încearcă Image Studio
           </a>
         </div>
-      </section>
 
-      <section class="section">
-        <div class="section-head">
-          <span data-i18n="create">CREEAZĂ</span>
-
-          <h2 data-i18n="multi_title">O platformă. Mai multe experiențe.</h2>
-
-          <p data-i18n="multi_text">
-            Construim produsul în jurul celor mai importante zone: chat, imagine,
-            video și personaje recurente.
-          </p>
+        <div class="trust-row">
+          <span data-i18n="warning_18">Doar 18+</span>
+          <span data-i18n="fictional_only">Doar personaje fictive</span>
+          <span data-i18n="private_exp">Experiență privată</span>
+          <span data-i18n="no_deepfake">Fără deepfake-uri cu persoane reale</span>
         </div>
+      </div>
 
-        <div class="feature-grid">
-          <a class="feature-card" href="/premium">
-            <span class="card-kicker">01</span>
+      <div class="hero-preview">
+        <div class="phone-card main">
+          <div class="phone-top">
+            <span class="online-dot"></span>
+            <span>Ava Noir</span>
+          </div>
 
-            <h3 data-i18n="card1_title">Creează companions AI</h3>
+          <div class="fake-portrait portrait-a"></div>
 
-            <p data-i18n="card1_text">
-              Generează personaje fictive cu nume, rol, personalitate, ton și
-              prețuri media.
+          <div class="phone-copy">
+            <strong data-i18n="ava_card_title">Lux întunecat</strong>
+            <p data-i18n="ava_card_text">
+              Misterioasă, cinematică, adaptivă emoțional.
             </p>
-          </a>
-
-          <a class="feature-card" href="/chat.html?slug=ava-noir">
-            <span class="card-kicker">02</span>
-
-            <h3 data-i18n="card2_title">Chat privat tip DM</h3>
-
-            <p data-i18n="card2_text">
-              Chat cinematic, status online, typing indicator și experiență tip
-              social app.
-            </p>
-          </a>
-
-          <a class="feature-card" href="/gen-image.html">
-            <span class="card-kicker">03</span>
-
-            <h3 data-i18n="card3_title">AI Image Studio</h3>
-
-            <p data-i18n="card3_text">
-              Prompturi cinematice, realism, lumină, cameră și preview premium.
-            </p>
-          </a>
-
-          <a class="feature-card" href="/gen-video.html">
-            <span class="card-kicker">04</span>
-
-            <h3 data-i18n="card4_title">AI Video Studio</h3>
-
-            <p data-i18n="card4_text">
-              Scene scurte premium, 5–20 secunde, create pentru teasing și unlock.
-            </p>
-          </a>
-        </div>
-      </section>
-
-      <section class="section premium-band">
-        <div>
-          <span class="eyebrow" data-i18n="premium_access">ACCES PREMIUM</span>
-
-          <h2 data-i18n="unlock_title">
-            Deblochează lumea ta privată AI.
-          </h2>
-
-          <p data-i18n="unlock_text">
-            Pentru MVP, păstrăm totul simplu: experiență premium, câteva personaje
-            foarte bune, generare imagine/video și monetizare prin abonamente +
-            credite.
-          </p>
+          </div>
         </div>
 
-        <a class="main-btn big" href="/premium" data-i18n="member_area">
-          Deschide zona de membri
+        <div class="float-card card-one">
+          <span data-i18n="image_realism">Realism imagine</span>
+          <strong data-i18n="image_realism_text">Preview stil 8K</strong>
+        </div>
+
+        <div class="float-card card-two">
+          <span data-i18n="video_scene">Scenă video</span>
+          <strong data-i18n="video_scene_text">Clipuri premium 10–20s</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span data-i18n="explore">EXPLOREAZĂ</span>
+
+        <h2 data-i18n="trending_title">
+          Universul tău privat AI
+        </h2>
+
+        <p data-i18n="trending_text">
+          Totul este construit pentru realism, discreție și experiență cinematică.
+        </p>
+      </div>
+
+      <div class="companion-grid">
+        <a class="companion-card" href="/chat.html?slug=ava-noir">
+          <div class="companion-img portrait-a"></div>
+
+          <div class="companion-info">
+            <span class="live">
+              <i></i>
+              <span data-i18n="online">online</span>
+            </span>
+
+            <h3>Ava Noir</h3>
+            <p data-i18n="ava_role">Lux întunecat • elegantă • misterioasă</p>
+          </div>
         </a>
-      </section>
-    </main>
+
+        <a class="companion-card" href="/chat.html?slug=mira-vale">
+          <div class="companion-img portrait-b"></div>
+
+          <div class="companion-info">
+            <span class="live">
+              <i></i>
+              <span data-i18n="online">online</span>
+            </span>
+
+            <h3>Mira Vale</h3>
+            <p data-i18n="mira_role">Fata de alături • caldă • emoțională</p>
+          </div>
+        </a>
+
+        <a class="companion-card" href="/chat.html?slug=kira-voss">
+          <div class="companion-img portrait-c"></div>
+
+          <div class="companion-info">
+            <span class="live">
+              <i></i>
+              <span data-i18n="online">online</span>
+            </span>
+
+            <h3>Kira Voss</h3>
+            <p data-i18n="kira_role">Muză cyberpunk • încrezătoare • magnetică</p>
+          </div>
+        </a>
+
+        <a class="companion-card" href="/chat.html?slug=luna-sable">
+          <div class="companion-img portrait-d"></div>
+
+          <div class="companion-info">
+            <span class="live">
+              <i></i>
+              <span data-i18n="online">online</span>
+            </span>
+
+            <h3>Luna Sable</h3>
+            <p data-i18n="luna_role">Romantic goth • poetică • intensă</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span data-i18n="create">CREEAZĂ</span>
+
+        <h2 data-i18n="multi_title">
+          O platformă. Mai multe experiențe.
+        </h2>
+
+        <p data-i18n="multi_text">
+          Construim produsul în jurul celor mai importante zone: chat, imagine, video și personaje recurente.
+        </p>
+      </div>
+
+      <div class="feature-grid">
+        <a class="feature-card" href="/premium">
+          <span class="card-kicker">01</span>
+          <h3 data-i18n="card1_title">Creează companions AI</h3>
+          <p data-i18n="card1_text">
+            Generează personaje fictive cu nume, rol, personalitate, ton și prețuri media.
+          </p>
+        </a>
+
+        <a class="feature-card" href="/chat.html?slug=ava-noir">
+          <span class="card-kicker">02</span>
+          <h3 data-i18n="card2_title">Chat privat tip DM</h3>
+          <p data-i18n="card2_text">
+            Chat cinematic, status online, typing indicator și experiență tip social app.
+          </p>
+        </a>
+
+        <a class="feature-card" href="/gen-image.html">
+          <span class="card-kicker">03</span>
+          <h3 data-i18n="card3_title">AI Image Studio</h3>
+          <p data-i18n="card3_text">
+            Prompturi cinematice, realism, lumină, cameră și preview premium.
+          </p>
+        </a>
+
+        <a class="feature-card" href="/gen-video.html">
+          <span class="card-kicker">04</span>
+          <h3 data-i18n="card4_title">AI Video Studio</h3>
+          <p data-i18n="card4_text">
+            Scene scurte premium, 5–20 secunde, create pentru teasing și unlock.
+          </p>
+        </a>
+      </div>
+    </section>
+
+    <section class="section premium-band">
+      <div>
+        <span class="eyebrow" data-i18n="premium_access">ACCES PREMIUM</span>
+
+        <h2 data-i18n="unlock_title">
+          Deblochează lumea ta privată AI.
+        </h2>
+
+        <p data-i18n="unlock_text">
+          Pentru MVP, păstrăm totul simplu: experiență premium, câteva personaje foarte bune, generare imagine/video și monetizare prin abonamente + credite.
+        </p>
+      </div>
+
+      <a class="main-btn big" href="/premium" data-i18n="member_area">
+        Deschide zona de membri
+      </a>
+    </section>
 
     <footer class="home-footer">
       <span>© The Future — PRO</span>
@@ -261,5 +252,7 @@
         <a href="/safety.html" data-i18n="safety">Siguranță</a>
       </div>
     </footer>
-  </body>
+
+  </main>
+</body>
 </html>
