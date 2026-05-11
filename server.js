@@ -1,3 +1,5 @@
+// server.js — The Future PRO — stable v4001
+
 import express from "express";
 import session from "express-session";
 import connectSqlite3 from "connect-sqlite3";
@@ -25,7 +27,25 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.set("trust proxy", 1);
 
-app.use(helmet({ contentSecurityPolicy: false }));
+// ================== PATHS ==================
+
+const PUBLIC_DIR = path.join(__dirname, "public");
+const VIDEOS_DIR_NAME = process.env.PUBLIC_VIDEOS_DIR || "videos";
+const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
+const SESS_DIR = path.join(__dirname, "db");
+
+fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+fs.mkdirSync(OUT_DIR, { recursive: true });
+fs.mkdirSync(SESS_DIR, { recursive: true });
+
+// ================== MIDDLEWARE ==================
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
+
 app.use(compression());
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
@@ -33,8 +53,7 @@ app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-const SESS_DIR = path.join(__dirname, "db");
-fs.mkdirSync(SESS_DIR, { recursive: true });
+// ================== SESSION ==================
 
 const SQLiteStore = connectSqlite3(session);
 
@@ -56,31 +75,36 @@ app.use(
   })
 );
 
-const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// ================== RATE LIMIT ==================
 
-app.use("/api/", apiLimiter);
+app.use(
+  "/api/",
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+);
 
-const PUBLIC_DIR = path.join(__dirname, "public");
-const VIDEOS_DIR_NAME = process.env.PUBLIC_VIDEOS_DIR || "videos";
-const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
-
-fs.mkdirSync(PUBLIC_DIR, { recursive: true });
-fs.mkdirSync(OUT_DIR, { recursive: true });
+// ================== HELPERS ==================
 
 function requireLogin(req, res, next) {
   if (!req.session?.user) {
-    return res.status(401).json({ ok: false, error: "unauthorized" });
+    return res.status(401).json({
+      ok: false,
+      error: "unauthorized",
+    });
   }
+
   next();
 }
 
 function subRequired(req, res, next) {
-  if (String(process.env.ENFORCE_SUB_REQUIREMENT || "false").toLowerCase() !== "true") {
+  if (
+    String(process.env.ENFORCE_SUB_REQUIREMENT || "false").toLowerCase() !==
+    "true"
+  ) {
     return next();
   }
 
@@ -88,23 +112,33 @@ function subRequired(req, res, next) {
   const active = !!(sub && sub.tier && sub.until && sub.until > Date.now());
 
   if (!active) {
-    return res.status(402).json({ ok: false, error: "subscription_required" });
+    return res.status(402).json({
+      ok: false,
+      error: "subscription_required",
+    });
   }
 
   next();
 }
 
 function sendHtml(res, fileName) {
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.sendFile(path.join(PUBLIC_DIR, fileName));
 }
 
 async function downloadToFile(url, destPath) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error("download_failed_" + r.status);
-  const ab = await r.arrayBuffer();
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("download_failed_" + response.status);
+  }
+
+  const ab = await response.arrayBuffer();
   fs.writeFileSync(destPath, Buffer.from(ab));
 }
 
@@ -134,10 +168,12 @@ async function concatMp4Files(inputFiles, outPath) {
 
 function normalizeReplicateOutputUrl(output) {
   if (!output) return null;
+
   if (typeof output === "string") return output;
 
   if (Array.isArray(output)) {
     const first = output[0];
+
     if (!first) return null;
     if (typeof first === "string") return first;
     if (first?.url) return String(first.url);
@@ -150,17 +186,32 @@ function normalizeReplicateOutputUrl(output) {
   return null;
 }
 
+// ================== REPLICATE ==================
+
 const replicate = process.env.REPLICATE_API_TOKEN
-  ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
+  ? new Replicate({
+      auth: process.env.REPLICATE_API_TOKEN,
+    })
   : null;
+
+// ================== TRANSLATION SYSTEM ==================
 
 const TRANSLATE_CACHE = new Map();
 const TRANSLATE_CACHE_MAX = 5000;
 
 const SUPPORTED_LANGS = new Set([
-  "ro", "en", "fr", "es", "de", "it", "pt", "nl", "pl", "hu",
-  "bg", "cs", "sk", "hr", "sr", "tr", "ru", "uk", "ar", "hi",
-  "zh", "ja", "ko",
+  "ro",
+  "en",
+  "fr",
+  "es",
+  "de",
+  "it",
+  "pt",
+  "nl",
+  "tr",
+  "ru",
+  "ar",
+  "zh",
 ]);
 
 function normalizeLang(lang) {
@@ -170,21 +221,27 @@ function normalizeLang(lang) {
 
 function normalizeSourceLang(lang) {
   const clean = String(lang || "en").toLowerCase().trim();
+
   if (!clean || clean === "auto") return "en";
+
   return SUPPORTED_LANGS.has(clean) ? clean : "en";
 }
 
-function cacheKey(text, target, source = "en") {
+function translationCacheKey(text, target, source = "en") {
   return `${source}:${target}:${text}`;
 }
 
 function rememberTranslation(key, value) {
   if (!key || !value) return;
+
   TRANSLATE_CACHE.set(key, value);
 
   if (TRANSLATE_CACHE.size > TRANSLATE_CACHE_MAX) {
     const oldest = TRANSLATE_CACHE.keys().next().value;
-    if (oldest) TRANSLATE_CACHE.delete(oldest);
+
+    if (oldest) {
+      TRANSLATE_CACHE.delete(oldest);
+    }
   }
 }
 
@@ -201,19 +258,23 @@ async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
     format: "text",
   };
 
-  if (apiKey) body.api_key = apiKey;
+  if (apiKey) {
+    body.api_key = apiKey;
+  }
 
-  const r = await fetch(envUrl, {
+  const response = await fetch(envUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(body),
   });
 
-  if (!r.ok) {
-    throw new Error("translation_provider_failed_" + r.status);
+  if (!response.ok) {
+    throw new Error("translation_provider_failed_" + response.status);
   }
 
-  const data = await r.json();
+  const data = await response.json();
 
   return data?.translatedText || data?.translation || data?.text || null;
 }
@@ -225,15 +286,18 @@ async function translateWithMyMemory(cleanText, sourceLang, targetLang) {
     "&langpair=" +
     encodeURIComponent(`${sourceLang}|${targetLang}`);
 
-  const r = await fetch(url, {
-    headers: { Accept: "application/json" },
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+    },
   });
 
-  if (!r.ok) {
-    throw new Error("mymemory_failed_" + r.status);
+  if (!response.ok) {
+    throw new Error("mymemory_failed_" + response.status);
   }
 
-  const data = await r.json();
+  const data = await response.json();
+
   return data?.responseData?.translatedText || null;
 }
 
@@ -262,7 +326,7 @@ async function translateText({ text, target, source = "en" }) {
     };
   }
 
-  const key = cacheKey(cleanText, targetLang, sourceLang);
+  const key = translationCacheKey(cleanText, targetLang, sourceLang);
 
   if (TRANSLATE_CACHE.has(key)) {
     return {
@@ -275,7 +339,11 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithEnvProvider(cleanText, sourceLang, targetLang);
+    const translated = await translateWithEnvProvider(
+      cleanText,
+      sourceLang,
+      targetLang
+    );
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -293,7 +361,11 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithMyMemory(cleanText, sourceLang, targetLang);
+    const translated = await translateWithMyMemory(
+      cleanText,
+      sourceLang,
+      targetLang
+    );
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -319,14 +391,20 @@ async function translateText({ text, target, source = "en" }) {
   };
 }
 
+// ================== BASIC API ==================
+
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
+    version: "v4001",
     ts: Date.now(),
     envTranslateConfigured: !!process.env.TRANSLATE_API_URL,
     replicateConfigured: !!process.env.REPLICATE_API_TOKEN,
+    langs: Array.from(SUPPORTED_LANGS),
   });
 });
+
+// ================== TRANSLATE API ==================
 
 app.get("/api/translate", (_req, res) => {
   res.status(405).json({
@@ -342,7 +420,12 @@ app.post("/api/translate", async (req, res) => {
     const target = normalizeLang(req.body?.target || req.body?.lang || "en");
     const source = normalizeSourceLang(req.body?.source || "en");
 
-    const result = await translateText({ text, target, source });
+    const result = await translateText({
+      text,
+      target,
+      source,
+    });
+
     res.json(result);
   } catch (err) {
     console.error("translate failed:", err);
@@ -363,10 +446,15 @@ app.post("/api/translate/batch", async (req, res) => {
 
     const results = [];
 
-    for (const item of items) {
+    for (const item of items.slice(0, 80)) {
       const text = typeof item === "string" ? item : String(item?.text || "");
       const id = typeof item === "object" && item ? item.id : undefined;
-      const translated = await translateText({ text, target, source });
+
+      const translated = await translateText({
+        text,
+        target,
+        source,
+      });
 
       results.push({
         id,
@@ -395,6 +483,8 @@ app.post("/api/translate/batch", async (req, res) => {
   }
 });
 
+// ================== LOGIN TEST ==================
+
 app.get("/api/mock-login", (req, res) => {
   const email = String(req.query.email || "user@example.com").trim();
 
@@ -404,7 +494,10 @@ app.get("/api/mock-login", (req, res) => {
   };
 
   req.session.save(() => {
-    res.json({ ok: true, user: req.session.user });
+    res.json({
+      ok: true,
+      user: req.session.user,
+    });
   });
 });
 
@@ -417,7 +510,10 @@ app.post("/api/login", (req, res) => {
   };
 
   req.session.save(() => {
-    res.json({ ok: true, user: req.session.user });
+    res.json({
+      ok: true,
+      user: req.session.user,
+    });
   });
 });
 
@@ -444,9 +540,13 @@ app.get("/api/me", (req, res) => {
 
 app.get("/api/logout", (req, res) => {
   req.session.destroy(() => {
-    res.json({ ok: true });
+    res.json({
+      ok: true,
+    });
   });
 });
+
+// ================== SUBSCRIPTIONS MOCK ==================
 
 function activateSub(req, res, tierRaw) {
   const tier = String(tierRaw || "").toUpperCase();
@@ -492,6 +592,8 @@ app.get("/api/sub/check", (req, res) => {
   });
 });
 
+// ================== PERSONAS ==================
+
 const personas = [
   {
     id: 1,
@@ -501,7 +603,11 @@ const personas = [
     role: "Dark Luxury",
     category: "Cinematic",
     tone: "mysterious, elegant, intense",
-    mediaPrices: { image: 20, video10: 90, video20: 150 },
+    mediaPrices: {
+      image: 20,
+      video10: 90,
+      video20: 150,
+    },
   },
   {
     id: 2,
@@ -511,7 +617,11 @@ const personas = [
     role: "Girl Next Door",
     category: "Romance",
     tone: "warm, sweet, emotional",
-    mediaPrices: { image: 20, video10: 90, video20: 150 },
+    mediaPrices: {
+      image: 20,
+      video10: 90,
+      video20: 150,
+    },
   },
   {
     id: 3,
@@ -521,7 +631,11 @@ const personas = [
     role: "Cyberpunk Muse",
     category: "Futuristic",
     tone: "confident, cold, magnetic",
-    mediaPrices: { image: 20, video10: 90, video20: 150 },
+    mediaPrices: {
+      image: 20,
+      video10: 90,
+      video20: 150,
+    },
   },
   {
     id: 4,
@@ -531,7 +645,11 @@ const personas = [
     role: "Goth Romantic",
     category: "Dark Romance",
     tone: "poetic, intense, obsessive",
-    mediaPrices: { image: 20, video10: 90, video20: 150 },
+    mediaPrices: {
+      image: 20,
+      video10: 90,
+      video20: 150,
+    },
   },
 ];
 
@@ -561,7 +679,11 @@ app.post("/api/personas", requireLogin, (req, res) => {
     role: body.role || "Companion",
     category: body.category || "Roleplay",
     tone: body.tone || "cinematic, private, elegant",
-    mediaPrices: body.mediaPrices || { image: 20, video10: 90, video20: 150 },
+    mediaPrices: body.mediaPrices || {
+      image: 20,
+      video10: 90,
+      video20: 150,
+    },
   };
 
   personas.push(item);
@@ -571,6 +693,8 @@ app.post("/api/personas", requireLogin, (req, res) => {
     item,
   });
 });
+
+// ================== CHAT MOCK ==================
 
 const chatHistory = {};
 
@@ -647,7 +771,9 @@ app.post("/api/chat/:slug/send", requireLogin, (req, res) => {
     text: "I understand. I’ll keep the experience private, cinematic and tailored to your style.",
   });
 
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+  });
 });
 
 app.post("/api/chat/:slug/offer", requireLogin, (req, res) => {
@@ -669,13 +795,21 @@ app.post("/api/chat/:slug/offer", requireLogin, (req, res) => {
       id: mediaId,
       type: kind,
       price_credits: price,
-      preview_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
-      full_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
+      preview_url:
+        kind === "video"
+          ? "/demo/video-placeholder.mp4"
+          : "/demo/image-placeholder.jpg",
+      full_url:
+        kind === "video"
+          ? "/demo/video-placeholder.mp4"
+          : "/demo/image-placeholder.jpg",
       duration_sec: kind === "video" ? Number(req.body?.duration || 10) : null,
     },
   });
 
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+  });
 });
 
 app.post("/api/media/:id/unlock", requireLogin, (req, res) => {
@@ -685,6 +819,8 @@ app.post("/api/media/:id/unlock", requireLogin, (req, res) => {
     id: req.params.id,
   });
 });
+
+// ================== IMAGE GENERATION MOCK ==================
 
 app.post("/api/image/open", (req, res) => {
   const adminHeader = req.headers["x-admin-token"];
@@ -717,7 +853,14 @@ app.post("/api/image/open", (req, res) => {
   });
 });
 
-app.use("/" + VIDEOS_DIR_NAME, express.static(OUT_DIR, { maxAge: "1h" }));
+// ================== VIDEO GENERATION ==================
+
+app.use(
+  "/" + VIDEOS_DIR_NAME,
+  express.static(OUT_DIR, {
+    maxAge: "1h",
+  })
+);
 
 app.post("/api/video", requireLogin, subRequired, handlerGenerateVideo);
 
@@ -737,7 +880,9 @@ app.post("/api/video/open", async (req, res, next) => {
 async function handlerGenerateVideo(req, res) {
   try {
     const prompt = String(req.body?.prompt || req.body?.storyboard || "").trim();
-    const negative = String(req.body?.negativeExtra || req.body?.negative || "").trim();
+    const negative = String(
+      req.body?.negativeExtra || req.body?.negative || ""
+    ).trim();
     const seconds = Math.max(5, Math.min(20, Number(req.body?.seconds || 10)));
     const quality = req.body?.quality || "720p";
 
@@ -774,33 +919,33 @@ async function handlerGenerateVideo(req, res) {
 
     try {
       for (let i = 0; i < segments; i++) {
-        const finalPrompt = prompt + (negative ? `\nNEGATIVE: ${negative}` : "");
+        const finalPrompt =
+          prompt + (negative ? `\nNEGATIVE: ${negative}` : "");
 
-        let prediction;
-
-        if (version) {
-          prediction = await replicate.predictions.create({
-            version,
-            input: {
-              prompt: finalPrompt,
-              aspect_ratio: "16:9",
-              loop: false,
-            },
-          });
-        } else {
-          prediction = await replicate.predictions.create({
-            model,
-            input: {
-              prompt: finalPrompt,
-              aspect_ratio: "16:9",
-              loop: false,
-            },
-          });
-        }
+        const prediction = version
+          ? await replicate.predictions.create({
+              version,
+              input: {
+                prompt: finalPrompt,
+                aspect_ratio: "16:9",
+                loop: false,
+              },
+            })
+          : await replicate.predictions.create({
+              model,
+              input: {
+                prompt: finalPrompt,
+                aspect_ratio: "16:9",
+                loop: false,
+              },
+            });
 
         let current = prediction;
 
-        while (current.status === "starting" || current.status === "processing") {
+        while (
+          current.status === "starting" ||
+          current.status === "processing"
+        ) {
           await new Promise((resolve) => setTimeout(resolve, 1500));
           current = await replicate.predictions.get(current.id);
         }
@@ -816,7 +961,9 @@ async function handlerGenerateVideo(req, res) {
         }
 
         const segPath = path.join(tempDir, `seg-${i}.mp4`);
+
         await downloadToFile(outUrl, segPath);
+
         segFiles.push(segPath);
       }
 
@@ -833,14 +980,17 @@ async function handlerGenerateVideo(req, res) {
         quality,
       });
     } finally {
-      for (const f of segFiles) {
+      for (const file of segFiles) {
         try {
-          fs.unlinkSync(f);
+          fs.unlinkSync(file);
         } catch {}
       }
 
       try {
-        fs.rmSync(tempDir, { recursive: true, force: true });
+        fs.rmSync(tempDir, {
+          recursive: true,
+          force: true,
+        });
       } catch {}
     }
   } catch (err) {
@@ -854,6 +1004,8 @@ async function handlerGenerateVideo(req, res) {
   }
 }
 
+// ================== ADMIN STATS ==================
+
 app.get("/api/admin/stats", (_req, res) => {
   res.json({
     ok: true,
@@ -864,13 +1016,18 @@ app.get("/api/admin/stats", (_req, res) => {
   });
 });
 
+// ================== STATIC + HTML ROUTES ==================
+
 app.use(
   express.static(PUBLIC_DIR, {
     etag: true,
     maxAge: "1h",
     setHeaders: (res, filePath) => {
-      if (filePath.endsWith(".html")) {
-        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      if (filePath.endsWith(".html") || filePath.endsWith("i18n.js")) {
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, proxy-revalidate"
+        );
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
         return;
@@ -890,6 +1047,22 @@ app.get("/upgrade.html", (_req, res) => sendHtml(res, "upgrade.html"));
 app.get("/privacy.html", (_req, res) => sendHtml(res, "privacy.html"));
 app.get("/terms.html", (_req, res) => sendHtml(res, "terms.html"));
 app.get("/safety.html", (_req, res) => sendHtml(res, "safety.html"));
+
+// ================== 404 ==================
+
+app.use((req, res) => {
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({
+      ok: false,
+      error: "api_not_found",
+      path: req.path,
+    });
+  }
+
+  res.status(404).sendFile(path.join(PUBLIC_DIR, "index.html"));
+});
+
+// ================== START ==================
 
 const PORT = process.env.PORT || 3000;
 
