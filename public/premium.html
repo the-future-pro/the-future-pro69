@@ -6,8 +6,8 @@
 
   <title>Premium — The Future PRO</title>
 
-  <link rel="stylesheet" href="/style.css?v=4005" />
-  <script src="/i18n.js?v=4005" defer></script>
+  <link rel="stylesheet" href="/style.css?v=4006" />
+  <script src="/i18n.js?v=4006" defer></script>
 </head>
 
 <body class="home-page">
@@ -18,18 +18,14 @@
         <div class="brand-mark">AI</div>
         <div>
           <strong>The Future</strong>
-          <span data-i18n="member_area">Zona de membri</span>
+          <span data-i18n="member_area">Deschide zona de membri</span>
         </div>
       </a>
 
-      <select
-        id="langSwitcher"
-        class="lang-switcher"
-        aria-label="Language"
-      ></select>
+      <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
 
       <div class="nav-actions">
-        <a class="ghost-btn" href="/" data-i18n="enter_platform">Acasă</a>
+        <a class="ghost-btn" href="/" data-i18n="enter_platform">Intră</a>
         <a class="main-btn" href="/gen-image.html" data-i18n="create">Creează</a>
       </div>
     </nav>
@@ -38,17 +34,13 @@
       <div class="section-head">
         <span data-i18n="premium_access">ACCES PREMIUM</span>
         <h2 data-i18n="premium_title">Experiența ta AI privată începe aici.</h2>
-        <p>
-          Login, activează un plan de test și accesează companions, chat, imagini și video.
-        </p>
+        <p>Login, activează un plan de test și accesează companions, chat, imagini și video.</p>
       </div>
 
       <div class="split">
         <div class="lux-card">
           <h3 data-i18n="login">Autentificare</h3>
-          <p style="color:var(--muted)">
-            Pentru test MVP. Pe live se va conecta autentificare reală.
-          </p>
+          <p style="color:var(--muted)">Pentru test MVP. Pe live se va conecta autentificare reală.</p>
 
           <label>Email</label>
           <input id="email" placeholder="email@example.com" style="width:100%;margin-bottom:12px">
@@ -62,9 +54,7 @@
 
         <div class="lux-card">
           <h3 data-i18n="choose_plan">Alege planul</h3>
-          <p style="color:var(--muted)">
-            Activează mock BASIC / PLUS / PRO pentru a testa accesul.
-          </p>
+          <p style="color:var(--muted)">Activează mock BASIC / PLUS / PRO pentru a testa accesul.</p>
 
           <div class="plans" style="grid-template-columns:1fr;gap:10px">
             <button class="ghost-btn" onclick="mockSub('BASIC')" style="border:1px solid var(--line)">BASIC</button>
@@ -79,9 +69,7 @@
       <div class="section-head">
         <span data-i18n="create">CREEAZĂ</span>
         <h2 data-i18n="card1_title">Creează companions AI</h2>
-        <p data-i18n="card1_text">
-          Generează personaje fictive cu nume, rol, personalitate și ton.
-        </p>
+        <p data-i18n="card1_text">Generează personaje fictive cu nume, rol, personalitate și ton.</p>
       </div>
 
       <div class="lux-card">
@@ -124,9 +112,7 @@
       <div class="section-head">
         <span>COMPANIONS</span>
         <h2 data-i18n="trending_title">Universul tău privat AI</h2>
-        <p data-i18n="card2_text">
-          Chat cinematic, status online și experiență socială.
-        </p>
+        <p data-i18n="card2_text">Chat cinematic, status online și experiență socială.</p>
       </div>
 
       <div id="list" class="feature-grid"></div>
@@ -170,11 +156,10 @@ async function doLogin(){
   const email = document.getElementById('email').value.trim();
   if(!email) return alert('Scrie emailul.');
 
-  let r;
   try{
-    r = await j('/api/login',{method:'POST',body:{email}});
+    await j('/api/login',{method:'POST',body:{email}});
   }catch(e){
-    r = await j('/api/mock-login?email=' + encodeURIComponent(email));
+    await j('/api/mock-login?email=' + encodeURIComponent(email));
   }
 
   await refreshMe();
@@ -249,4 +234,4 @@ loadPersonas();
 </script>
 
 </body>
-</html>
+  </html>
