@@ -1,4 +1,4 @@
-// public/i18n.js — The Future PRO — stable local translator v4006
+// public/i18n.js — The Future PRO — stable local translator v4007
 
 (function () {
   const DEFAULT_LANG = "ro";
@@ -116,7 +116,15 @@
     chat_empty: "Choose a companion from Premium or start the conversation.",
     typing: "AI is typing...",
     chat_placeholder: "Write a message...",
-    generate_teaser: "Generate teaser"
+    generate_teaser: "Generate teaser",
+
+    image_teaser: "Image teaser",
+    video_teaser: "Video teaser",
+    teaser_image: "Image teaser",
+    teaser_video: "Video teaser",
+    private_teaser_locked: "Private teaser locked",
+    unlocked_media: "Unlocked media",
+    unlock_full_media: "Unlock full media"
   };
 
   const RO = {
@@ -219,7 +227,15 @@
     chat_empty: "Alege un companion din Premium sau începe conversația.",
     typing: "AI scrie...",
     chat_placeholder: "Scrie un mesaj...",
-    generate_teaser: "Generează teaser"
+    generate_teaser: "Generează teaser",
+
+    image_teaser: "Teaser imagine",
+    video_teaser: "Teaser video",
+    teaser_image: "Teaser imagine",
+    teaser_video: "Teaser video",
+    private_teaser_locked: "Teaser privat blocat",
+    unlocked_media: "Media deblocată",
+    unlock_full_media: "Deblochează media completă"
   };
 
   const FR = {
@@ -241,7 +257,14 @@
     chat_empty: "Choisissez un compagnon depuis Premium ou commencez la conversation.",
     typing: "L’IA écrit...",
     chat_placeholder: "Écrivez un message...",
-    generate_teaser: "Générer un teaser"
+    generate_teaser: "Générer un teaser",
+    image_teaser: "Teaser image",
+    video_teaser: "Teaser vidéo",
+    teaser_image: "Teaser image",
+    teaser_video: "Teaser vidéo",
+    private_teaser_locked: "Teaser privé verrouillé",
+    unlocked_media: "Média déverrouillé",
+    unlock_full_media: "Déverrouiller le média complet"
   };
 
   const ES = {
@@ -263,7 +286,14 @@
     chat_empty: "Elige un companion desde Premium o empieza la conversación.",
     typing: "La IA está escribiendo...",
     chat_placeholder: "Escribe un mensaje...",
-    generate_teaser: "Generar teaser"
+    generate_teaser: "Generar teaser",
+    image_teaser: "Teaser de imagen",
+    video_teaser: "Teaser de video",
+    teaser_image: "Teaser de imagen",
+    teaser_video: "Teaser de video",
+    private_teaser_locked: "Teaser privado bloqueado",
+    unlocked_media: "Contenido desbloqueado",
+    unlock_full_media: "Desbloquear contenido completo"
   };
 
   const DE = {
@@ -285,7 +315,14 @@
     chat_empty: "Wähle einen Companion aus Premium oder beginne das Gespräch.",
     typing: "KI schreibt...",
     chat_placeholder: "Nachricht schreiben...",
-    generate_teaser: "Teaser generieren"
+    generate_teaser: "Teaser generieren",
+    image_teaser: "Bild-Teaser",
+    video_teaser: "Video-Teaser",
+    teaser_image: "Bild-Teaser",
+    teaser_video: "Video-Teaser",
+    private_teaser_locked: "Privater Teaser gesperrt",
+    unlocked_media: "Medien freigeschaltet",
+    unlock_full_media: "Vollständige Medien freischalten"
   };
 
   const IT = {
@@ -307,7 +344,14 @@
     chat_empty: "Scegli un companion da Premium o inizia la conversazione.",
     typing: "L’IA sta scrivendo...",
     chat_placeholder: "Scrivi un messaggio...",
-    generate_teaser: "Genera teaser"
+    generate_teaser: "Genera teaser",
+    image_teaser: "Teaser immagine",
+    video_teaser: "Teaser video",
+    teaser_image: "Teaser immagine",
+    teaser_video: "Teaser video",
+    private_teaser_locked: "Teaser privato bloccato",
+    unlocked_media: "Media sbloccato",
+    unlock_full_media: "Sblocca media completo"
   };
 
   const PT = {
@@ -329,7 +373,14 @@
     chat_empty: "Escolha um companion no Premium ou comece a conversa.",
     typing: "A IA está escrevendo...",
     chat_placeholder: "Escreva uma mensagem...",
-    generate_teaser: "Gerar teaser"
+    generate_teaser: "Gerar teaser",
+    image_teaser: "Teaser de imagem",
+    video_teaser: "Teaser de vídeo",
+    teaser_image: "Teaser de imagem",
+    teaser_video: "Teaser de vídeo",
+    private_teaser_locked: "Teaser privado bloqueado",
+    unlocked_media: "Mídia desbloqueada",
+    unlock_full_media: "Desbloquear mídia completa"
   };
 
   const NL = {
@@ -351,7 +402,14 @@
     chat_empty: "Kies een companion via Premium of start het gesprek.",
     typing: "AI typt...",
     chat_placeholder: "Schrijf een bericht...",
-    generate_teaser: "Teaser genereren"
+    generate_teaser: "Teaser genereren",
+    image_teaser: "Afbeelding teaser",
+    video_teaser: "Video teaser",
+    teaser_image: "Afbeelding teaser",
+    teaser_video: "Video teaser",
+    private_teaser_locked: "Privéteaser vergrendeld",
+    unlocked_media: "Media ontgrendeld",
+    unlock_full_media: "Volledige media ontgrendelen"
   };
 
   const TR = {
@@ -373,7 +431,14 @@
     chat_empty: "Premium’dan bir companion seç veya sohbeti başlat.",
     typing: "AI yazıyor...",
     chat_placeholder: "Bir mesaj yaz...",
-    generate_teaser: "Teaser oluştur"
+    generate_teaser: "Teaser oluştur",
+    image_teaser: "Görsel teaser",
+    video_teaser: "Video teaser",
+    teaser_image: "Görsel teaser",
+    teaser_video: "Video teaser",
+    private_teaser_locked: "Özel teaser kilitli",
+    unlocked_media: "Medya açıldı",
+    unlock_full_media: "Tüm medyayı aç"
   };
 
   const RU = {
@@ -395,7 +460,14 @@
     chat_empty: "Выберите companion в Premium или начните разговор.",
     typing: "AI печатает...",
     chat_placeholder: "Напишите сообщение...",
-    generate_teaser: "Создать тизер"
+    generate_teaser: "Создать тизер",
+    image_teaser: "Тизер изображения",
+    video_teaser: "Видео тизер",
+    teaser_image: "Тизер изображения",
+    teaser_video: "Видео тизер",
+    private_teaser_locked: "Приватный тизер заблокирован",
+    unlocked_media: "Медиа разблокировано",
+    unlock_full_media: "Разблокировать полное медиа"
   };
 
   window.I18N = {
@@ -409,6 +481,189 @@
     nl: Object.assign({}, EN, NL),
     tr: Object.assign({}, EN, TR),
     ru: Object.assign({}, EN, RU)
+  };
+
+  const OPTION_TRANSLATIONS = {
+    "Image teaser": {
+      ro: "Teaser imagine",
+      en: "Image teaser",
+      fr: "Teaser image",
+      es: "Teaser de imagen",
+      de: "Bild-Teaser",
+      it: "Teaser immagine",
+      pt: "Teaser de imagem",
+      nl: "Afbeelding teaser",
+      tr: "Görsel teaser",
+      ru: "Тизер изображения"
+    },
+    "Video teaser": {
+      ro: "Teaser video",
+      en: "Video teaser",
+      fr: "Teaser vidéo",
+      es: "Teaser de video",
+      de: "Video-Teaser",
+      it: "Teaser video",
+      pt: "Teaser de vídeo",
+      nl: "Video teaser",
+      tr: "Video teaser",
+      ru: "Видео тизер"
+    },
+    "Female": {
+      ro: "Feminin",
+      en: "Female",
+      fr: "Féminin",
+      es: "Femenino",
+      de: "Weiblich",
+      it: "Femminile",
+      pt: "Feminino",
+      nl: "Vrouwelijk",
+      tr: "Kadın",
+      ru: "Женский"
+    },
+    "Male": {
+      ro: "Masculin",
+      en: "Male",
+      fr: "Masculin",
+      es: "Masculino",
+      de: "Männlich",
+      it: "Maschile",
+      pt: "Masculino",
+      nl: "Mannelijk",
+      tr: "Erkek",
+      ru: "Мужской"
+    },
+    "Anime": {
+      ro: "Anime",
+      en: "Anime",
+      fr: "Anime",
+      es: "Anime",
+      de: "Anime",
+      it: "Anime",
+      pt: "Anime",
+      nl: "Anime",
+      tr: "Anime",
+      ru: "Аниме"
+    },
+    "Girlfriend": {
+      ro: "Iubită",
+      en: "Girlfriend",
+      fr: "Petite amie",
+      es: "Novia",
+      de: "Freundin",
+      it: "Fidanzata",
+      pt: "Namorada",
+      nl: "Vriendin",
+      tr: "Kız arkadaş",
+      ru: "Девушка"
+    },
+    "Goth": {
+      ro: "Goth",
+      en: "Goth",
+      fr: "Gothique",
+      es: "Gótica",
+      de: "Gothic",
+      it: "Gotica",
+      pt: "Gótica",
+      nl: "Gothic",
+      tr: "Gotik",
+      ru: "Готика"
+    },
+    "CEO / Boss": {
+      ro: "CEO / Șefă",
+      en: "CEO / Boss",
+      fr: "PDG / Patronne",
+      es: "CEO / Jefa",
+      de: "CEO / Chefin",
+      it: "CEO / Capo",
+      pt: "CEO / Chefe",
+      nl: "CEO / Baas",
+      tr: "CEO / Patron",
+      ru: "CEO / Босс"
+    },
+    "Personal Trainer": {
+      ro: "Antrenoare personală",
+      en: "Personal Trainer",
+      fr: "Coach personnel",
+      es: "Entrenadora personal",
+      de: "Personal Trainerin",
+      it: "Personal trainer",
+      pt: "Personal trainer",
+      nl: "Personal trainer",
+      tr: "Kişisel antrenör",
+      ru: "Персональный тренер"
+    },
+    "Soft Romantic": {
+      ro: "Romantică delicată",
+      en: "Soft Romantic",
+      fr: "Romantique douce",
+      es: "Romántica suave",
+      de: "Sanft romantisch",
+      it: "Romantica dolce",
+      pt: "Romântica suave",
+      nl: "Zacht romantisch",
+      tr: "Yumuşak romantik",
+      ru: "Нежная романтика"
+    },
+    "Cyberpunk Muse": {
+      ro: "Muză cyberpunk",
+      en: "Cyberpunk Muse",
+      fr: "Muse cyberpunk",
+      es: "Musa cyberpunk",
+      de: "Cyberpunk-Muse",
+      it: "Musa cyberpunk",
+      pt: "Musa cyberpunk",
+      nl: "Cyberpunk muze",
+      tr: "Cyberpunk ilham perisi",
+      ru: "Киберпанк-муза"
+    },
+    "Elf Queen": {
+      ro: "Regină elfă",
+      en: "Elf Queen",
+      fr: "Reine elfe",
+      es: "Reina elfa",
+      de: "Elfenkönigin",
+      it: "Regina elfica",
+      pt: "Rainha elfa",
+      nl: "Elfenkoningin",
+      tr: "Elf kraliçesi",
+      ru: "Эльфийская королева"
+    },
+    "Bookish Introvert": {
+      ro: "Introvertită pasionată de cărți",
+      en: "Bookish Introvert",
+      fr: "Introvertie littéraire",
+      es: "Introvertida lectora",
+      de: "Bücherliebende Introvertierte",
+      it: "Introversa amante dei libri",
+      pt: "Introvertida literária",
+      nl: "Boekige introvert",
+      tr: "Kitap kurdu içe dönük",
+      ru: "Книжная интровертка"
+    },
+    "1080p": {
+      ro: "1080p",
+      en: "1080p",
+      fr: "1080p",
+      es: "1080p",
+      de: "1080p",
+      it: "1080p",
+      pt: "1080p",
+      nl: "1080p",
+      tr: "1080p",
+      ru: "1080p"
+    },
+    "4k": {
+      ro: "4K",
+      en: "4K",
+      fr: "4K",
+      es: "4K",
+      de: "4K",
+      it: "4K",
+      pt: "4K",
+      nl: "4K",
+      tr: "4K",
+      ru: "4K"
+    }
   };
 
   function normalizeLang(lang) {
@@ -435,6 +690,22 @@
     return local[key] || EN[key] || key;
   };
 
+  function translateOptions(lang) {
+    document.querySelectorAll("option").forEach(function (opt) {
+      const original =
+        opt.getAttribute("data-original-text") ||
+        opt.textContent.trim();
+
+      if (!opt.getAttribute("data-original-text")) {
+        opt.setAttribute("data-original-text", original);
+      }
+
+      if (OPTION_TRANSLATIONS[original] && OPTION_TRANSLATIONS[original][lang]) {
+        opt.textContent = OPTION_TRANSLATIONS[original][lang];
+      }
+    });
+  }
+
   window.applyTranslations = function () {
     const lang = window.getLangCode();
     const local = window.I18N[lang] || EN;
@@ -450,6 +721,7 @@
         const opt = document.createElement("option");
         opt.value = code;
         opt.textContent = label;
+        opt.setAttribute("data-original-text", label);
         switcher.appendChild(opt);
       });
 
@@ -487,6 +759,8 @@
         el.setAttribute("aria-label", local[key] || EN[key]);
       }
     });
+
+    translateOptions(lang);
   };
 
   document.addEventListener("DOMContentLoaded", function () {
