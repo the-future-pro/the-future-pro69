@@ -1,8 +1,8 @@
-// public/i18n.js — stable v4003
+// public/i18n.js — stable local translator v4005
 
 (function () {
 
-  const CACHE_VERSION = "v4003";
+  const DEFAULT_LANG = "ro";
 
   window.LANG_OPTIONS = [
     ["ro", "🇷🇴 RO"],
@@ -14,9 +14,7 @@
     ["pt", "🇵🇹 PT"],
     ["nl", "🇳🇱 NL"],
     ["tr", "🇹🇷 TR"],
-    ["ru", "🇷🇺 RU"],
-    ["ar", "🇸🇦 AR"],
-    ["zh", "🇨🇳 ZH"]
+    ["ru", "🇷🇺 RU"]
   ];
 
   // =========================
@@ -24,6 +22,7 @@
   // =========================
 
   const EN = {
+
     top_subtitle: "Private AI Universe",
     login: "Login",
     enter_platform: "Enter",
@@ -33,7 +32,8 @@
     terms: "Terms",
     safety: "Safety",
 
-    eyebrow: "PRIVATE • CINEMATIC • AI COMPANIONS",
+    eyebrow:
+      "PRIVATE • CINEMATIC • AI COMPANIONS",
 
     hero_title:
       "The line between AI and reality no longer exists.",
@@ -41,30 +41,47 @@
     hero_text:
       "Create ultra-realistic fictional AI companions, private conversations, cinematic images and interactive experiences inside a premium ecosystem.",
 
-    warning_18: "18+ only",
-    fictional_only: "Fictional characters only",
-    private_exp: "Private experience",
-    no_deepfake: "No real-person deepfakes",
+    warning_18:
+      "18+ only",
 
-    ava_card_title: "Dark Luxury",
+    fictional_only:
+      "Fictional characters only",
+
+    private_exp:
+      "Private experience",
+
+    no_deepfake:
+      "No real-person deepfakes",
+
+    ava_card_title:
+      "Dark Luxury",
 
     ava_card_text:
       "Mysterious, cinematic, emotionally adaptive.",
 
-    image_realism: "Image realism",
-    image_realism_text: "8K style preview",
+    image_realism:
+      "Image realism",
 
-    video_scene: "Video scene",
-    video_scene_text: "10–20s premium clips",
+    image_realism_text:
+      "8K style preview",
 
-    explore: "EXPLORE",
+    video_scene:
+      "Video scene",
 
-    trending_title: "Your private AI universe",
+    video_scene_text:
+      "10–20s premium clips",
+
+    explore:
+      "EXPLORE",
+
+    trending_title:
+      "Your private AI universe",
 
     trending_text:
       "Everything is built for realism, discretion and cinematic experience.",
 
-    online: "online",
+    online:
+      "online",
 
     ava_role:
       "Dark Luxury • elegant • mysterious",
@@ -78,7 +95,8 @@
     luna_role:
       "Goth Romantic • poetic • intense",
 
-    create: "CREATE",
+    create:
+      "CREATE",
 
     multi_title:
       "One platform. Multiple experiences.",
@@ -86,33 +104,38 @@
     multi_text:
       "We build the product around the most important areas: chat, image, video and recurring characters.",
 
-    card1_title: "Create AI companions",
+    card1_title:
+      "Create AI companions",
 
     card1_text:
-      "Generate fictional characters with name, role, personality, tone and media prices.",
+      "Generate fictional characters with name, role, personality and tone.",
 
-    card2_title: "Private DM-style chat",
+    card2_title:
+      "Private DM-style chat",
 
     card2_text:
-      "Cinematic chat, online status, typing indicator and social app experience.",
+      "Cinematic chat, online status and social experience.",
 
-    card3_title: "AI Image Studio",
+    card3_title:
+      "AI Image Studio",
 
     card3_text:
-      "Cinematic prompts, realism, lighting, camera feel and premium preview.",
+      "Cinematic prompts, realism and premium preview.",
 
-    card4_title: "AI Video Studio",
+    card4_title:
+      "AI Video Studio",
 
     card4_text:
-      "Short premium scenes, 5–20 seconds, created for teasing and unlock.",
+      "Short premium scenes for teasing and unlock.",
 
-    premium_access: "PREMIUM ACCESS",
+    premium_access:
+      "PREMIUM ACCESS",
 
     unlock_title:
       "Unlock your private AI world.",
 
     unlock_text:
-      "Premium AI experience with cinematic characters, private chat and advanced image/video generation."
+      "Premium AI experience with cinematic characters, private chat and image/video generation."
   };
 
   // =========================
@@ -120,17 +143,33 @@
   // =========================
 
   const RO = {
-    top_subtitle: "Univers AI privat",
-    login: "Autentificare",
-    enter_platform: "Intră",
-    image_btn: "Încearcă Image Studio",
-    member_area: "Deschide zona de membri",
-    privacy: "Confidențialitate",
-    terms: "Termeni",
-    safety: "Siguranță",
+
+    top_subtitle:
+      "Univers AI privat",
+
+    login:
+      "Autentificare",
+
+    enter_platform:
+      "Intră",
+
+    image_btn:
+      "Încearcă Image Studio",
+
+    member_area:
+      "Deschide zona de membri",
+
+    privacy:
+      "Confidențialitate",
+
+    terms:
+      "Termeni",
+
+    safety:
+      "Siguranță",
 
     eyebrow:
-      "PRIVAT • CINEMATIC • COMPANIONS AI",
+      "PRIVAT • CINEMATIC • AI COMPANIONS",
 
     hero_title:
       "Linia dintre AI și realitate nu mai există.",
@@ -138,30 +177,47 @@
     hero_text:
       "Creează personaje AI fictive, ultra-realiste, conversații private, imagini cinematice și experiențe interactive într-un ecosistem premium.",
 
-    warning_18: "Doar 18+",
-    fictional_only: "Doar personaje fictive",
-    private_exp: "Experiență privată",
-    no_deepfake: "Fără deepfake-uri cu persoane reale",
+    warning_18:
+      "Doar 18+",
 
-    ava_card_title: "Lux întunecat",
+    fictional_only:
+      "Doar personaje fictive",
+
+    private_exp:
+      "Experiență privată",
+
+    no_deepfake:
+      "Fără deepfake-uri cu persoane reale",
+
+    ava_card_title:
+      "Lux întunecat",
 
     ava_card_text:
       "Misterioasă, cinematică, adaptivă emoțional.",
 
-    image_realism: "Realism imagine",
-    image_realism_text: "Preview stil 8K",
+    image_realism:
+      "Realism imagine",
 
-    video_scene: "Scenă video",
-    video_scene_text: "Clipuri premium 10–20s",
+    image_realism_text:
+      "Preview stil 8K",
 
-    explore: "EXPLOREAZĂ",
+    video_scene:
+      "Scenă video",
 
-    trending_title: "Universul tău privat AI",
+    video_scene_text:
+      "Clipuri premium 10–20s",
+
+    explore:
+      "EXPLOREAZĂ",
+
+    trending_title:
+      "Universul tău privat AI",
 
     trending_text:
       "Totul este construit pentru realism, discreție și experiență cinematică.",
 
-    online: "online",
+    online:
+      "online",
 
     ava_role:
       "Lux întunecat • elegantă • misterioasă",
@@ -175,7 +231,8 @@
     luna_role:
       "Romantic goth • poetică • intensă",
 
-    create: "CREEAZĂ",
+    create:
+      "CREEAZĂ",
 
     multi_title:
       "O platformă. Mai multe experiențe.",
@@ -183,27 +240,32 @@
     multi_text:
       "Construim produsul în jurul celor mai importante zone: chat, imagine, video și personaje recurente.",
 
-    card1_title: "Creează companions AI",
+    card1_title:
+      "Creează companions AI",
 
     card1_text:
       "Generează personaje fictive cu nume, rol, personalitate și ton.",
 
-    card2_title: "Chat privat tip DM",
+    card2_title:
+      "Chat privat tip DM",
 
     card2_text:
-      "Chat cinematic, status online și experiență tip social app.",
+      "Chat cinematic, status online și experiență socială.",
 
-    card3_title: "AI Image Studio",
+    card3_title:
+      "AI Image Studio",
 
     card3_text:
       "Prompturi cinematice, realism și preview premium.",
 
-    card4_title: "AI Video Studio",
+    card4_title:
+      "AI Video Studio",
 
     card4_text:
       "Scene premium scurte pentru teasing și unlock.",
 
-    premium_access: "ACCES PREMIUM",
+    premium_access:
+      "ACCES PREMIUM",
 
     unlock_title:
       "Deblochează lumea ta privată AI.",
@@ -213,134 +275,150 @@
   };
 
   // =========================
-  // AUTO LANGS
+  // SIMPLE LOCAL LANGS
   // =========================
 
-  const AUTO = {};
+  const FR = {
+    login: "Connexion",
+    enter_platform: "Entrer",
+    image_btn: "Essayer Image Studio",
+    member_area: "Ouvrir l'espace membre",
+    privacy: "Confidentialité",
+    terms: "Conditions",
+    safety: "Sécurité",
+    explore: "EXPLORER",
+    create: "CRÉER",
+    online: "en ligne"
+  };
 
-  [
-    "fr",
-    "es",
-    "de",
-    "it",
-    "pt",
-    "nl",
-    "tr",
-    "ru",
-    "ar",
-    "zh"
-  ].forEach(lang => {
-    AUTO[lang] = {};
-  });
+  const ES = {
+    login: "Iniciar sesión",
+    enter_platform: "Entrar",
+    image_btn: "Probar Image Studio",
+    member_area: "Abrir área premium",
+    privacy: "Privacidad",
+    terms: "Términos",
+    safety: "Seguridad",
+    explore: "EXPLORAR",
+    create: "CREAR",
+    online: "en línea"
+  };
+
+  const DE = {
+    login: "Anmelden",
+    enter_platform: "Betreten",
+    image_btn: "Image Studio testen",
+    member_area: "Mitgliederbereich öffnen",
+    privacy: "Datenschutz",
+    terms: "Bedingungen",
+    safety: "Sicherheit",
+    explore: "ENTDECKEN",
+    create: "ERSTELLEN",
+    online: "online"
+  };
+
+  const IT = {
+    login: "Accesso",
+    enter_platform: "Entra",
+    image_btn: "Prova Image Studio",
+    member_area: "Apri area membri",
+    privacy: "Privacy",
+    terms: "Termini",
+    safety: "Sicurezza",
+    explore: "ESPLORA",
+    create: "CREA",
+    online: "online"
+  };
+
+  const PT = {
+    login: "Entrar",
+    enter_platform: "Acessar",
+    image_btn: "Experimentar Image Studio",
+    member_area: "Abrir área premium",
+    privacy: "Privacidade",
+    terms: "Termos",
+    safety: "Segurança",
+    explore: "EXPLORAR",
+    create: "CRIAR",
+    online: "online"
+  };
+
+  const NL = {
+    login: "Inloggen",
+    enter_platform: "Openen",
+    image_btn: "Probeer Image Studio",
+    member_area: "Open ledenruimte",
+    privacy: "Privacy",
+    terms: "Voorwaarden",
+    safety: "Veiligheid",
+    explore: "ONTDEK",
+    create: "MAKEN",
+    online: "online"
+  };
+
+  const TR = {
+    login: "Giriş",
+    enter_platform: "Gir",
+    image_btn: "Image Studio Dene",
+    member_area: "Üye alanını aç",
+    privacy: "Gizlilik",
+    terms: "Şartlar",
+    safety: "Güvenlik",
+    explore: "KEŞFET",
+    create: "OLUŞTUR",
+    online: "çevrimiçi"
+  };
+
+  const RU = {
+    login: "Войти",
+    enter_platform: "Открыть",
+    image_btn: "Попробовать Image Studio",
+    member_area: "Открыть премиум",
+    privacy: "Конфиденциальность",
+    terms: "Условия",
+    safety: "Безопасность",
+    explore: "ИССЛЕДОВАТЬ",
+    create: "СОЗДАТЬ",
+    online: "онлайн"
+  };
 
   // =========================
 
   window.I18N = {
     en: EN,
     ro: Object.assign({}, EN, RO),
-    fr: Object.assign({}, EN, AUTO.fr),
-    es: Object.assign({}, EN, AUTO.es),
-    de: Object.assign({}, EN, AUTO.de),
-    it: Object.assign({}, EN, AUTO.it),
-    pt: Object.assign({}, EN, AUTO.pt),
-    nl: Object.assign({}, EN, AUTO.nl),
-    tr: Object.assign({}, EN, AUTO.tr),
-    ru: Object.assign({}, EN, AUTO.ru),
-    ar: Object.assign({}, EN, AUTO.ar),
-    zh: Object.assign({}, EN, AUTO.zh)
+    fr: Object.assign({}, EN, FR),
+    es: Object.assign({}, EN, ES),
+    de: Object.assign({}, EN, DE),
+    it: Object.assign({}, EN, IT),
+    pt: Object.assign({}, EN, PT),
+    nl: Object.assign({}, EN, NL),
+    tr: Object.assign({}, EN, TR),
+    ru: Object.assign({}, EN, RU)
   };
 
   // =========================
 
   if (!localStorage.getItem("site_lang")) {
-    localStorage.setItem("site_lang", "ro");
+    localStorage.setItem("site_lang", DEFAULT_LANG);
   }
 
-  window.getLangCode = function () {
-    return localStorage.getItem("site_lang") || "ro";
-  };
+  function getLangCode() {
+    return localStorage.getItem("site_lang") || DEFAULT_LANG;
+  }
+
+  window.getLangCode = getLangCode;
 
   window.setLang = function (lang) {
     localStorage.setItem("site_lang", lang);
     location.reload();
   };
 
-  function safeBase64(text) {
-    try {
-      return btoa(unescape(encodeURIComponent(text))).slice(0, 80);
-    } catch {
-      return String(text).slice(0, 80);
-    }
-  }
-
-  function cacheKey(lang, text) {
-    return (
-      "tr_" +
-      CACHE_VERSION +
-      "*" +
-      lang +
-      "*" +
-      safeBase64(text)
-    );
-  }
-
-  async function translateViaServer(text, lang) {
-
-    if (!text) return "";
-
-    if (lang === "en") {
-      return text;
-    }
-
-    const key = cacheKey(lang, text);
-    const cached = localStorage.getItem(key);
-
-    if (cached) {
-      return cached;
-    }
-
-    try {
-
-      const response = await fetch("/api/translate", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          text,
-          target: lang,
-          source: "en"
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.ok && data.translatedText) {
-
-        localStorage.setItem(
-          key,
-          data.translatedText
-        );
-
-        return data.translatedText;
-      }
-
-      return text;
-
-    } catch (err) {
-
-      console.warn("translation failed", err);
-      return text;
-    }
-  }
-
   // =========================
 
-  window.applyTranslations = async function () {
+  window.applyTranslations = function () {
 
-    const lang = window.getLangCode();
+    const lang = getLangCode();
 
     document.documentElement.lang = lang;
 
@@ -351,15 +429,18 @@
 
       switcher.innerHTML = "";
 
-      window.LANG_OPTIONS.forEach(([code, label]) => {
+      window.LANG_OPTIONS.forEach(
+        function ([code, label]) {
 
-        const opt = document.createElement("option");
+          const opt =
+            document.createElement("option");
 
-        opt.value = code;
-        opt.textContent = label;
+          opt.value = code;
+          opt.textContent = label;
 
-        switcher.appendChild(opt);
-      });
+          switcher.appendChild(opt);
+        }
+      );
 
       switcher.value = lang;
 
@@ -368,38 +449,21 @@
       };
     }
 
-    const elements =
-      document.querySelectorAll("[data-i18n]");
+    const local =
+      window.I18N[lang] || EN;
 
-    for (const el of elements) {
+    document
+      .querySelectorAll("[data-i18n]")
+      .forEach(function (el) {
 
-      const key =
-        el.getAttribute("data-i18n");
+        const key =
+          el.getAttribute("data-i18n");
 
-      const englishText =
-        window.I18N.en[key] || key;
-
-      if (lang === "ro") {
-
-        el.textContent =
-          window.I18N.ro[key] || englishText;
-
-      } else if (lang === "en") {
-
-        el.textContent = englishText;
-
-      } else {
-
-        el.textContent =
-          await translateViaServer(
-            englishText,
-            lang
-          );
-      }
-    }
+        if (local[key]) {
+          el.textContent = local[key];
+        }
+      });
   };
-
-  // =========================
 
   document.addEventListener(
     "DOMContentLoaded",
