@@ -2,9 +2,17 @@
 <html lang="ro">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
   <title>Chat — The Future PRO</title>
-  <link rel="stylesheet" href="/style.css" />
+
+  <link rel="stylesheet" href="/style.css?v=4005" />
+  <script src="/i18n.js?v=4005" defer></script>
+
   <style>
     .chat-shell{max-width:980px;margin:0 auto;padding:18px}
     .chat-app{
@@ -120,30 +128,79 @@
       <div class="chat-head">
         <div class="companion">
           <div class="avatar" id="avatar">AI</div>
+
           <div>
             <strong id="title">Companion</strong>
-            <span><i class="status-dot"></i>online now • private chat</span>
+
+            <span>
+              <i class="status-dot"></i>
+              <span data-i18n="online">online</span>
+              •
+              <span data-i18n="chat_title">Chat privat</span>
+            </span>
           </div>
         </div>
 
+        <select
+          id="langSwitcher"
+          class="lang-switcher"
+          aria-label="Language"
+        ></select>
+
         <div class="nav-actions">
-          <a class="ghost-btn" href="/premium">Companions</a>
-          <a class="main-btn" href="/gen-image.html">Create</a>
+          <a
+            class="ghost-btn"
+            href="/premium"
+            data-i18n="member_area"
+          >
+            Zona de membri
+          </a>
+
+          <a
+            class="main-btn"
+            href="/gen-image.html"
+            data-i18n="create"
+          >
+            Creează
+          </a>
         </div>
       </div>
 
       <div id="log" class="chat-log">
-        <div class="empty" id="empty">
+        <div
+          class="empty"
+          id="empty"
+          data-i18n="chat_empty"
+        >
           Alege un companion din Premium sau începe conversația.
         </div>
       </div>
 
-      <div id="typing" class="typing">AI is typing...</div>
+      <div
+        id="typing"
+        class="typing"
+        data-i18n="typing"
+      >
+        AI scrie...
+      </div>
 
       <div class="composer">
         <div class="composer-row">
-          <input id="text" placeholder="Scrie un mesaj..." onkeydown="if(event.key==='Enter')send()">
-          <button class="main-btn" onclick="send()" style="border:0">Send</button>
+          <input
+            id="text"
+            data-i18n-placeholder="chat_placeholder"
+            placeholder="Scrie un mesaj..."
+            onkeydown="if(event.key==='Enter')send()"
+          >
+
+          <button
+            class="main-btn"
+            onclick="send()"
+            style="border:0"
+            data-i18n="send"
+          >
+            Trimite
+          </button>
         </div>
 
         <div class="tools">
@@ -158,16 +215,32 @@
             <option value="8k">8K</option>
           </select>
 
-          <input id="neg" placeholder="Extra style / negative prompt">
+          <input
+            id="neg"
+            data-i18n-placeholder="negative_prompt"
+            placeholder="Extra style / negative prompt"
+          >
 
-          <button class="ghost-btn" onclick="offer()" style="border:1px solid var(--line)">Generate teaser</button>
+          <button
+            class="ghost-btn"
+            onclick="offer()"
+            style="border:1px solid var(--line)"
+            data-i18n="generate_teaser"
+          >
+            Generate teaser
+          </button>
         </div>
 
-        <div id="videoOpts" class="tools" style="display:none;grid-template-columns:1fr 1fr;margin-top:10px">
+        <div
+          id="videoOpts"
+          class="tools"
+          style="display:none;grid-template-columns:1fr 1fr;margin-top:10px"
+        >
           <select id="v_sec">
             <option value="10">10s</option>
             <option value="20">20s</option>
           </select>
+
           <select id="v_q">
             <option>1080p</option>
             <option>4k</option>
@@ -186,7 +259,8 @@ const readableName = slug
   : 'Choose Companion';
 
 document.getElementById('title').textContent = readableName;
-document.getElementById('avatar').textContent = readableName.split(' ').map(x=>x[0]).join('').slice(0,2) || 'AI';
+document.getElementById('avatar').textContent =
+  readableName.split(' ').map(x=>x[0]).join('').slice(0,2) || 'AI';
 
 const j=(u,o)=>fetch(u,{
   method:o?.method||'GET',
@@ -208,7 +282,8 @@ async function load(){
 
   let r;
   try{
-    r = await j(`/api/chat/${encodeURIComponent(slug)}/history?after=${lastId}`);
+    const lang = localStorage.getItem('site_lang') || 'ro';
+    r = await j(`/api/chat/${encodeURIComponent(slug)}/history?after=${lastId}&lang=${encodeURIComponent(lang)}`);
   }catch(e){
     r = {items:[]};
   }
@@ -229,8 +304,10 @@ function render(m){
   const isAI = m.sender_type === 'persona' || m.sender_type === 'ai';
   d.className = 'bubble ' + (isAI ? 'ai' : 'you');
 
+  const msgText = m.translatedText || m.text || '';
+
   if(m.kind === 'text' || !m.kind){
-    d.innerHTML = `<small>${isAI ? readableName : 'Tu'}</small>${escapeHtml(m.text || '')}`;
+    d.innerHTML = `<small>${isAI ? readableName : 'Tu'}</small>${escapeHtml(msgText)}`;
   } else {
     const med = m.media || {};
     const isLocked = m.kind === 'media_locked';
@@ -271,9 +348,15 @@ async function send(){
 
   const input = document.getElementById('text');
   const t = input.value.trim();
+
   if(!t) return;
 
-  render({sender_type:'user', kind:'text', text:t});
+  render({
+    sender_type:'user',
+    kind:'text',
+    text:t
+  });
+
   input.value='';
 
   document.getElementById('typing').style.display='block';
@@ -303,6 +386,7 @@ async function offer(){
   if(!slug) return alert('Alege un companion din pagina Premium.');
 
   const kind = document.getElementById('kind').value;
+
   let body = {
     kind,
     negative: document.getElementById('neg').value
@@ -320,6 +404,7 @@ async function offer(){
       method:'POST',
       body
     });
+
     if(!r.ok) alert(r.error || 'Eroare');
   }catch(e){
     render({
@@ -344,5 +429,6 @@ function escapeHtml(str){
 load();
 setInterval(load,3000);
 </script>
+
 </body>
-  </html>
+</html>
