@@ -3,8 +3,12 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
   <title>AI Image Studio — The Future PRO</title>
+
   <link rel="stylesheet" href="/style.css"/>
+  <script src="/i18n.js" defer></script>
+
   <style>
     .studio{max-width:1180px;margin:0 auto;padding:18px}
     .studio-grid{display:grid;grid-template-columns:420px 1fr;gap:18px}
@@ -49,54 +53,83 @@
         <div class="brand-mark">AI</div>
         <div>
           <strong>The Future</strong>
-          <span>AI Image Studio</span>
+          <span data-i18n="image_studio_title">AI Image Studio</span>
         </div>
       </a>
+
+      <select
+        id="langSwitcher"
+        class="lang-switcher"
+        aria-label="Language"
+      ></select>
+
       <div class="nav-actions">
-        <a class="ghost-btn" href="/premium">Premium</a>
-        <a class="ghost-btn" href="/chat.html">Chat</a>
-        <a class="main-btn" href="/gen-video.html">Video</a>
+        <a class="ghost-btn" href="/premium" data-i18n="member_area">Premium</a>
+        <a class="ghost-btn" href="/chat.html" data-i18n="chat_title">Chat</a>
+        <a class="main-btn" href="/gen-video.html" data-i18n="video_studio_title">Video</a>
       </div>
     </nav>
 
     <section class="section" style="padding-top:28px">
       <div class="section-head">
-        <span>IMAGE STUDIO</span>
-        <h2>Cinematic AI visuals with premium realism.</h2>
-        <p>Generează imagini fictive, cinematice, elegante și realiste. Fără persoane reale, fără minori, fără deepfake.</p>
+        <span data-i18n="image_studio_short">IMAGE STUDIO</span>
+        <h2 data-i18n="image_studio_heading">Cinematic AI visuals with premium realism.</h2>
+        <p data-i18n="image_studio_text">
+          Generează imagini AI fictive, cinematice și realiste. Fără persoane reale. Fără minori. Fără deepfake-uri.
+        </p>
       </div>
     </section>
 
     <div class="statusbar">
       <span id="me" class="pill">user: -</span>
       <span id="sub" class="pill">abonament: -</span>
-      <a class="pill" href="/premium">Member Area</a>
-      <a class="pill" href="/api/logout">Logout</a>
+      <a class="pill" href="/premium" data-i18n="member_area">Member Area</a>
+      <a class="pill" href="/api/logout" data-i18n="logout">Logout</a>
     </div>
 
     <section class="studio-grid">
       <div class="panel">
-        <h3>Create image</h3>
+        <h3 data-i18n="create_image">Create image</h3>
 
         <div class="field">
-          <label>Prompt</label>
-          <textarea id="prompt" placeholder="Ex: ultra realistic cinematic portrait of a fictional AI companion, soft neon lighting, luxury apartment, natural skin texture, expressive eyes, 35mm lens, subtle film grain"></textarea>
+          <label data-i18n="prompt">Prompt</label>
+          <textarea
+            id="prompt"
+            data-i18n-placeholder="image_prompt_placeholder"
+            placeholder="Ex: ultra realistic cinematic portrait of a fictional AI companion..."
+          ></textarea>
         </div>
 
         <div class="chips">
-          <button class="chip" onclick="addPrompt('ultra realistic cinematic portrait')">cinematic portrait</button>
-          <button class="chip" onclick="addPrompt('soft neon luxury lighting')">neon luxury</button>
-          <button class="chip" onclick="addPrompt('natural skin texture, realistic pores, subtle imperfections')">skin realism</button>
-          <button class="chip" onclick="addPrompt('35mm lens, shallow depth of field, film grain')">camera realism</button>
+          <button class="chip" onclick="addPrompt('ultra realistic cinematic portrait')" data-i18n="chip_cinematic_portrait">
+            cinematic portrait
+          </button>
+
+          <button class="chip" onclick="addPrompt('soft neon luxury lighting')" data-i18n="chip_neon_luxury">
+            neon luxury
+          </button>
+
+          <button class="chip" onclick="addPrompt('natural skin texture, realistic pores, subtle imperfections')" data-i18n="chip_skin_realism">
+            skin realism
+          </button>
+
+          <button class="chip" onclick="addPrompt('35mm lens, shallow depth of field, film grain')" data-i18n="chip_camera_realism">
+            camera realism
+          </button>
         </div>
 
         <div class="field">
-          <label>Negative / avoid</label>
-          <input id="neg" placeholder="plastic skin, deformed hands, extra fingers, fake CGI look" style="width:100%">
+          <label data-i18n="negative_prompt">Negative / avoid</label>
+          <input
+            id="neg"
+            data-i18n-placeholder="image_negative_placeholder"
+            placeholder="plastic skin, deformed hands, extra fingers, fake CGI look"
+            style="width:100%"
+          >
         </div>
 
         <div class="field">
-          <label>Quality</label>
+          <label data-i18n="quality">Quality</label>
           <select id="quality" style="width:100%">
             <option value="1024">1024 — BASIC</option>
             <option value="2048" data-tier="PLUS">2048 — PLUS</option>
@@ -104,16 +137,30 @@
           </select>
         </div>
 
-        <button id="go" class="main-btn" style="border:0;width:100%;margin-top:10px">Generate Image</button>
+        <button
+          id="go"
+          class="main-btn"
+          style="border:0;width:100%;margin-top:10px"
+          data-i18n="generate_image"
+        >
+          Generate Image
+        </button>
 
         <pre id="out" style="margin-top:16px;min-height:90px"></pre>
       </div>
 
       <div class="result" id="result">
         <div>
-          <div class="eyebrow">PREVIEW</div>
-          <h2 style="margin:10px 0">Your generated image appears here</h2>
-          <p style="color:var(--muted);max-width:520px;margin:auto">
+          <div class="eyebrow" data-i18n="preview">PREVIEW</div>
+
+          <h2 style="margin:10px 0" data-i18n="image_result_title">
+            Your generated image appears here
+          </h2>
+
+          <p
+            style="color:var(--muted);max-width:520px;margin:auto"
+            data-i18n="image_result_text"
+          >
             Pentru MVP, pagina poate porni în mock mode. Următorul pas este conectarea endpointului real de image generation.
           </p>
         </div>
@@ -137,13 +184,14 @@ function addPrompt(text){
 }
 
 function paintBadges(){
-  $('#me').textContent = user ? `user: ${user.email}` : 'user: -';
+  const userLabel = user ? `user: ${user.email}` : 'user: -';
+  $('#me').textContent = userLabel;
 
   if(sub.active){
-    $('#sub').textContent = `abonament: ${sub.sub?.tier || 'activ'}`;
+    $('#sub').textContent = `${window.t ? window.t('subscription') : 'abonament'}: ${sub.sub?.tier || 'activ'}`;
     $('#sub').className = 'pill ok';
   } else {
-    $('#sub').textContent = 'abonament: inactiv';
+    $('#sub').textContent = `${window.t ? window.t('subscription') : 'abonament'}: ${window.t ? window.t('inactive') : 'inactiv'}`;
     $('#sub').className = 'pill no';
   }
 }
@@ -155,14 +203,19 @@ function gateQuality(){
   for(const opt of sel.options){
     const req = opt.getAttribute('data-tier');
     let enabled = true;
+
     if(req === 'PLUS' && !['PLUS','PRO'].includes(tierOK)) enabled = false;
     if(req === 'PRO' && tierOK !== 'PRO') enabled = false;
+
     opt.disabled = !enabled;
   }
 
   if(sel.selectedOptions[0]?.disabled){
     for(const opt of sel.options){
-      if(!opt.disabled){ sel.value = opt.value; break; }
+      if(!opt.disabled){
+        sel.value = opt.value;
+        break;
+      }
     }
   }
 }
@@ -187,9 +240,16 @@ $('#go').onclick = async ()=>{
   const negative = $('#neg').value.trim();
   const quality = $('#quality').value;
 
-  if(!prompt) return alert('Scrie un prompt.');
+  if(!prompt){
+    return alert(window.t ? window.t('write_prompt') : 'Scrie un prompt.');
+  }
 
-  show({status:'generating', prompt, negative, quality});
+  show({
+    status: window.t ? window.t('generating') : 'generating',
+    prompt,
+    negative,
+    quality
+  });
 
   try{
     const r = await fetch('/api/image/open',{
@@ -198,10 +258,15 @@ $('#go').onclick = async ()=>{
         'Content-Type':'application/json',
         'X-Admin-Token':'admin123'
       },
-      body:JSON.stringify({prompt, negative, quality})
+      body:JSON.stringify({
+        prompt,
+        negative,
+        quality
+      })
     });
 
     const data = await r.json();
+
     show(data);
 
     if(data.url){
@@ -211,7 +276,7 @@ $('#go').onclick = async ()=>{
     show({
       ok:true,
       mode:'mock',
-      note:'Endpointul /api/image/open nu este încă legat în server.js. UI-ul este pregătit.',
+      note: window.t ? window.t('image_mock_note') : 'Endpointul /api/image/open nu este încă legat în server.js. UI-ul este pregătit.',
       prompt,
       negative,
       quality
