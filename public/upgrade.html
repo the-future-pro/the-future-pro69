@@ -1,22 +1,181 @@
 <!doctype html>
 <html lang="ro">
-<meta charset="utf-8"/>
-<title>Upgrade</title>
-<link rel="stylesheet" href="/style.css"/>
-<style>
-  .wrap{max-width:720px;margin:24px auto;padding:16px}
-  .row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-  a.btn,button{padding:10px 14px;border-radius:8px;border:1px solid #334155;text-decoration:none}
-  .primary{background:#3b82f6;color:#fff;border-color:#3b82f6}
-</style>
-<body class="wrap">
-  <h1>Upgrade abonament</h1>
-  <p>Pentru calitățile PLUS/PRO trebuie să ai un abonament activ.</p>
-  <div class="row">
-    <a class="btn" href="/premium">Înapoi la Premium</a>
-    <a class="btn" href="/api/mock-login?email=itudorache53@gmail.com">Login rapid</a>
-    <a class="btn primary" href="/api/sub/mock-activate/PRO">Activează PRO (mock)</a>
-  </div>
-  <p>După activare, revino în <a href="/gen-image.html">Generator imagine</a>.</p>
+<head>
+
+  <meta charset="utf-8"/>
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Upgrade — The Future PRO</title>
+
+  <link rel="stylesheet" href="/style.css"/>
+  <script src="/i18n.js" defer></script>
+
+</head>
+
+<body class="home-page">
+
+  <main class="home-shell">
+
+    <nav class="topbar">
+
+      <a class="brand" href="/">
+
+        <div class="brand-mark">
+          AI
+        </div>
+
+        <div>
+          <strong>
+            The Future
+          </strong>
+
+          <span data-i18n="premium_access">
+            PREMIUM ACCESS
+          </span>
+        </div>
+
+      </a>
+
+      <select
+        id="langSwitcher"
+        class="lang-switcher"
+        aria-label="Language"
+      ></select>
+
+      <div class="nav-actions">
+
+        <a
+          class="ghost-btn"
+          href="/premium"
+          data-i18n="member_area"
+        >
+          Member Area
+        </a>
+
+        <a
+          class="main-btn"
+          href="/"
+          data-i18n="enter_platform"
+        >
+          Enter
+        </a>
+
+      </div>
+
+    </nav>
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <span data-i18n="premium_access">
+          PREMIUM ACCESS
+        </span>
+
+        <h2 data-i18n="upgrade_title">
+          Upgrade your subscription.
+        </h2>
+
+        <p data-i18n="upgrade_intro">
+          PLUS and PRO features require an active subscription.
+        </p>
+
+      </div>
+
+      <div class="lux-card">
+
+        <div
+          class="feature-grid"
+          style="grid-template-columns:1fr 1fr 1fr"
+        >
+
+          <a
+            class="ghost-btn"
+            href="/premium"
+            style="border:1px solid var(--line)"
+            data-i18n="back_to_premium"
+          >
+            Back to Premium
+          </a>
+
+          <a
+            class="ghost-btn"
+            href="/api/mock-login?email=test@example.com"
+            style="border:1px solid var(--line)"
+            data-i18n="quick_login"
+          >
+            Quick Login
+          </a>
+
+          <a
+            class="main-btn"
+            href="/api/sub/mock-activate/PRO"
+            style="border:0"
+            data-i18n="activate_pro_mock"
+          >
+            Activate PRO (mock)
+          </a>
+
+        </div>
+
+        <p
+          style="margin-top:18px"
+          data-i18n="upgrade_after"
+        >
+          After activation, return to the Image Generator.
+        </p>
+
+        <a
+          class="main-btn"
+          href="/gen-image.html"
+          style="border:0;margin-top:12px"
+          data-i18n="open_image_generator"
+        >
+          Open Image Generator
+        </a>
+
+      </div>
+
+    </section>
+
+    <footer class="home-footer">
+
+      <span>
+        © The Future — PRO
+      </span>
+
+      <div>
+
+        <a
+          href="/privacy.html"
+          data-i18n="privacy"
+        >
+          Privacy
+        </a>
+
+        <a
+          href="/terms.html"
+          data-i18n="terms"
+        >
+          Terms
+        </a>
+
+        <a
+          href="/safety.html"
+          data-i18n="safety"
+        >
+          Safety
+        </a>
+
+      </div>
+
+    </footer>
+
+  </main>
+
 </body>
 </html>
