@@ -6,8 +6,8 @@
 
   <title>Premium — The Future PRO</title>
 
-  <link rel="stylesheet" href="/style.css?v=4006" />
-  <script src="/i18n.js?v=4006" defer></script>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="/i18n.js" defer></script>
 </head>
 
 <body class="home-page">
@@ -16,65 +16,155 @@
     <nav class="topbar">
       <a class="brand" href="/">
         <div class="brand-mark">AI</div>
+
         <div>
           <strong>The Future</strong>
           <span data-i18n="member_area">Deschide zona de membri</span>
         </div>
       </a>
 
-      <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
+      <select
+        id="langSwitcher"
+        class="lang-switcher"
+        aria-label="Language"
+      ></select>
 
       <div class="nav-actions">
-        <a class="ghost-btn" href="/" data-i18n="enter_platform">Intră</a>
-        <a class="main-btn" href="/gen-image.html" data-i18n="create">Creează</a>
+        <a
+          class="ghost-btn"
+          href="/"
+          data-i18n="enter_platform"
+        >
+          Intră
+        </a>
+
+        <a
+          class="main-btn"
+          href="/gen-image.html"
+          data-i18n="create"
+        >
+          Creează
+        </a>
       </div>
     </nav>
 
     <section class="section">
       <div class="section-head">
         <span data-i18n="premium_access">ACCES PREMIUM</span>
-        <h2 data-i18n="premium_title">Experiența ta AI privată începe aici.</h2>
-        <p>Login, activează un plan de test și accesează companions, chat, imagini și video.</p>
+
+        <h2 data-i18n="premium_title">
+          Experiența ta AI privată începe aici.
+        </h2>
+
+        <p data-i18n="premium_intro">
+          Login, activează un plan de test și accesează companions, chat, imagini și video.
+        </p>
       </div>
 
       <div class="split">
         <div class="lux-card">
           <h3 data-i18n="login">Autentificare</h3>
-          <p style="color:var(--muted)">Pentru test MVP. Pe live se va conecta autentificare reală.</p>
 
-          <label>Email</label>
-          <input id="email" placeholder="email@example.com" style="width:100%;margin-bottom:12px">
+          <p
+            style="color:var(--muted)"
+            data-i18n="login_test_text"
+          >
+            Pentru test MVP. Pe live se va conecta autentificare reală.
+          </p>
 
-          <button class="main-btn" onclick="doLogin()" style="border:0;width:100%" data-i18n="login">
+          <label data-i18n="email_label">Email</label>
+
+          <input
+            id="email"
+            data-i18n-placeholder="email_placeholder"
+            placeholder="email@example.com"
+            style="width:100%;margin-bottom:12px"
+          >
+
+          <button
+            class="main-btn"
+            onclick="doLogin()"
+            style="border:0;width:100%"
+            data-i18n="login"
+          >
             Autentificare
           </button>
 
-          <pre id="meBox" style="margin-top:16px;white-space:pre-wrap">{ "status": "not_logged_in" }</pre>
+          <pre
+            id="meBox"
+            style="margin-top:16px;white-space:pre-wrap"
+          >{ "status": "not_logged_in" }</pre>
         </div>
 
         <div class="lux-card">
           <h3 data-i18n="choose_plan">Alege planul</h3>
-          <p style="color:var(--muted)">Activează mock BASIC / PLUS / PRO pentru a testa accesul.</p>
 
-          <div class="plans" style="grid-template-columns:1fr;gap:10px">
-            <button class="ghost-btn" onclick="mockSub('BASIC')" style="border:1px solid var(--line)">BASIC</button>
-            <button class="ghost-btn" onclick="mockSub('PLUS')" style="border:1px solid var(--line)">PLUS</button>
-            <button class="main-btn" onclick="mockSub('PRO')" style="border:0">PRO</button>
+          <p
+            style="color:var(--muted)"
+            data-i18n="test_plan_text"
+          >
+            Activează mock BASIC / PLUS / PRO pentru a testa accesul.
+          </p>
+
+          <div
+            class="plans"
+            style="grid-template-columns:1fr;gap:10px"
+          >
+            <button
+              class="ghost-btn"
+              onclick="mockSub('BASIC')"
+              style="border:1px solid var(--line)"
+            >
+              BASIC
+            </button>
+
+            <button
+              class="ghost-btn"
+              onclick="mockSub('PLUS')"
+              style="border:1px solid var(--line)"
+            >
+              PLUS
+            </button>
+
+            <button
+              class="main-btn"
+              onclick="mockSub('PRO')"
+              style="border:0"
+            >
+              PRO
+            </button>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="createBox" style="display:none">
+    <section
+      class="section"
+      id="createBox"
+      style="display:none"
+    >
       <div class="section-head">
         <span data-i18n="create">CREEAZĂ</span>
-        <h2 data-i18n="card1_title">Creează companions AI</h2>
-        <p data-i18n="card1_text">Generează personaje fictive cu nume, rol, personalitate și ton.</p>
+
+        <h2 data-i18n="card1_title">
+          Creează companions AI
+        </h2>
+
+        <p data-i18n="card1_text">
+          Generează personaje fictive cu nume, rol, personalitate și ton.
+        </p>
       </div>
 
       <div class="lux-card">
-        <div class="feature-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
-          <input id="p_name" placeholder="Nume — ex. Ava Noir">
+        <div
+          class="feature-grid"
+          style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px"
+        >
+          <input
+            id="p_name"
+            data-i18n-placeholder="persona_name_placeholder"
+            placeholder="Nume — ex. Ava Noir"
+          >
 
           <select id="p_type">
             <option value="female">Female</option>
@@ -93,26 +183,70 @@
             <option>Bookish Introvert</option>
           </select>
 
-          <input id="p_category" placeholder="Categorie — ex. Roleplay">
-          <input id="p_tone" placeholder="Ton — ex. elegant, misterios">
-          <input id="p_img" type="number" placeholder="Preț imagine" value="20">
-          <input id="p_v10" type="number" placeholder="Preț video 10s" value="90">
-          <input id="p_v20" type="number" placeholder="Preț video 20s" value="150">
+          <input
+            id="p_category"
+            data-i18n-placeholder="persona_category_placeholder"
+            placeholder="Categorie — ex. Roleplay"
+          >
+
+          <input
+            id="p_tone"
+            data-i18n-placeholder="persona_tone_placeholder"
+            placeholder="Ton — ex. elegant, misterios"
+          >
+
+          <input
+            id="p_img"
+            type="number"
+            data-i18n-placeholder="price_image_placeholder"
+            placeholder="Preț imagine"
+            value="20"
+          >
+
+          <input
+            id="p_v10"
+            type="number"
+            data-i18n-placeholder="price_video10_placeholder"
+            placeholder="Preț video 10s"
+            value="90"
+          >
+
+          <input
+            id="p_v20"
+            type="number"
+            data-i18n-placeholder="price_video20_placeholder"
+            placeholder="Preț video 20s"
+            value="150"
+          >
         </div>
 
-        <button class="main-btn" onclick="createPersona()" style="border:0;margin-top:16px" data-i18n="card1_title">
-          Creează companions AI
+        <button
+          class="main-btn"
+          onclick="createPersona()"
+          style="border:0;margin-top:16px"
+          data-i18n="create_companion"
+        >
+          Creează companion
         </button>
 
-        <pre id="createMsg" style="margin-top:16px;min-height:70px"></pre>
+        <pre
+          id="createMsg"
+          style="margin-top:16px;min-height:70px"
+        ></pre>
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <span>COMPANIONS</span>
-        <h2 data-i18n="trending_title">Universul tău privat AI</h2>
-        <p data-i18n="card2_text">Chat cinematic, status online și experiență socială.</p>
+        <span data-i18n="companions">COMPANIONS</span>
+
+        <h2 data-i18n="trending_title">
+          Universul tău privat AI
+        </h2>
+
+        <p data-i18n="card2_text">
+          Chat cinematic, status online și experiență socială.
+        </p>
       </div>
 
       <div id="list" class="feature-grid"></div>
@@ -122,9 +256,17 @@
       <span>© The Future — PRO</span>
 
       <div>
-        <a href="/privacy.html" data-i18n="privacy">Confidențialitate</a>
-        <a href="/terms.html" data-i18n="terms">Termeni</a>
-        <a href="/safety.html" data-i18n="safety">Siguranță</a>
+        <a href="/privacy.html" data-i18n="privacy">
+          Confidențialitate
+        </a>
+
+        <a href="/terms.html" data-i18n="terms">
+          Termeni
+        </a>
+
+        <a href="/safety.html" data-i18n="safety">
+          Siguranță
+        </a>
       </div>
     </footer>
 
@@ -140,7 +282,9 @@ const j = (u, o)=>fetch(u,{
 
 async function refreshMe(){
   const me = await j('/api/me');
-  document.getElementById('meBox').textContent = JSON.stringify(me,null,2);
+
+  document.getElementById('meBox').textContent =
+    JSON.stringify(me,null,2);
 
   const isActive = !!(
     me.active ||
@@ -149,17 +293,31 @@ async function refreshMe(){
     me.user
   );
 
-  document.getElementById('createBox').style.display = isActive ? 'block' : 'none';
+  document.getElementById('createBox').style.display =
+    isActive ? 'block' : 'none';
 }
 
 async function doLogin(){
   const email = document.getElementById('email').value.trim();
-  if(!email) return alert('Scrie emailul.');
+
+  if(!email){
+    return alert(
+      window.t
+        ? window.t('write_email')
+        : 'Scrie emailul.'
+    );
+  }
 
   try{
-    await j('/api/login',{method:'POST',body:{email}});
+    await j('/api/login',{
+      method:'POST',
+      body:{email}
+    });
   }catch(e){
-    await j('/api/mock-login?email=' + encodeURIComponent(email));
+    await j(
+      '/api/mock-login?email=' +
+      encodeURIComponent(email)
+    );
   }
 
   await refreshMe();
@@ -168,10 +326,14 @@ async function doLogin(){
 
 async function mockSub(tier){
   try{
-    await j('/api/sub/mock-activate',{method:'POST',body:{tier}});
+    await j('/api/sub/mock-activate',{
+      method:'POST',
+      body:{tier}
+    });
   }catch(e){
     await j('/api/sub/mock-activate/' + tier);
   }
+
   await refreshMe();
 }
 
@@ -189,10 +351,22 @@ async function createPersona(){
     }
   };
 
-  if(!body.name) return alert('Alege un nume pentru companion.');
+  if(!body.name){
+    return alert(
+      window.t
+        ? window.t('choose_companion_name')
+        : 'Alege un nume pentru companion.'
+    );
+  }
 
-  const r = await j('/api/personas',{method:'POST',body});
-  document.getElementById('createMsg').textContent = JSON.stringify(r,null,2);
+  const r = await j('/api/personas',{
+    method:'POST',
+    body
+  });
+
+  document.getElementById('createMsg').textContent =
+    JSON.stringify(r,null,2);
+
   if(r.ok) loadPersonas();
 }
 
@@ -201,6 +375,7 @@ async function loadPersonas(){
   el.innerHTML = '';
 
   let r;
+
   try{
     r = await j('/api/personas');
   }catch(e){
@@ -208,25 +383,88 @@ async function loadPersonas(){
   }
 
   const fallback = [
-    {name:'Ava Noir', type:'female', role:'Dark Luxury', slug:'ava-noir', tone:'mysterious'},
-    {name:'Mira Vale', type:'female', role:'Girl Next Door', slug:'mira-vale', tone:'warm'},
-    {name:'Kira Voss', type:'female', role:'Cyberpunk Muse', slug:'kira-voss', tone:'confident'},
-    {name:'Luna Sable', type:'female', role:'Goth Romantic', slug:'luna-sable', tone:'intense'}
+    {
+      name:'Ava Noir',
+      type:'female',
+      role:'Dark Luxury',
+      slug:'ava-noir',
+      tone:'mysterious'
+    },
+    {
+      name:'Mira Vale',
+      type:'female',
+      role:'Girl Next Door',
+      slug:'mira-vale',
+      tone:'warm'
+    },
+    {
+      name:'Kira Voss',
+      type:'female',
+      role:'Cyberpunk Muse',
+      slug:'kira-voss',
+      tone:'confident'
+    },
+    {
+      name:'Luna Sable',
+      type:'female',
+      role:'Goth Romantic',
+      slug:'luna-sable',
+      tone:'intense'
+    }
   ];
 
-  const items = (r.items && r.items.length) ? r.items : fallback;
+  const items =
+    (r.items && r.items.length)
+      ? r.items
+      : fallback;
 
   items.forEach(p=>{
     const d = document.createElement('a');
+
     d.className='feature-card';
-    d.href = '/chat.html?slug=' + encodeURIComponent(p.slug || p.name.toLowerCase().replaceAll(' ','-'));
+
+    d.href =
+      '/chat.html?slug=' +
+      encodeURIComponent(
+        p.slug ||
+        p.name.toLowerCase().replaceAll(' ','-')
+      );
+
+    const toneLabel =
+      window.t
+        ? window.t('tone_label')
+        : 'Tone';
+
+    const defaultText =
+      window.t
+        ? window.t('default_companion_text')
+        : 'Private AI companion with cinematic personality and adaptive chat.';
+
     d.innerHTML = `
-      <span class="card-kicker">${p.type || 'AI'} • ${p.role || 'Companion'}</span>
-      <h3>${p.name}</h3>
-      <p>${p.tone ? 'Tone: ' + p.tone : 'Private AI companion with cinematic personality and adaptive chat.'}</p>
+      <span class="card-kicker">
+        ${escapeHtml(p.type || 'AI')} • ${escapeHtml(p.role || 'Companion')}
+      </span>
+
+      <h3>${escapeHtml(p.name)}</h3>
+
+      <p>
+        ${p.tone
+          ? `${toneLabel}: ${escapeHtml(p.tone)}`
+          : defaultText}
+      </p>
     `;
+
     el.appendChild(d);
   });
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
 }
 
 refreshMe();
@@ -234,4 +472,4 @@ loadPersonas();
 </script>
 
 </body>
-  </html>
+</html>
