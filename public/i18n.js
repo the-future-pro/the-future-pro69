@@ -1,12 +1,8 @@
-// public/i18n.js — The Future PRO — Auto Translate Engine v1
+// public/i18n.js — The Future PRO — Auto Translate Engine v2
 
 (function () {
 
 const DEFAULT_LANG = "ro";
-
-// =========================================================
-// LANGUAGES
-// =========================================================
 
 window.LANG_OPTIONS = [
 ["ro", "🇷🇴 RO"],
@@ -21,53 +17,32 @@ window.LANG_OPTIONS = [
 ["ru", "🇷🇺 RU"]
 ];
 
-// =========================================================
-// STATIC FALLBACK ONLY
-// =========================================================
-
 const STATIC = {
 
 ro: {
-
 login: "Autentificare",
 logout: "Ieșire",
-
 loading: "Se încarcă...",
 generating: "Se generează...",
-
 send: "Trimite",
-
 privacy: "Confidențialitate",
 terms: "Termeni",
 safety: "Siguranță",
-
 subscription_required: "Abonament necesar",
 login_required: "Autentificare necesară",
-
 chat_placeholder: "Scrie un mesaj...",
-
 image_btn: "Încearcă Image Studio",
-
 member_area: "Deschide zona de membri",
-
 create_image: "Creează imagine",
 generate_image: "Generează imagine",
-
 create_video_scene: "Creează scenă video",
-
 upgrade_title: "Upgrade abonament",
-
 feedback_title: "Idei & Feedback"
-
 },
 
 en: {}
 
 };
-
-// =========================================================
-// HELPERS
-// =========================================================
 
 function normalizeLang(lang) {
 
@@ -96,10 +71,6 @@ DEFAULT_LANG
 
 }
 
-// =========================================================
-// GET CURRENT LANG
-// =========================================================
-
 window.getLangCode = function () {
 
 return normalizeLang(
@@ -107,10 +78,6 @@ localStorage.getItem("site_lang")
 );
 
 };
-
-// =========================================================
-// SET LANGUAGE
-// =========================================================
 
 window.setLang = function (lang) {
 
@@ -122,10 +89,6 @@ normalizeLang(lang)
 location.reload();
 
 };
-
-// =========================================================
-// STATIC TRANSLATION
-// =========================================================
 
 window.t = function (key) {
 
@@ -142,75 +105,51 @@ key
 
 };
 
-// =========================================================
-// LANGUAGE SWITCHER
-// =========================================================
-
 function setupLangSwitcher() {
 
 const switcher =
-document.getElementById(
-"langSwitcher"
-);
+document.getElementById("langSwitcher");
 
 if (!switcher) return;
 
 switcher.innerHTML = "";
 
-window.LANG_OPTIONS.forEach(
-function ([code, label]) {
+window.LANG_OPTIONS.forEach(function ([code, label]) {
 
 const opt =
-document.createElement(
-"option"
-);
+document.createElement("option");
 
 opt.value = code;
 opt.textContent = label;
 
 switcher.appendChild(opt);
 
-}
-);
+});
 
 switcher.value =
 window.getLangCode();
 
-switcher.onchange =
-function () {
+switcher.onchange = function () {
 
-window.setLang(
-this.value
-);
+window.setLang(this.value);
 
 };
 
 }
-
-// =========================================================
-// APPLY STATIC KEYS
-// =========================================================
 
 function applyStaticKeys() {
 
 const lang =
 window.getLangCode();
 
-document.documentElement.lang =
-lang;
-
-// -------------------------------------
-// textContent
-// -------------------------------------
+document.documentElement.lang = lang;
 
 document
 .querySelectorAll("[data-i18n]")
 .forEach(function (el) {
 
 const key =
-el.getAttribute(
-"data-i18n"
-);
+el.getAttribute("data-i18n");
 
 const value =
 STATIC?.[lang]?.[key]
@@ -223,20 +162,12 @@ el.textContent = value;
 
 });
 
-// -------------------------------------
-// placeholders
-// -------------------------------------
-
 document
-.querySelectorAll(
-"[data-i18n-placeholder]"
-)
+.querySelectorAll("[data-i18n-placeholder]")
 .forEach(function (el) {
 
 const key =
-el.getAttribute(
-"data-i18n-placeholder"
-);
+el.getAttribute("data-i18n-placeholder");
 
 const value =
 STATIC?.[lang]?.[key]
@@ -244,30 +175,17 @@ STATIC?.[lang]?.[key]
 STATIC?.en?.[key];
 
 if (value) {
-
-el.setAttribute(
-"placeholder",
-value
-);
-
+el.setAttribute("placeholder", value);
 }
 
 });
 
-// -------------------------------------
-// title
-// -------------------------------------
-
 document
-.querySelectorAll(
-"[data-i18n-title]"
-)
+.querySelectorAll("[data-i18n-title]")
 .forEach(function (el) {
 
 const key =
-el.getAttribute(
-"data-i18n-title"
-);
+el.getAttribute("data-i18n-title");
 
 const value =
 STATIC?.[lang]?.[key]
@@ -275,30 +193,17 @@ STATIC?.[lang]?.[key]
 STATIC?.en?.[key];
 
 if (value) {
-
-el.setAttribute(
-"title",
-value
-);
-
+el.setAttribute("title", value);
 }
 
 });
 
-// -------------------------------------
-// aria-label
-// -------------------------------------
-
 document
-.querySelectorAll(
-"[data-i18n-aria-label]"
-)
+.querySelectorAll("[data-i18n-aria-label]")
 .forEach(function (el) {
 
 const key =
-el.getAttribute(
-"data-i18n-aria-label"
-);
+el.getAttribute("data-i18n-aria-label");
 
 const value =
 STATIC?.[lang]?.[key]
@@ -306,34 +211,156 @@ STATIC?.[lang]?.[key]
 STATIC?.en?.[key];
 
 if (value) {
-
-el.setAttribute(
-"aria-label",
-value
-);
-
+el.setAttribute("aria-label", value);
 }
 
 });
 
 }
 
-// =========================================================
-// AUTO TRANSLATE ENGINE PLACEHOLDER
-// =========================================================
+function shouldSkipElement(el) {
+
+if (!el) return true;
+
+if (el.closest("[data-no-translate]")) {
+return true;
+}
+
+const tag =
+el.tagName;
+
+return [
+"SCRIPT",
+"STYLE",
+"NOSCRIPT",
+"TEXTAREA",
+"CODE",
+"PRE",
+"INPUT",
+"SELECT",
+"OPTION"
+].includes(tag);
+
+}
+
+function isTranslatableText(text) {
+
+if (!text) return false;
+
+const clean =
+text.trim();
+
+if (clean.length < 2) return false;
+
+if (/^\d+$/.test(clean)) return false;
+
+if (/^[\d\s.,:;!?€$£%+\-()]+$/.test(clean)) return false;
+
+if (/^https?:\/\//i.test(clean)) return false;
+
+if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return false;
+
+return true;
+
+}
 
 window.autoTranslatePage =
 async function () {
 
+const lang =
+window.getLangCode();
+
+if (lang === "en") {
+
+console.log("[i18n] English selected. Auto translate skipped.");
+return;
+
+}
+
+const walker =
+document.createTreeWalker(
+document.body,
+NodeFilter.SHOW_TEXT,
+{
+acceptNode: function (node) {
+
+const parent =
+node.parentElement;
+
+if (shouldSkipElement(parent)) {
+return NodeFilter.FILTER_REJECT;
+}
+
+const text =
+node.nodeValue.trim();
+
+if (!isTranslatableText(text)) {
+return NodeFilter.FILTER_REJECT;
+}
+
+return NodeFilter.FILTER_ACCEPT;
+
+}
+}
+);
+
+const textNodes = [];
+
+while (walker.nextNode()) {
+textNodes.push(walker.currentNode);
+}
+
+textNodes.forEach(function (node) {
+
+if (node.__autoTranslated) return;
+
+const original =
+node.nodeValue;
+
+node.__autoTranslated = true;
+node.__originalText = original;
+
+node.nodeValue =
+"[" +
+lang.toUpperCase() +
+"] " +
+original;
+
+});
+
 console.log(
-"[i18n] Auto translate engine loaded."
+"[i18n] Auto translate scan complete. Text nodes detected:",
+textNodes.length
 );
 
 };
 
-// =========================================================
-// MAIN APPLY
-// =========================================================
+function observeDynamicText() {
+
+let timer = null;
+
+const observer =
+new MutationObserver(function () {
+
+clearTimeout(timer);
+
+timer =
+setTimeout(function () {
+window.autoTranslatePage();
+}, 500);
+
+});
+
+observer.observe(
+document.body,
+{
+childList: true,
+subtree: true,
+characterData: true
+}
+);
+
+}
 
 window.applyTranslations =
 async function () {
@@ -344,11 +371,9 @@ applyStaticKeys();
 
 await window.autoTranslatePage();
 
-};
+observeDynamicText();
 
-// =========================================================
-// INIT
-// =========================================================
+};
 
 document.addEventListener(
 "DOMContentLoaded",
