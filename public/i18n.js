@@ -1,5 +1,6 @@
-// public/i18n.js — The Future PRO — Auto Translate Engine v4
+// public/i18n.js — The Future PRO — Auto Translate Engine v5
 // Real AI translation via /api/translate/batch
+// Correct backend payload: target + items
 
 (function () {
 
@@ -45,17 +46,15 @@ en: {}
 
 };
 
-const LOCAL_TRANSLATE_CACHE_KEY = "tfp_translate_cache_v1";
-const MAX_TEXTS_PER_BATCH = 60;
+const LOCAL_TRANSLATE_CACHE_KEY = "tfp_translate_cache_v2";
+const MAX_TEXTS_PER_BATCH = 40;
 
 let isTranslating = false;
 let observerStarted = false;
 
 function loadLocalCache() {
 try {
-return JSON.parse(
-localStorage.getItem(LOCAL_TRANSLATE_CACHE_KEY) || "{}"
-);
+return JSON.parse(localStorage.getItem(LOCAL_TRANSLATE_CACHE_KEY) || "{}");
 } catch {
 return {};
 }
@@ -63,10 +62,7 @@ return {};
 
 function saveLocalCache(cache) {
 try {
-localStorage.setItem(
-LOCAL_TRANSLATE_CACHE_KEY,
-JSON.stringify(cache)
-);
+localStorage.setItem(LOCAL_TRANSLATE_CACHE_KEY, JSON.stringify(cache));
 } catch {}
 }
 
@@ -101,6 +97,14 @@ return normalizeLang(localStorage.getItem("site_lang"));
 window.setLang = function (lang) {
 localStorage.setItem("site_lang", normalizeLang(lang));
 location.reload();
+};
+
+window.clearTranslateCache = function () {
+try {
+localStorage.removeItem(LOCAL_TRANSLATE_CACHE_KEY);
+LOCAL_CACHE = {};
+console.log("[i18n] Local translation cache cleared.");
+} catch {}
 };
 
 window.t = function (key) {
@@ -306,13 +310,9 @@ if (clean.length < 2) return false;
 if (clean.length > 500) return false;
 
 if (/^\d+$/.test(clean)) return false;
-
 if (/^[\d\s.,:;!?€$£%+\-()]+$/.test(clean)) return false;
-
 if (/^https?:\/\//i.test(clean)) return false;
-
 if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return false;
-
 if (/^[A-Z0-9_]{2,}$/.test(clean)) return false;
 
 if (clean.startsWith("{") || clean.endsWith("}")) return false;
@@ -381,9 +381,9 @@ headers: {
 "Content-Type": "application/json"
 },
 body: JSON.stringify({
-targetLang: lang,
+target: lang,
 source: "en",
-texts: texts
+items: texts
 })
 });
 
@@ -398,7 +398,17 @@ if (!data || !data.ok) {
 throw new Error(data?.error || "translate_batch_failed");
 }
 
-return data.translations || [];
+if (Array.isArray(data.translations)) {
+return data.translations;
+}
+
+if (Array.isArray(data.items)) {
+return data.items.map(function (item) {
+return item.translatedText || item.text || "";
+});
+}
+
+return texts;
 
 }
 
@@ -441,13 +451,16 @@ const cacheKey =
 getCacheKey(lang, original);
 
 if (LOCAL_CACHE[cacheKey]) {
+
 node.nodeValue =
 node.__originalText.replace(
 original,
 LOCAL_CACHE[cacheKey]
 );
+
 node.__autoTranslated = true;
 return;
+
 }
 
 if (!uniqueTexts.includes(original)) {
@@ -499,26 +512,24 @@ const cacheKey =
 getCacheKey(lang, original);
 
 if (LOCAL_CACHE[cacheKey]) {
+
 node.nodeValue =
 node.__originalText.replace(
 original,
 LOCAL_CACHE[cacheKey]
 );
+
 node.__autoTranslated = true;
+
 }
 
 });
 
-console.log(
-"[i18n] Auto translation complete."
-);
+console.log("[i18n] Auto translation complete.");
 
 } catch (err) {
 
-console.warn(
-"[i18n] Auto translation failed:",
-err
-);
+console.warn("[i18n] Auto translation failed:", err);
 
 } finally {
 
@@ -544,7 +555,7 @@ clearTimeout(timer);
 timer =
 setTimeout(function () {
 window.autoTranslatePage();
-}, 800);
+}, 1000);
 
 });
 
