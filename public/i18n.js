@@ -1,5 +1,5 @@
-// public/i18n.js — The Future PRO — Auto Translate Engine v3
-// Safe scanner: detects page texts, skips JSON/code/debug, no visible [LANG] prefixes
+// public/i18n.js — The Future PRO — Auto Translate Engine v4
+// Real AI translation via /api/translate/batch
 
 (function () {
 
@@ -44,6 +44,33 @@ feedback_title: "Idei & Feedback"
 en: {}
 
 };
+
+const LOCAL_TRANSLATE_CACHE_KEY = "tfp_translate_cache_v1";
+const MAX_TEXTS_PER_BATCH = 60;
+
+let isTranslating = false;
+let observerStarted = false;
+
+function loadLocalCache() {
+try {
+return JSON.parse(
+localStorage.getItem(LOCAL_TRANSLATE_CACHE_KEY) || "{}"
+);
+} catch {
+return {};
+}
+}
+
+function saveLocalCache(cache) {
+try {
+localStorage.setItem(
+LOCAL_TRANSLATE_CACHE_KEY,
+JSON.stringify(cache)
+);
+} catch {}
+}
+
+let LOCAL_CACHE = loadLocalCache();
 
 function normalizeLang(lang) {
 
@@ -273,9 +300,10 @@ function isTranslatableText(text) {
 if (!text) return false;
 
 const clean =
-text.trim();
+String(text || "").trim();
 
 if (clean.length < 2) return false;
+if (clean.length > 500) return false;
 
 if (/^\d+$/.test(clean)) return false;
 
@@ -293,20 +321,13 @@ if (clean.includes('"ok"')) return false;
 if (clean.includes('"error"')) return false;
 if (clean.includes('"logged"')) return false;
 if (clean.includes("login_required")) return false;
+if (clean.includes("subscription_required")) return false;
 
 return true;
 
 }
 
-window.autoTranslatePage = async function () {
-
-const lang =
-window.getLangCode();
-
-if (lang === "en") {
-console.log("[i18n] English selected. Auto translate skipped.");
-return;
-}
+function collectTextNodes() {
 
 const walker =
 document.createTreeWalker(
@@ -341,27 +362,177 @@ while (walker.nextNode()) {
 textNodes.push(walker.currentNode);
 }
 
+return textNodes;
+
+}
+
+function getCacheKey(lang, text) {
+return lang + "::" + text;
+}
+
+async function translateBatch(texts, lang) {
+
+if (!texts.length) return [];
+
+const response =
+await fetch("/api/translate/batch", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+targetLang: lang,
+source: "en",
+texts: texts
+})
+});
+
+if (!response.ok) {
+throw new Error("translate_batch_http_" + response.status);
+}
+
+const data =
+await response.json();
+
+if (!data || !data.ok) {
+throw new Error(data?.error || "translate_batch_failed");
+}
+
+return data.translations || [];
+
+}
+
+window.autoTranslatePage = async function () {
+
+if (isTranslating) return;
+
+const lang =
+window.getLangCode();
+
+document.documentElement.lang = lang;
+
+if (lang === "en") {
+console.log("[i18n] English selected. Auto translate skipped.");
+return;
+}
+
+isTranslating = true;
+
+try {
+
+const textNodes =
+collectTextNodes();
+
+const uniqueTexts = [];
+
 textNodes.forEach(function (node) {
 
-if (node.__autoTranslated) return;
-
-node.__autoTranslated = true;
+if (!node.__originalText) {
 node.__originalText = node.nodeValue;
+}
 
-// IMPORTANT:
-// momentan nu modificăm vizibil textul.
-// aici se va conecta traducerea reală prin backend.
+const original =
+String(node.__originalText || "")
+.trim();
+
+if (!isTranslatableText(original)) return;
+
+const cacheKey =
+getCacheKey(lang, original);
+
+if (LOCAL_CACHE[cacheKey]) {
+node.nodeValue =
+node.__originalText.replace(
+original,
+LOCAL_CACHE[cacheKey]
+);
+node.__autoTranslated = true;
+return;
+}
+
+if (!uniqueTexts.includes(original)) {
+uniqueTexts.push(original);
+}
+
+});
+
+const toTranslate =
+uniqueTexts.slice(0, MAX_TEXTS_PER_BATCH);
+
+if (!toTranslate.length) {
+console.log("[i18n] Nothing new to translate.");
+return;
+}
+
+console.log(
+"[i18n] Translating texts:",
+toTranslate.length,
+"lang:",
+lang
+);
+
+const translations =
+await translateBatch(toTranslate, lang);
+
+toTranslate.forEach(function (original, index) {
+
+const translated =
+translations[index] || original;
+
+const cacheKey =
+getCacheKey(lang, original);
+
+LOCAL_CACHE[cacheKey] =
+translated;
+
+});
+
+saveLocalCache(LOCAL_CACHE);
+
+textNodes.forEach(function (node) {
+
+const original =
+String(node.__originalText || node.nodeValue || "")
+.trim();
+
+const cacheKey =
+getCacheKey(lang, original);
+
+if (LOCAL_CACHE[cacheKey]) {
+node.nodeValue =
+node.__originalText.replace(
+original,
+LOCAL_CACHE[cacheKey]
+);
+node.__autoTranslated = true;
+}
 
 });
 
 console.log(
-"[i18n] Auto translate scan complete. Text nodes detected:",
-textNodes.length
+"[i18n] Auto translation complete."
 );
+
+} catch (err) {
+
+console.warn(
+"[i18n] Auto translation failed:",
+err
+);
+
+} finally {
+
+isTranslating = false;
+
+}
 
 };
 
 function observeDynamicText() {
+
+if (observerStarted) return;
+
+observerStarted = true;
 
 let timer = null;
 
@@ -373,7 +544,7 @@ clearTimeout(timer);
 timer =
 setTimeout(function () {
 window.autoTranslatePage();
-}, 500);
+}, 800);
 
 });
 
