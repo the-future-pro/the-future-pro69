@@ -1,4 +1,4 @@
-// server.js — The Future PRO — stable v5006 + OpenAI Debug
+// server.js — The Future PRO — stable v5007 + OpenAI Translate Debug Fixed
 
 import express from "express";
 import session from "express-session";
@@ -141,7 +141,6 @@ function normalizeReplicateOutputUrl(output) {
 
   if (Array.isArray(output)) {
     const first = output[0];
-
     if (!first) return null;
     if (typeof first === "string") return first;
     if (first?.url) return String(first.url);
@@ -155,11 +154,13 @@ function normalizeReplicateOutputUrl(output) {
 }
 
 const replicate = process.env.REPLICATE_API_TOKEN
-  ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
+  ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN.trim() })
   : null;
 
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const OPENAI_KEY = String(process.env.OPENAI_API_KEY || "").trim();
+
+const openai = OPENAI_KEY
+  ? new OpenAI({ apiKey: OPENAI_KEY })
   : null;
 
 // ================== TRANSLATION SYSTEM ==================
@@ -224,10 +225,16 @@ function rememberTranslation(key, value) {
 }
 
 async function translateWithOpenAI(cleanText, sourceLang, targetLang) {
-  if (!openai) return null;
+  if (!openai) {
+    const err = new Error("openai_not_configured");
+    err.code = "openai_not_configured";
+    throw err;
+  }
+
+  const model = String(process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini").trim();
 
   const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini",
+    model,
     temperature: 0,
     messages: [
       {
@@ -247,51 +254,7 @@ async function translateWithOpenAI(cleanText, sourceLang, targetLang) {
   return response.choices?.[0]?.message?.content?.trim() || null;
 }
 
-async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
-  const envUrl = process.env.TRANSLATE_API_URL;
-  const apiKey = process.env.TRANSLATE_API_KEY || "";
-
-  if (!envUrl) return null;
-
-  const body = {
-    q: cleanText,
-    source: sourceLang,
-    target: targetLang,
-    format: "text",
-  };
-
-  if (apiKey) body.api_key = apiKey;
-
-  const response = await fetch(envUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) throw new Error("translation_provider_failed_" + response.status);
-
-  const data = await response.json();
-  return data?.translatedText || data?.translation || data?.text || null;
-}
-
-async function translateWithMyMemory(cleanText, sourceLang, targetLang) {
-  const url =
-    "https://api.mymemory.translated.net/get?q=" +
-    encodeURIComponent(cleanText) +
-    "&langpair=" +
-    encodeURIComponent(`${sourceLang}|${targetLang}`);
-
-  const response = await fetch(url, {
-    headers: { Accept: "application/json" },
-  });
-
-  if (!response.ok) throw new Error("mymemory_failed_" + response.status);
-
-  const data = await response.json();
-  return data?.responseData?.translatedText || null;
-}
-
-async function translateText({ text, target, source = "en" }) {
+async function translateText({ text, target, source = "en", debug = false }) {
   const cleanText = String(text || "").trim();
   const targetLang = normalizeLang(target);
   const sourceLang = normalizeSourceLang(source);
@@ -343,43 +306,16 @@ async function translateText({ text, target, source = "en" }) {
       };
     }
   } catch (err) {
-    console.warn("OpenAI translate failed:", err.message);
-  }
+    console.error("OPENAI TRANSLATE FAILED:", {
+      message: err?.message,
+      status: err?.status,
+      code: err?.code,
+      type: err?.type,
+    });
 
-  try {
-    const translated = await translateWithEnvProvider(cleanText, sourceLang, targetLang);
-
-    if (translated) {
-      rememberTranslation(key, translated);
-
-      return {
-        ok: true,
-        translatedText: translated,
-        target: targetLang,
-        source: sourceLang,
-        provider: "env",
-      };
+    if (debug) {
+      throw err;
     }
-  } catch (err) {
-    console.warn("ENV translate failed:", err.message);
-  }
-
-  try {
-    const translated = await translateWithMyMemory(cleanText, sourceLang, targetLang);
-
-    if (translated) {
-      rememberTranslation(key, translated);
-
-      return {
-        ok: true,
-        translatedText: translated,
-        target: targetLang,
-        source: sourceLang,
-        provider: "mymemory",
-      };
-    }
-  } catch (err) {
-    console.warn("MyMemory translate failed:", err.message);
   }
 
   return {
@@ -396,10 +332,12 @@ async function translateText({ text, target, source = "en" }) {
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
-    version: "v5006",
+    version: "v5007",
     ts: Date.now(),
-    openaiConfigured: !!process.env.OPENAI_API_KEY,
-    envTranslateConfigured: !!process.env.TRANSLATE_API_URL,
+    openaiConfigured: !!OPENAI_KEY,
+    openaiKeyStartsWithSk: OPENAI_KEY.startsWith("sk-"),
+    openaiKeyLength: OPENAI_KEY.length,
+    openaiModel: process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini",
     replicateConfigured: !!process.env.REPLICATE_API_TOKEN,
     langs: Array.from(SUPPORTED_LANGS),
   });
@@ -425,8 +363,6 @@ app.post("/api/translate", async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error("translate failed:", err);
-
     res.status(500).json({
       ok: false,
       error: "translation_failed",
@@ -437,9 +373,7 @@ app.post("/api/translate", async (req, res) => {
 
 app.post("/api/translate/batch", async (req, res) => {
   try {
-    const target = normalizeLang(
-      req.body?.targetLang || req.body?.target || req.body?.lang || "en"
-    );
+    const target = normalizeLang(req.body?.targetLang || req.body?.target || req.body?.lang || "en");
     const source = normalizeSourceLang(req.body?.source || "en");
 
     const textsFromArray = Array.isArray(req.body?.texts) ? req.body.texts : null;
@@ -479,8 +413,6 @@ app.post("/api/translate/batch", async (req, res) => {
       translations: results.map((x) => x.translatedText),
     });
   } catch (err) {
-    console.error("translate batch failed:", err);
-
     res.status(500).json({
       ok: false,
       error: "translation_batch_failed",
@@ -497,6 +429,7 @@ app.get("/api/translate-test", async (req, res) => {
       text: "Create image",
       target: lang,
       source: "en",
+      debug: true,
     });
 
     res.json({
@@ -510,14 +443,17 @@ app.get("/api/translate-test", async (req, res) => {
     res.status(500).json({
       ok: false,
       error: "translate_test_failed",
-      details: String(err?.message || err),
+      message: err?.message || null,
+      status: err?.status || null,
+      code: err?.code || null,
+      type: err?.type || null,
     });
   }
 });
 
 app.get("/api/openai-debug", async (_req, res) => {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!OPENAI_KEY) {
       return res.status(500).json({
         ok: false,
         error: "missing_openai_api_key",
@@ -531,13 +467,15 @@ app.get("/api/openai-debug", async (_req, res) => {
       });
     }
 
+    const model = String(process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini").trim();
+
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model,
       temperature: 0,
       messages: [
         {
           role: "system",
-          content: "You are a translator. Return only translated text.",
+          content: "Return only translated text.",
         },
         {
           role: "user",
@@ -550,11 +488,10 @@ app.get("/api/openai-debug", async (_req, res) => {
 
     res.json({
       ok: true,
+      model,
       translated,
     });
   } catch (err) {
-    console.error("OPENAI DEBUG FAILED:", err);
-
     res.status(500).json({
       ok: false,
       error: "openai_debug_failed",
@@ -1040,8 +977,6 @@ async function handlerGenerateVideo(req, res) {
       } catch {}
     }
   } catch (err) {
-    console.error("video generation failed:", err);
-
     return res.status(500).json({
       ok: false,
       error: "video_generation_failed",
@@ -1109,5 +1044,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("The Future PRO v5006 running on :" + PORT);
+  console.log("The Future PRO v5007 running on :" + PORT);
 });
