@@ -1,4 +1,4 @@
-// server.js — The Future PRO — stable v5004 + OpenAI Translate Test
+// server.js — The Future PRO — stable v5005 + OpenAI Translate Fixed
 
 import express from "express";
 import session from "express-session";
@@ -83,7 +83,10 @@ function requireLogin(req, res, next) {
 }
 
 function subRequired(req, res, next) {
-  if (String(process.env.ENFORCE_SUB_REQUIREMENT || "false").toLowerCase() !== "true") {
+  if (
+    String(process.env.ENFORCE_SUB_REQUIREMENT || "false").toLowerCase() !==
+    "true"
+  ) {
     return next();
   }
 
@@ -91,14 +94,20 @@ function subRequired(req, res, next) {
   const active = !!(sub && sub.tier && sub.until && sub.until > Date.now());
 
   if (!active) {
-    return res.status(402).json({ ok: false, error: "subscription_required" });
+    return res.status(402).json({
+      ok: false,
+      error: "subscription_required",
+    });
   }
 
   next();
 }
 
 function sendHtml(res, fileName) {
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.sendFile(path.join(PUBLIC_DIR, fileName));
@@ -107,6 +116,7 @@ function sendHtml(res, fileName) {
 async function downloadToFile(url, destPath) {
   const response = await fetch(url);
   if (!response.ok) throw new Error("download_failed_" + response.status);
+
   const ab = await response.arrayBuffer();
   fs.writeFileSync(destPath, Buffer.from(ab));
 }
@@ -225,16 +235,26 @@ function rememberTranslation(key, value) {
 async function translateWithOpenAI(cleanText, sourceLang, targetLang) {
   if (!openai) return null;
 
-  const response = await openai.responses.create({
-    model: process.env.OPENAI_TRANSLATE_MODEL || "gpt-4.1-mini",
-    input:
-      `Translate this website UI text from ${LANG_NAMES[sourceLang] || sourceLang} to ${LANG_NAMES[targetLang] || targetLang}.\n` +
-      `Keep brand names, character names, prices, URLs, emails, API keys, JSON, code and technical tokens unchanged.\n` +
-      `Return only the translated text. No explanations.\n\n` +
-      cleanText,
+  const response = await openai.chat.completions.create({
+    model: process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini",
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a professional website UI translator. Translate naturally. Return only the translated text. Do not add explanations. Keep brand names, character names, prices, URLs, emails, API keys, JSON, code and technical tokens unchanged.",
+      },
+      {
+        role: "user",
+        content:
+          `Translate from ${LANG_NAMES[sourceLang] || sourceLang} to ${
+            LANG_NAMES[targetLang] || targetLang
+          }:\n\n` + cleanText,
+      },
+    ],
   });
 
-  return response.output_text?.trim() || null;
+  return response.choices?.[0]?.message?.content?.trim() || null;
 }
 
 async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
@@ -258,10 +278,11 @@ async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) throw new Error("translation_provider_failed_" + response.status);
+  if (!response.ok) {
+    throw new Error("translation_provider_failed_" + response.status);
+  }
 
   const data = await response.json();
-
   return data?.translatedText || data?.translation || data?.text || null;
 }
 
@@ -279,7 +300,6 @@ async function translateWithMyMemory(cleanText, sourceLang, targetLang) {
   if (!response.ok) throw new Error("mymemory_failed_" + response.status);
 
   const data = await response.json();
-
   return data?.responseData?.translatedText || null;
 }
 
@@ -321,7 +341,11 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithOpenAI(cleanText, sourceLang, targetLang);
+    const translated = await translateWithOpenAI(
+      cleanText,
+      sourceLang,
+      targetLang
+    );
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -339,7 +363,11 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithEnvProvider(cleanText, sourceLang, targetLang);
+    const translated = await translateWithEnvProvider(
+      cleanText,
+      sourceLang,
+      targetLang
+    );
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -357,7 +385,11 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithMyMemory(cleanText, sourceLang, targetLang);
+    const translated = await translateWithMyMemory(
+      cleanText,
+      sourceLang,
+      targetLang
+    );
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -388,7 +420,7 @@ async function translateText({ text, target, source = "en" }) {
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
-    version: "v5004",
+    version: "v5005",
     ts: Date.now(),
     openaiConfigured: !!process.env.OPENAI_API_KEY,
     envTranslateConfigured: !!process.env.TRANSLATE_API_URL,
@@ -429,11 +461,17 @@ app.post("/api/translate", async (req, res) => {
 
 app.post("/api/translate/batch", async (req, res) => {
   try {
-    const target = normalizeLang(req.body?.targetLang || req.body?.target || req.body?.lang || "en");
+    const target = normalizeLang(
+      req.body?.targetLang || req.body?.target || req.body?.lang || "en"
+    );
     const source = normalizeSourceLang(req.body?.source || "en");
 
-    const textsFromArray = Array.isArray(req.body?.texts) ? req.body.texts : null;
-    const itemsFromArray = Array.isArray(req.body?.items) ? req.body.items : null;
+    const textsFromArray = Array.isArray(req.body?.texts)
+      ? req.body.texts
+      : null;
+    const itemsFromArray = Array.isArray(req.body?.items)
+      ? req.body.items
+      : null;
 
     const rawItems = textsFromArray
       ? textsFromArray.map((text, index) => ({ id: index, text }))
@@ -793,8 +831,14 @@ app.post("/api/chat/:slug/offer", requireLogin, (req, res) => {
       id: mediaId,
       type: kind,
       price_credits: price,
-      preview_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
-      full_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
+      preview_url:
+        kind === "video"
+          ? "/demo/video-placeholder.mp4"
+          : "/demo/image-placeholder.jpg",
+      full_url:
+        kind === "video"
+          ? "/demo/video-placeholder.mp4"
+          : "/demo/image-placeholder.jpg",
       duration_sec: kind === "video" ? Number(req.body?.duration || 10) : null,
     },
   });
@@ -870,7 +914,9 @@ app.post("/api/video/open", async (req, res, next) => {
 async function handlerGenerateVideo(req, res) {
   try {
     const prompt = String(req.body?.prompt || req.body?.storyboard || "").trim();
-    const negative = String(req.body?.negativeExtra || req.body?.negative || "").trim();
+    const negative = String(
+      req.body?.negativeExtra || req.body?.negative || ""
+    ).trim();
     const seconds = Math.max(5, Math.min(20, Number(req.body?.seconds || 10)));
     const quality = req.body?.quality || "720p";
 
@@ -907,7 +953,8 @@ async function handlerGenerateVideo(req, res) {
 
     try {
       for (let i = 0; i < segments; i++) {
-        const finalPrompt = prompt + (negative ? `\nNEGATIVE: ${negative}` : "");
+        const finalPrompt =
+          prompt + (negative ? `\nNEGATIVE: ${negative}` : "");
 
         const prediction = version
           ? await replicate.predictions.create({
@@ -929,7 +976,10 @@ async function handlerGenerateVideo(req, res) {
 
         let current = prediction;
 
-        while (current.status === "starting" || current.status === "processing") {
+        while (
+          current.status === "starting" ||
+          current.status === "processing"
+        ) {
           await new Promise((resolve) => setTimeout(resolve, 1500));
           current = await replicate.predictions.get(current.id);
         }
@@ -939,11 +989,9 @@ async function handlerGenerateVideo(req, res) {
         }
 
         const outUrl = normalizeReplicateOutputUrl(current.output);
-
         if (!outUrl) throw new Error("no_output_url_from_replicate");
 
         const segPath = path.join(tempDir, `seg-${i}.mp4`);
-
         await downloadToFile(outUrl, segPath);
 
         segFiles.push(segPath);
@@ -1006,7 +1054,10 @@ app.use(
     maxAge: "1h",
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".html") || filePath.endsWith("i18n.js")) {
-        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, proxy-revalidate"
+        );
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
         return;
@@ -1042,5 +1093,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("The Future PRO v5004 running on :" + PORT);
+  console.log("The Future PRO v5005 running on :" + PORT);
 });
