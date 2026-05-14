@@ -23,6 +23,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
+    "openai": "^4.104.0",
     "replicate": "^0.31.0",
     "sqlite3": "^5.1.7"
   }
