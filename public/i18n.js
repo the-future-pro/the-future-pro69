@@ -1,4 +1,5 @@
-// public/i18n.js — The Future PRO — Auto Translate Engine v2
+// public/i18n.js — The Future PRO — Auto Translate Engine v3
+// Safe scanner: detects page texts, skips JSON/code/debug, no visible [LANG] prefixes
 
 (function () {
 
@@ -63,31 +64,16 @@ return allowed.includes(clean)
 }
 
 if (!localStorage.getItem("site_lang")) {
-
-localStorage.setItem(
-"site_lang",
-DEFAULT_LANG
-);
-
+localStorage.setItem("site_lang", DEFAULT_LANG);
 }
 
 window.getLangCode = function () {
-
-return normalizeLang(
-localStorage.getItem("site_lang")
-);
-
+return normalizeLang(localStorage.getItem("site_lang"));
 };
 
 window.setLang = function (lang) {
-
-localStorage.setItem(
-"site_lang",
-normalizeLang(lang)
-);
-
+localStorage.setItem("site_lang", normalizeLang(lang));
 location.reload();
-
 };
 
 window.t = function (key) {
@@ -130,9 +116,7 @@ switcher.value =
 window.getLangCode();
 
 switcher.onchange = function () {
-
 window.setLang(this.value);
-
 };
 
 }
@@ -144,9 +128,7 @@ window.getLangCode();
 
 document.documentElement.lang = lang;
 
-document
-.querySelectorAll("[data-i18n]")
-.forEach(function (el) {
+document.querySelectorAll("[data-i18n]").forEach(function (el) {
 
 const key =
 el.getAttribute("data-i18n");
@@ -162,9 +144,7 @@ el.textContent = value;
 
 });
 
-document
-.querySelectorAll("[data-i18n-placeholder]")
-.forEach(function (el) {
+document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
 
 const key =
 el.getAttribute("data-i18n-placeholder");
@@ -180,9 +160,7 @@ el.setAttribute("placeholder", value);
 
 });
 
-document
-.querySelectorAll("[data-i18n-title]")
-.forEach(function (el) {
+document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
 
 const key =
 el.getAttribute("data-i18n-title");
@@ -198,9 +176,7 @@ el.setAttribute("title", value);
 
 });
 
-document
-.querySelectorAll("[data-i18n-aria-label]")
-.forEach(function (el) {
+document.querySelectorAll("[data-i18n-aria-label]").forEach(function (el) {
 
 const key =
 el.getAttribute("data-i18n-aria-label");
@@ -229,7 +205,7 @@ return true;
 const tag =
 el.tagName;
 
-return [
+if ([
 "SCRIPT",
 "STYLE",
 "NOSCRIPT",
@@ -238,8 +214,57 @@ return [
 "PRE",
 "INPUT",
 "SELECT",
-"OPTION"
-].includes(tag);
+"OPTION",
+"JSON-VIEWER"
+].includes(tag)) {
+return true;
+}
+
+const cls =
+(el.className || "")
+.toString()
+.toLowerCase();
+
+const id =
+(el.id || "")
+.toString()
+.toLowerCase();
+
+if (
+cls.includes("json") ||
+cls.includes("debug") ||
+cls.includes("console") ||
+cls.includes("code") ||
+cls.includes("api") ||
+cls.includes("response") ||
+id.includes("json") ||
+id.includes("debug") ||
+id.includes("console") ||
+id.includes("code") ||
+id.includes("api") ||
+id.includes("response")
+) {
+return true;
+}
+
+const blockText =
+(el.innerText || "")
+.trim();
+
+if (
+blockText.startsWith("{") ||
+blockText.startsWith("[") ||
+blockText.includes('"ok"') ||
+blockText.includes('"error"') ||
+blockText.includes('"logged"') ||
+blockText.includes('"message"') ||
+blockText.includes("login_required") ||
+blockText.includes("subscription_required")
+) {
+return true;
+}
+
+return false;
 
 }
 
@@ -260,21 +285,27 @@ if (/^https?:\/\//i.test(clean)) return false;
 
 if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return false;
 
+if (/^[A-Z0-9_]{2,}$/.test(clean)) return false;
+
+if (clean.startsWith("{") || clean.endsWith("}")) return false;
+
+if (clean.includes('"ok"')) return false;
+if (clean.includes('"error"')) return false;
+if (clean.includes('"logged"')) return false;
+if (clean.includes("login_required")) return false;
+
 return true;
 
 }
 
-window.autoTranslatePage =
-async function () {
+window.autoTranslatePage = async function () {
 
 const lang =
 window.getLangCode();
 
 if (lang === "en") {
-
 console.log("[i18n] English selected. Auto translate skipped.");
 return;
-
 }
 
 const walker =
@@ -314,17 +345,12 @@ textNodes.forEach(function (node) {
 
 if (node.__autoTranslated) return;
 
-const original =
-node.nodeValue;
-
 node.__autoTranslated = true;
-node.__originalText = original;
+node.__originalText = node.nodeValue;
 
-node.nodeValue =
-"[" +
-lang.toUpperCase() +
-"] " +
-original;
+// IMPORTANT:
+// momentan nu modificăm vizibil textul.
+// aici se va conecta traducerea reală prin backend.
 
 });
 
@@ -378,9 +404,7 @@ observeDynamicText();
 document.addEventListener(
 "DOMContentLoaded",
 function () {
-
 window.applyTranslations();
-
 }
 );
 
