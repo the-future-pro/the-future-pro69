@@ -1,4 +1,4 @@
-// server.js — The Future PRO — stable v4001
+// server.js — The Future PRO — stable v4002 + OpenAI Translate
 
 import express from "express";
 import session from "express-session";
@@ -11,6 +11,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import Replicate from "replicate";
+import OpenAI from "openai";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -27,8 +28,6 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.set("trust proxy", 1);
 
-// ================== PATHS ==================
-
 const PUBLIC_DIR = path.join(__dirname, "public");
 const VIDEOS_DIR_NAME = process.env.PUBLIC_VIDEOS_DIR || "videos";
 const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
@@ -38,22 +37,13 @@ fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.mkdirSync(SESS_DIR, { recursive: true });
 
-// ================== MIDDLEWARE ==================
-
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-  })
-);
-
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
 app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-// ================== SESSION ==================
 
 const SQLiteStore = connectSqlite3(session);
 
@@ -75,8 +65,6 @@ app.use(
   })
 );
 
-// ================== RATE LIMIT ==================
-
 app.use(
   "/api/",
   rateLimit({
@@ -87,24 +75,15 @@ app.use(
   })
 );
 
-// ================== HELPERS ==================
-
 function requireLogin(req, res, next) {
   if (!req.session?.user) {
-    return res.status(401).json({
-      ok: false,
-      error: "unauthorized",
-    });
+    return res.status(401).json({ ok: false, error: "unauthorized" });
   }
-
   next();
 }
 
 function subRequired(req, res, next) {
-  if (
-    String(process.env.ENFORCE_SUB_REQUIREMENT || "false").toLowerCase() !==
-    "true"
-  ) {
+  if (String(process.env.ENFORCE_SUB_REQUIREMENT || "false").toLowerCase() !== "true") {
     return next();
   }
 
@@ -112,20 +91,14 @@ function subRequired(req, res, next) {
   const active = !!(sub && sub.tier && sub.until && sub.until > Date.now());
 
   if (!active) {
-    return res.status(402).json({
-      ok: false,
-      error: "subscription_required",
-    });
+    return res.status(402).json({ ok: false, error: "subscription_required" });
   }
 
   next();
 }
 
 function sendHtml(res, fileName) {
-  res.setHeader(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
-  );
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.sendFile(path.join(PUBLIC_DIR, fileName));
@@ -133,11 +106,7 @@ function sendHtml(res, fileName) {
 
 async function downloadToFile(url, destPath) {
   const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("download_failed_" + response.status);
-  }
-
+  if (!response.ok) throw new Error("download_failed_" + response.status);
   const ab = await response.arrayBuffer();
   fs.writeFileSync(destPath, Buffer.from(ab));
 }
@@ -168,12 +137,10 @@ async function concatMp4Files(inputFiles, outPath) {
 
 function normalizeReplicateOutputUrl(output) {
   if (!output) return null;
-
   if (typeof output === "string") return output;
 
   if (Array.isArray(output)) {
     const first = output[0];
-
     if (!first) return null;
     if (typeof first === "string") return first;
     if (first?.url) return String(first.url);
@@ -186,12 +153,12 @@ function normalizeReplicateOutputUrl(output) {
   return null;
 }
 
-// ================== REPLICATE ==================
-
 const replicate = process.env.REPLICATE_API_TOKEN
-  ? new Replicate({
-      auth: process.env.REPLICATE_API_TOKEN,
-    })
+  ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
+  : null;
+
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
 
 // ================== TRANSLATION SYSTEM ==================
@@ -214,6 +181,21 @@ const SUPPORTED_LANGS = new Set([
   "zh",
 ]);
 
+const LANG_NAMES = {
+  ro: "Romanian",
+  en: "English",
+  fr: "French",
+  es: "Spanish",
+  de: "German",
+  it: "Italian",
+  pt: "Portuguese",
+  nl: "Dutch",
+  tr: "Turkish",
+  ru: "Russian",
+  ar: "Arabic",
+  zh: "Chinese",
+};
+
 function normalizeLang(lang) {
   const clean = String(lang || "en").toLowerCase().trim();
   return SUPPORTED_LANGS.has(clean) ? clean : "en";
@@ -221,9 +203,7 @@ function normalizeLang(lang) {
 
 function normalizeSourceLang(lang) {
   const clean = String(lang || "en").toLowerCase().trim();
-
   if (!clean || clean === "auto") return "en";
-
   return SUPPORTED_LANGS.has(clean) ? clean : "en";
 }
 
@@ -233,16 +213,27 @@ function translationCacheKey(text, target, source = "en") {
 
 function rememberTranslation(key, value) {
   if (!key || !value) return;
-
   TRANSLATE_CACHE.set(key, value);
 
   if (TRANSLATE_CACHE.size > TRANSLATE_CACHE_MAX) {
     const oldest = TRANSLATE_CACHE.keys().next().value;
-
-    if (oldest) {
-      TRANSLATE_CACHE.delete(oldest);
-    }
+    if (oldest) TRANSLATE_CACHE.delete(oldest);
   }
+}
+
+async function translateWithOpenAI(cleanText, sourceLang, targetLang) {
+  if (!openai) return null;
+
+  const response = await openai.responses.create({
+    model: process.env.OPENAI_TRANSLATE_MODEL || "gpt-4.1-mini",
+    input:
+      `Translate this website UI text from ${LANG_NAMES[sourceLang] || sourceLang} to ${LANG_NAMES[targetLang] || targetLang}.\n` +
+      `Keep brand names, character names, prices, URLs, emails, API keys, JSON, code and technical tokens unchanged.\n` +
+      `Return only the translated text. No explanations.\n\n` +
+      cleanText,
+  });
+
+  return response.output_text?.trim() || null;
 }
 
 async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
@@ -258,21 +249,15 @@ async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
     format: "text",
   };
 
-  if (apiKey) {
-    body.api_key = apiKey;
-  }
+  if (apiKey) body.api_key = apiKey;
 
   const response = await fetch(envUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) {
-    throw new Error("translation_provider_failed_" + response.status);
-  }
+  if (!response.ok) throw new Error("translation_provider_failed_" + response.status);
 
   const data = await response.json();
 
@@ -287,14 +272,10 @@ async function translateWithMyMemory(cleanText, sourceLang, targetLang) {
     encodeURIComponent(`${sourceLang}|${targetLang}`);
 
   const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-    },
+    headers: { Accept: "application/json" },
   });
 
-  if (!response.ok) {
-    throw new Error("mymemory_failed_" + response.status);
-  }
+  if (!response.ok) throw new Error("mymemory_failed_" + response.status);
 
   const data = await response.json();
 
@@ -339,11 +320,25 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithEnvProvider(
-      cleanText,
-      sourceLang,
-      targetLang
-    );
+    const translated = await translateWithOpenAI(cleanText, sourceLang, targetLang);
+
+    if (translated) {
+      rememberTranslation(key, translated);
+
+      return {
+        ok: true,
+        translatedText: translated,
+        target: targetLang,
+        source: sourceLang,
+        provider: "openai",
+      };
+    }
+  } catch (err) {
+    console.warn("OpenAI translate failed:", err.message);
+  }
+
+  try {
+    const translated = await translateWithEnvProvider(cleanText, sourceLang, targetLang);
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -361,11 +356,7 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithMyMemory(
-      cleanText,
-      sourceLang,
-      targetLang
-    );
+    const translated = await translateWithMyMemory(cleanText, sourceLang, targetLang);
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -396,8 +387,9 @@ async function translateText({ text, target, source = "en" }) {
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
-    version: "v4001",
+    version: "v4002",
     ts: Date.now(),
+    openaiConfigured: !!process.env.OPENAI_API_KEY,
     envTranslateConfigured: !!process.env.TRANSLATE_API_URL,
     replicateConfigured: !!process.env.REPLICATE_API_TOKEN,
     langs: Array.from(SUPPORTED_LANGS),
@@ -420,11 +412,7 @@ app.post("/api/translate", async (req, res) => {
     const target = normalizeLang(req.body?.target || req.body?.lang || "en");
     const source = normalizeSourceLang(req.body?.source || "en");
 
-    const result = await translateText({
-      text,
-      target,
-      source,
-    });
+    const result = await translateText({ text, target, source });
 
     res.json(result);
   } catch (err) {
@@ -440,13 +428,19 @@ app.post("/api/translate", async (req, res) => {
 
 app.post("/api/translate/batch", async (req, res) => {
   try {
-    const items = Array.isArray(req.body?.items) ? req.body.items : [];
-    const target = normalizeLang(req.body?.target || req.body?.lang || "en");
+    const target = normalizeLang(req.body?.targetLang || req.body?.target || req.body?.lang || "en");
     const source = normalizeSourceLang(req.body?.source || "en");
+
+    const textsFromArray = Array.isArray(req.body?.texts) ? req.body.texts : null;
+    const itemsFromArray = Array.isArray(req.body?.items) ? req.body.items : null;
+
+    const rawItems = textsFromArray
+      ? textsFromArray.map((text, index) => ({ id: index, text }))
+      : itemsFromArray || [];
 
     const results = [];
 
-    for (const item of items.slice(0, 80)) {
+    for (const item of rawItems.slice(0, 80)) {
       const text = typeof item === "string" ? item : String(item?.text || "");
       const id = typeof item === "object" && item ? item.id : undefined;
 
@@ -471,6 +465,7 @@ app.post("/api/translate/batch", async (req, res) => {
       target,
       source,
       items: results,
+      translations: results.map((x) => x.translatedText),
     });
   } catch (err) {
     console.error("translate batch failed:", err);
@@ -540,9 +535,7 @@ app.get("/api/me", (req, res) => {
 
 app.get("/api/logout", (req, res) => {
   req.session.destroy(() => {
-    res.json({
-      ok: true,
-    });
+    res.json({ ok: true });
   });
 });
 
@@ -603,11 +596,7 @@ const personas = [
     role: "Dark Luxury",
     category: "Cinematic",
     tone: "mysterious, elegant, intense",
-    mediaPrices: {
-      image: 20,
-      video10: 90,
-      video20: 150,
-    },
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
   },
   {
     id: 2,
@@ -617,11 +606,7 @@ const personas = [
     role: "Girl Next Door",
     category: "Romance",
     tone: "warm, sweet, emotional",
-    mediaPrices: {
-      image: 20,
-      video10: 90,
-      video20: 150,
-    },
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
   },
   {
     id: 3,
@@ -631,11 +616,7 @@ const personas = [
     role: "Cyberpunk Muse",
     category: "Futuristic",
     tone: "confident, cold, magnetic",
-    mediaPrices: {
-      image: 20,
-      video10: 90,
-      video20: 150,
-    },
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
   },
   {
     id: 4,
@@ -645,11 +626,7 @@ const personas = [
     role: "Goth Romantic",
     category: "Dark Romance",
     tone: "poetic, intense, obsessive",
-    mediaPrices: {
-      image: 20,
-      video10: 90,
-      video20: 150,
-    },
+    mediaPrices: { image: 20, video10: 90, video20: 150 },
   },
 ];
 
@@ -742,9 +719,7 @@ app.get("/api/chat/:slug/history", async (req, res) => {
 app.post("/api/chat/:slug/send", requireLogin, (req, res) => {
   const slug = req.params.slug;
 
-  if (!chatHistory[slug]) {
-    chatHistory[slug] = [];
-  }
+  if (!chatHistory[slug]) chatHistory[slug] = [];
 
   const text = String(req.body?.text || "").trim();
 
@@ -771,17 +746,13 @@ app.post("/api/chat/:slug/send", requireLogin, (req, res) => {
     text: "I understand. I’ll keep the experience private, cinematic and tailored to your style.",
   });
 
-  res.json({
-    ok: true,
-  });
+  res.json({ ok: true });
 });
 
 app.post("/api/chat/:slug/offer", requireLogin, (req, res) => {
   const slug = req.params.slug;
 
-  if (!chatHistory[slug]) {
-    chatHistory[slug] = [];
-  }
+  if (!chatHistory[slug]) chatHistory[slug] = [];
 
   const kind = req.body?.kind || "image";
   const price = kind === "video" ? 90 : 20;
@@ -795,21 +766,13 @@ app.post("/api/chat/:slug/offer", requireLogin, (req, res) => {
       id: mediaId,
       type: kind,
       price_credits: price,
-      preview_url:
-        kind === "video"
-          ? "/demo/video-placeholder.mp4"
-          : "/demo/image-placeholder.jpg",
-      full_url:
-        kind === "video"
-          ? "/demo/video-placeholder.mp4"
-          : "/demo/image-placeholder.jpg",
+      preview_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
+      full_url: kind === "video" ? "/demo/video-placeholder.mp4" : "/demo/image-placeholder.jpg",
       duration_sec: kind === "video" ? Number(req.body?.duration || 10) : null,
     },
   });
 
-  res.json({
-    ok: true,
-  });
+  res.json({ ok: true });
 });
 
 app.post("/api/media/:id/unlock", requireLogin, (req, res) => {
@@ -880,9 +843,7 @@ app.post("/api/video/open", async (req, res, next) => {
 async function handlerGenerateVideo(req, res) {
   try {
     const prompt = String(req.body?.prompt || req.body?.storyboard || "").trim();
-    const negative = String(
-      req.body?.negativeExtra || req.body?.negative || ""
-    ).trim();
+    const negative = String(req.body?.negativeExtra || req.body?.negative || "").trim();
     const seconds = Math.max(5, Math.min(20, Number(req.body?.seconds || 10)));
     const quality = req.body?.quality || "720p";
 
@@ -919,8 +880,7 @@ async function handlerGenerateVideo(req, res) {
 
     try {
       for (let i = 0; i < segments; i++) {
-        const finalPrompt =
-          prompt + (negative ? `\nNEGATIVE: ${negative}` : "");
+        const finalPrompt = prompt + (negative ? `\nNEGATIVE: ${negative}` : "");
 
         const prediction = version
           ? await replicate.predictions.create({
@@ -942,10 +902,7 @@ async function handlerGenerateVideo(req, res) {
 
         let current = prediction;
 
-        while (
-          current.status === "starting" ||
-          current.status === "processing"
-        ) {
+        while (current.status === "starting" || current.status === "processing") {
           await new Promise((resolve) => setTimeout(resolve, 1500));
           current = await replicate.predictions.get(current.id);
         }
@@ -956,9 +913,7 @@ async function handlerGenerateVideo(req, res) {
 
         const outUrl = normalizeReplicateOutputUrl(current.output);
 
-        if (!outUrl) {
-          throw new Error("no_output_url_from_replicate");
-        }
+        if (!outUrl) throw new Error("no_output_url_from_replicate");
 
         const segPath = path.join(tempDir, `seg-${i}.mp4`);
 
@@ -1024,10 +979,7 @@ app.use(
     maxAge: "1h",
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".html") || filePath.endsWith("i18n.js")) {
-        res.setHeader(
-          "Cache-Control",
-          "no-store, no-cache, must-revalidate, proxy-revalidate"
-        );
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
         return;
@@ -1048,8 +1000,6 @@ app.get("/privacy.html", (_req, res) => sendHtml(res, "privacy.html"));
 app.get("/terms.html", (_req, res) => sendHtml(res, "terms.html"));
 app.get("/safety.html", (_req, res) => sendHtml(res, "safety.html"));
 
-// ================== 404 ==================
-
 app.use((req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({
@@ -1061,8 +1011,6 @@ app.use((req, res) => {
 
   res.status(404).sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
-
-// ================== START ==================
 
 const PORT = process.env.PORT || 3000;
 
