@@ -1,4 +1,4 @@
-// server.js — The Future PRO — stable v4002 + OpenAI Translate
+// server.js — The Future PRO — stable v5004 + OpenAI Translate Test
 
 import express from "express";
 import session from "express-session";
@@ -213,6 +213,7 @@ function translationCacheKey(text, target, source = "en") {
 
 function rememberTranslation(key, value) {
   if (!key || !value) return;
+
   TRANSLATE_CACHE.set(key, value);
 
   if (TRANSLATE_CACHE.size > TRANSLATE_CACHE_MAX) {
@@ -387,7 +388,7 @@ async function translateText({ text, target, source = "en" }) {
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
-    version: "v4002",
+    version: "v5004",
     ts: Date.now(),
     openaiConfigured: !!process.env.OPENAI_API_KEY,
     envTranslateConfigured: !!process.env.TRANSLATE_API_URL,
@@ -473,6 +474,32 @@ app.post("/api/translate/batch", async (req, res) => {
     res.status(500).json({
       ok: false,
       error: "translation_batch_failed",
+      details: String(err?.message || err),
+    });
+  }
+});
+
+app.get("/api/translate-test", async (req, res) => {
+  try {
+    const lang = normalizeLang(req.query.lang || "de");
+
+    const result = await translateText({
+      text: "Create image",
+      target: lang,
+      source: "en",
+    });
+
+    res.json({
+      ok: true,
+      lang,
+      original: "Create image",
+      translated: result.translatedText,
+      provider: result.provider,
+    });
+  } catch (err) {
+    res.status(500).json({
+      ok: false,
+      error: "translate_test_failed",
       details: String(err?.message || err),
     });
   }
@@ -1015,5 +1042,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server ready on :" + PORT);
+  console.log("The Future PRO v5004 running on :" + PORT);
 });
