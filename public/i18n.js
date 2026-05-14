@@ -1,12 +1,16 @@
-// public/i18n.js — The Future PRO — Auto Translate Engine v8
+// public/i18n.js — The Future PRO — Auto Translate Engine v9
 // Source language: RO
 // Backend: /api/translate/batch
+// Includes automatic prompt warning under prompt fields
 
 (function () {
   const DEFAULT_LANG = "ro";
   const SOURCE_LANG = "ro";
-  const LOCAL_TRANSLATE_CACHE_KEY = "tfp_translate_cache_v8";
-  const MAX_TEXTS_PER_BATCH = 40;
+  const LOCAL_TRANSLATE_CACHE_KEY = "tfp_translate_cache_v9";
+  const MAX_TEXTS_PER_BATCH = 50;
+
+  const PROMPT_HINT_TEXT =
+    "✨ Prompturile pot fi scrise în orice limbă, însă pentru cele mai precise și cinematice rezultate recomandăm limba engleză.";
 
   window.LANG_OPTIONS = [
     ["ro", "🇷🇴 RO"],
@@ -86,6 +90,44 @@
       window.clearTranslateCache();
       window.setLang(this.value);
     };
+  }
+
+  function injectPromptHints() {
+    const fields = document.querySelectorAll("textarea, input[type='text']");
+
+    fields.forEach(function (field) {
+      const id = String(field.id || "").toLowerCase();
+      const name = String(field.name || "").toLowerCase();
+      const placeholder = String(field.getAttribute("placeholder") || "").toLowerCase();
+
+      const isPromptField =
+        id.includes("prompt") ||
+        id.includes("storyboard") ||
+        name.includes("prompt") ||
+        name.includes("storyboard") ||
+        placeholder.includes("prompt") ||
+        placeholder.includes("storyboard") ||
+        placeholder.includes("cinematic") ||
+        placeholder.includes("ultra realistic");
+
+      if (!isPromptField) return;
+
+      const parent = field.parentElement;
+      if (!parent) return;
+
+      if (parent.querySelector(".tfp-prompt-hint")) return;
+
+      const hint = document.createElement("div");
+      hint.className = "tfp-prompt-hint";
+      hint.style.fontSize = "12px";
+      hint.style.lineHeight = "1.45";
+      hint.style.opacity = "0.72";
+      hint.style.marginTop = "6px";
+      hint.style.marginBottom = "8px";
+      hint.textContent = PROMPT_HINT_TEXT;
+
+      field.insertAdjacentElement("afterend", hint);
+    });
   }
 
   function shouldSkipElement(el) {
@@ -251,6 +293,8 @@
   window.autoTranslatePage = async function () {
     if (isTranslating) return;
 
+    injectPromptHints();
+
     const lang = window.getLangCode();
 
     document.documentElement.lang = lang;
@@ -354,6 +398,7 @@
 
   window.applyTranslations = async function () {
     setupLangSwitcher();
+    injectPromptHints();
     await window.autoTranslatePage();
     observeDynamicText();
   };
