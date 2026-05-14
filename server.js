@@ -1,4 +1,4 @@
-// server.js — The Future PRO — stable v5009 + FREE Google Translate
+// server.js — The Future PRO — stable v5010 + REAL Image Generation
 
 import express from "express";
 import session from "express-session";
@@ -28,11 +28,14 @@ app.set("trust proxy", 1);
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 const VIDEOS_DIR_NAME = process.env.PUBLIC_VIDEOS_DIR || "videos";
+const IMAGES_DIR_NAME = process.env.PUBLIC_IMAGES_DIR || "images";
 const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
+const IMG_DIR = path.join(PUBLIC_DIR, IMAGES_DIR_NAME);
 const SESS_DIR = path.join(__dirname, "db");
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
+fs.mkdirSync(IMG_DIR, { recursive: true });
 fs.mkdirSync(SESS_DIR, { recursive: true });
 
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -146,6 +149,35 @@ function normalizeReplicateOutputUrl(output) {
   if (typeof output?.url === "function") return String(output.url());
 
   return null;
+}
+
+function imageExtensionFromUrl(url) {
+  const clean = String(url || "").split("?")[0].toLowerCase();
+
+  if (clean.endsWith(".png")) return "png";
+  if (clean.endsWith(".jpg")) return "jpg";
+  if (clean.endsWith(".jpeg")) return "jpg";
+  if (clean.endsWith(".webp")) return "webp";
+
+  return "webp";
+}
+
+function buildImagePrompt(prompt, negative = "") {
+  const base = String(prompt || "").trim();
+  const avoid = String(negative || "").trim();
+
+  let finalPrompt =
+    base +
+    "\n\nStyle: cinematic, premium realism, detailed lighting, realistic texture, high quality, fictional AI character only.";
+
+  if (avoid) {
+    finalPrompt += "\nAvoid: " + avoid;
+  }
+
+  finalPrompt +=
+    "\nSafety: fictional adult characters only, no real-person identity, no minors, no deepfake.";
+
+  return finalPrompt;
 }
 
 const replicate = process.env.REPLICATE_API_TOKEN
@@ -334,12 +366,15 @@ async function translateText({ text, target, source = "en" }) {
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
-    version: "v5009-free-google-translate",
+    version: "v5010-real-image",
     ts: Date.now(),
     translateMode: "free_google",
     googleFreeEnabled: true,
     myMemoryEnabled: true,
     replicateConfigured: !!process.env.REPLICATE_API_TOKEN,
+    imageModelConfigured: !!process.env.REPLICATE_IMAGE_MODEL,
+    imageModel: process.env.REPLICATE_IMAGE_MODEL || null,
+    videoModelConfigured: !!process.env.REPLICATE_MODEL,
     langs: Array.from(SUPPORTED_LANGS),
   });
 });
@@ -755,37 +790,106 @@ app.post("/api/media/:id/unlock", requireLogin, (req, res) => {
   });
 });
 
-// ================== IMAGE GENERATION MOCK ==================
+// ================== REAL IMAGE GENERATION ==================
 
-app.post("/api/image/open", (req, res) => {
-  const adminHeader = req.headers["x-admin-token"];
+app.use(
+  "/" + IMAGES_DIR_NAME,
+  express.static(IMG_DIR, {
+    maxAge: "1h",
+  })
+);
 
-  if (process.env.ADMIN_TOKEN && adminHeader !== process.env.ADMIN_TOKEN) {
-    return res.status(401).json({
+app.post("/api/image/open", async (req, res) => {
+  try {
+    const adminHeader = req.headers["x-admin-token"];
+
+    if (process.env.ADMIN_TOKEN && adminHeader !== process.env.ADMIN_TOKEN) {
+      return res.status(401).json({
+        ok: false,
+        error: "admin_token_invalid",
+      });
+    }
+
+    const prompt = String(req.body?.prompt || "").trim();
+    const negative = String(req.body?.negative || "").trim();
+    const quality = String(req.body?.quality || "1024").trim();
+
+    if (!prompt) {
+      return res.status(400).json({
+        ok: false,
+        error: "missing_prompt",
+      });
+    }
+
+    if (!replicate || !process.env.REPLICATE_IMAGE_MODEL) {
+      return res.json({
+        ok: true,
+        mode: "mock",
+        note: "image endpoint connected; set REPLICATE_API_TOKEN and REPLICATE_IMAGE_MODEL for real generation",
+        prompt,
+        negative,
+        quality,
+      });
+    }
+
+    const model = String(process.env.REPLICATE_IMAGE_MODEL || "").trim();
+
+    const finalPrompt = buildImagePrompt(prompt, negative);
+
+    const input = {
+      prompt: finalPrompt,
+      output_format: "webp",
+      output_quality: 90,
+    };
+
+    if (quality === "2048") {
+      input.megapixels = "1";
+    }
+
+    if (quality === "8k") {
+      input.megapixels = "1";
+      input.num_outputs = 1;
+    }
+
+    const output = await replicate.run(model, { input });
+
+    const imageUrl = normalizeReplicateOutputUrl(output);
+
+    if (!imageUrl) {
+      return res.status(500).json({
+        ok: false,
+        error: "no_image_output_url",
+        output,
+      });
+    }
+
+    const ext = imageExtensionFromUrl(imageUrl);
+    const outName = `img-${Date.now()}.${ext}`;
+    const outPath = path.join(IMG_DIR, outName);
+
+    await downloadToFile(imageUrl, outPath);
+
+    return res.json({
+      ok: true,
+      mode: "real",
+      provider: "replicate",
+      model,
+      url: `/${IMAGES_DIR_NAME}/${outName}`,
+      originalUrl: imageUrl,
+      prompt,
+      finalPrompt,
+      negative,
+      quality,
+    });
+  } catch (err) {
+    console.error("image generation failed:", err);
+
+    return res.status(500).json({
       ok: false,
-      error: "admin_token_invalid",
+      error: "image_generation_failed",
+      details: String(err?.message || err),
     });
   }
-
-  const prompt = String(req.body?.prompt || "").trim();
-  const negative = String(req.body?.negative || "").trim();
-  const quality = req.body?.quality || "1024";
-
-  if (!prompt) {
-    return res.status(400).json({
-      ok: false,
-      error: "missing_prompt",
-    });
-  }
-
-  res.json({
-    ok: true,
-    mode: "mock",
-    note: "image endpoint connected; real AI image generation will be added next",
-    prompt,
-    negative,
-    quality,
-  });
 });
 
 // ================== VIDEO GENERATION ==================
@@ -985,5 +1089,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("The Future PRO v5009 FREE Google translate running on :" + PORT);
+  console.log("The Future PRO v5010 REAL image running on :" + PORT);
 });
