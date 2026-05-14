@@ -1,4 +1,4 @@
-// server.js — The Future PRO — stable v5008 + FREE Translate
+// server.js — The Future PRO — stable v5009 + FREE Google Translate
 
 import express from "express";
 import session from "express-session";
@@ -18,7 +18,6 @@ import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
 
 if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
-
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,10 +47,7 @@ const SQLiteStore = connectSqlite3(session);
 
 app.use(
   session({
-    store: new SQLiteStore({
-      db: "sessions.sqlite",
-      dir: SESS_DIR,
-    }),
+    store: new SQLiteStore({ db: "sessions.sqlite", dir: SESS_DIR }),
     secret: process.env.SESSION_SECRET || "supersecret_dev_change_me",
     resave: false,
     saveUninitialized: false,
@@ -202,32 +198,36 @@ function rememberTranslation(key, value) {
   }
 }
 
-async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
-  const envUrl = process.env.TRANSLATE_API_URL;
-  const apiKey = process.env.TRANSLATE_API_KEY || "";
+async function translateWithGoogleFree(cleanText, sourceLang, targetLang) {
+  const url =
+    "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" +
+    encodeURIComponent(sourceLang) +
+    "&tl=" +
+    encodeURIComponent(targetLang) +
+    "&dt=t&q=" +
+    encodeURIComponent(cleanText);
 
-  if (!envUrl) return null;
-
-  const body = {
-    q: cleanText,
-    source: sourceLang,
-    target: targetLang,
-    format: "text",
-  };
-
-  if (apiKey) body.api_key = apiKey;
-
-  const response = await fetch(envUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+      Accept: "application/json,text/plain,*/*",
+    },
   });
 
-  if (!response.ok) throw new Error("translation_provider_failed_" + response.status);
+  if (!response.ok) {
+    throw new Error("google_free_failed_" + response.status);
+  }
 
   const data = await response.json();
 
-  return data?.translatedText || data?.translation || data?.text || null;
+  if (!Array.isArray(data) || !Array.isArray(data[0])) {
+    return null;
+  }
+
+  return data[0]
+    .map((part) => Array.isArray(part) ? part[0] : "")
+    .join("")
+    .trim();
 }
 
 async function translateWithMyMemory(cleanText, sourceLang, targetLang) {
@@ -244,7 +244,6 @@ async function translateWithMyMemory(cleanText, sourceLang, targetLang) {
   if (!response.ok) throw new Error("mymemory_failed_" + response.status);
 
   const data = await response.json();
-
   return data?.responseData?.translatedText || null;
 }
 
@@ -286,7 +285,7 @@ async function translateText({ text, target, source = "en" }) {
   }
 
   try {
-    const translated = await translateWithEnvProvider(cleanText, sourceLang, targetLang);
+    const translated = await translateWithGoogleFree(cleanText, sourceLang, targetLang);
 
     if (translated && translated !== cleanText) {
       rememberTranslation(key, translated);
@@ -296,17 +295,17 @@ async function translateText({ text, target, source = "en" }) {
         translatedText: translated,
         target: targetLang,
         source: sourceLang,
-        provider: "env",
+        provider: "google_free",
       };
     }
   } catch (err) {
-    console.warn("ENV translate failed:", err.message);
+    console.warn("Google free translate failed:", err.message);
   }
 
   try {
     const translated = await translateWithMyMemory(cleanText, sourceLang, targetLang);
 
-    if (translated) {
+    if (translated && translated !== cleanText) {
       rememberTranslation(key, translated);
 
       return {
@@ -335,10 +334,10 @@ async function translateText({ text, target, source = "en" }) {
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
-    version: "v5008-free-translate",
+    version: "v5009-free-google-translate",
     ts: Date.now(),
-    translateMode: "free",
-    envTranslateConfigured: !!process.env.TRANSLATE_API_URL,
+    translateMode: "free_google",
+    googleFreeEnabled: true,
     myMemoryEnabled: true,
     replicateConfigured: !!process.env.REPLICATE_API_TOKEN,
     langs: Array.from(SUPPORTED_LANGS),
@@ -391,11 +390,7 @@ app.post("/api/translate/batch", async (req, res) => {
       const text = typeof item === "string" ? item : String(item?.text || "");
       const id = typeof item === "object" && item ? item.id : undefined;
 
-      const translated = await translateText({
-        text,
-        target,
-        source,
-      });
+      const translated = await translateText({ text, target, source });
 
       results.push({
         id,
@@ -990,5 +985,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("The Future PRO v5008 FREE translate running on :" + PORT);
+  console.log("The Future PRO v5009 FREE Google translate running on :" + PORT);
 });
