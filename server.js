@@ -1,4 +1,4 @@
-// server.js — The Future PRO — stable v5007 + OpenAI Translate Debug Fixed
+// server.js — The Future PRO — stable v5008 + FREE Translate
 
 import express from "express";
 import session from "express-session";
@@ -11,7 +11,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import Replicate from "replicate";
-import OpenAI from "openai";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -157,13 +156,7 @@ const replicate = process.env.REPLICATE_API_TOKEN
   ? new Replicate({ auth: process.env.REPLICATE_API_TOKEN.trim() })
   : null;
 
-const OPENAI_KEY = String(process.env.OPENAI_API_KEY || "").trim();
-
-const openai = OPENAI_KEY
-  ? new OpenAI({ apiKey: OPENAI_KEY })
-  : null;
-
-// ================== TRANSLATION SYSTEM ==================
+// ================== FREE TRANSLATION SYSTEM ==================
 
 const TRANSLATE_CACHE = new Map();
 const TRANSLATE_CACHE_MAX = 5000;
@@ -182,21 +175,6 @@ const SUPPORTED_LANGS = new Set([
   "ar",
   "zh",
 ]);
-
-const LANG_NAMES = {
-  ro: "Romanian",
-  en: "English",
-  fr: "French",
-  es: "Spanish",
-  de: "German",
-  it: "Italian",
-  pt: "Portuguese",
-  nl: "Dutch",
-  tr: "Turkish",
-  ru: "Russian",
-  ar: "Arabic",
-  zh: "Chinese",
-};
 
 function normalizeLang(lang) {
   const clean = String(lang || "en").toLowerCase().trim();
@@ -224,37 +202,53 @@ function rememberTranslation(key, value) {
   }
 }
 
-async function translateWithOpenAI(cleanText, sourceLang, targetLang) {
-  if (!openai) {
-    const err = new Error("openai_not_configured");
-    err.code = "openai_not_configured";
-    throw err;
-  }
+async function translateWithEnvProvider(cleanText, sourceLang, targetLang) {
+  const envUrl = process.env.TRANSLATE_API_URL;
+  const apiKey = process.env.TRANSLATE_API_KEY || "";
 
-  const model = String(process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini").trim();
+  if (!envUrl) return null;
 
-  const response = await openai.chat.completions.create({
-    model,
-    temperature: 0,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a professional website UI translator. Translate naturally. Return only the translated text. Do not add explanations. Keep brand names, character names, prices, URLs, emails, API keys, JSON, code and technical tokens unchanged.",
-      },
-      {
-        role: "user",
-        content:
-          `Translate from ${LANG_NAMES[sourceLang] || sourceLang} to ${LANG_NAMES[targetLang] || targetLang}:\n\n` +
-          cleanText,
-      },
-    ],
+  const body = {
+    q: cleanText,
+    source: sourceLang,
+    target: targetLang,
+    format: "text",
+  };
+
+  if (apiKey) body.api_key = apiKey;
+
+  const response = await fetch(envUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 
-  return response.choices?.[0]?.message?.content?.trim() || null;
+  if (!response.ok) throw new Error("translation_provider_failed_" + response.status);
+
+  const data = await response.json();
+
+  return data?.translatedText || data?.translation || data?.text || null;
 }
 
-async function translateText({ text, target, source = "en", debug = false }) {
+async function translateWithMyMemory(cleanText, sourceLang, targetLang) {
+  const url =
+    "https://api.mymemory.translated.net/get?q=" +
+    encodeURIComponent(cleanText) +
+    "&langpair=" +
+    encodeURIComponent(`${sourceLang}|${targetLang}`);
+
+  const response = await fetch(url, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) throw new Error("mymemory_failed_" + response.status);
+
+  const data = await response.json();
+
+  return data?.responseData?.translatedText || null;
+}
+
+async function translateText({ text, target, source = "en" }) {
   const cleanText = String(text || "").trim();
   const targetLang = normalizeLang(target);
   const sourceLang = normalizeSourceLang(source);
@@ -292,7 +286,25 @@ async function translateText({ text, target, source = "en", debug = false }) {
   }
 
   try {
-    const translated = await translateWithOpenAI(cleanText, sourceLang, targetLang);
+    const translated = await translateWithEnvProvider(cleanText, sourceLang, targetLang);
+
+    if (translated && translated !== cleanText) {
+      rememberTranslation(key, translated);
+
+      return {
+        ok: true,
+        translatedText: translated,
+        target: targetLang,
+        source: sourceLang,
+        provider: "env",
+      };
+    }
+  } catch (err) {
+    console.warn("ENV translate failed:", err.message);
+  }
+
+  try {
+    const translated = await translateWithMyMemory(cleanText, sourceLang, targetLang);
 
     if (translated) {
       rememberTranslation(key, translated);
@@ -302,20 +314,11 @@ async function translateText({ text, target, source = "en", debug = false }) {
         translatedText: translated,
         target: targetLang,
         source: sourceLang,
-        provider: "openai",
+        provider: "mymemory",
       };
     }
   } catch (err) {
-    console.error("OPENAI TRANSLATE FAILED:", {
-      message: err?.message,
-      status: err?.status,
-      code: err?.code,
-      type: err?.type,
-    });
-
-    if (debug) {
-      throw err;
-    }
+    console.warn("MyMemory translate failed:", err.message);
   }
 
   return {
@@ -332,12 +335,11 @@ async function translateText({ text, target, source = "en", debug = false }) {
 app.get("/api/ping", (_req, res) => {
   res.json({
     ok: true,
-    version: "v5007",
+    version: "v5008-free-translate",
     ts: Date.now(),
-    openaiConfigured: !!OPENAI_KEY,
-    openaiKeyStartsWithSk: OPENAI_KEY.startsWith("sk-"),
-    openaiKeyLength: OPENAI_KEY.length,
-    openaiModel: process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini",
+    translateMode: "free",
+    envTranslateConfigured: !!process.env.TRANSLATE_API_URL,
+    myMemoryEnabled: true,
     replicateConfigured: !!process.env.REPLICATE_API_TOKEN,
     langs: Array.from(SUPPORTED_LANGS),
   });
@@ -429,7 +431,6 @@ app.get("/api/translate-test", async (req, res) => {
       text: "Create image",
       target: lang,
       source: "en",
-      debug: true,
     });
 
     res.json({
@@ -444,61 +445,6 @@ app.get("/api/translate-test", async (req, res) => {
       ok: false,
       error: "translate_test_failed",
       message: err?.message || null,
-      status: err?.status || null,
-      code: err?.code || null,
-      type: err?.type || null,
-    });
-  }
-});
-
-app.get("/api/openai-debug", async (_req, res) => {
-  try {
-    if (!OPENAI_KEY) {
-      return res.status(500).json({
-        ok: false,
-        error: "missing_openai_api_key",
-      });
-    }
-
-    if (!openai) {
-      return res.status(500).json({
-        ok: false,
-        error: "openai_client_not_initialized",
-      });
-    }
-
-    const model = String(process.env.OPENAI_TRANSLATE_MODEL || "gpt-4o-mini").trim();
-
-    const response = await openai.chat.completions.create({
-      model,
-      temperature: 0,
-      messages: [
-        {
-          role: "system",
-          content: "Return only translated text.",
-        },
-        {
-          role: "user",
-          content: "Translate to German: Create image",
-        },
-      ],
-    });
-
-    const translated = response?.choices?.[0]?.message?.content?.trim() || null;
-
-    res.json({
-      ok: true,
-      model,
-      translated,
-    });
-  } catch (err) {
-    res.status(500).json({
-      ok: false,
-      error: "openai_debug_failed",
-      message: err?.message || null,
-      status: err?.status || null,
-      code: err?.code || null,
-      type: err?.type || null,
     });
   }
 });
@@ -1044,5 +990,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("The Future PRO v5007 running on :" + PORT);
+  console.log("The Future PRO v5008 FREE translate running on :" + PORT);
 });
