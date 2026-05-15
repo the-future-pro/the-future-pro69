@@ -55,9 +55,15 @@
       border:3px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.9);
       animation:spin 1s linear infinite
     }
+    .error-box{
+      width:100%;padding:30px;text-align:left
+    }
+    .error-box pre{
+      margin-top:18px;white-space:pre-wrap;word-break:break-word;color:#fff;
+      background:#111;padding:14px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.08)
+    }
     @keyframes spin{to{transform:rotate(360deg)}}
-    .action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .action-row a,.action-row button{flex:1;text-align:center}
     @media(max-width:900px){.studio-grid{grid-template-columns:1fr}.result{min-height:430px}}
   </style>
 </head>
@@ -74,11 +80,7 @@
         </div>
       </a>
 
-      <select
-        id="langSwitcher"
-        class="lang-switcher"
-        aria-label="Language"
-      ></select>
+      <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
 
       <div class="nav-actions">
         <a class="ghost-btn" href="/premium">Premium</a>
@@ -90,11 +92,7 @@
     <section class="section" style="padding-top:28px">
       <div class="section-head">
         <span>IMAGE STUDIO</span>
-
-        <h2>
-          Creează imagini AI cinematice cu realism premium.
-        </h2>
-
+        <h2>Creează imagini AI cinematice cu realism premium.</h2>
         <p>
           Scrie un prompt, alege calitatea și generează imagini fictive, stilizate și cinematice. Platforma acceptă prompturi în mai multe limbi, însă engleza oferă de obicei cele mai precise rezultate.
         </p>
@@ -110,9 +108,7 @@
 
     <section class="studio-grid">
       <div class="panel">
-        <h3>
-          Creează imagine
-        </h3>
+        <h3>Creează imagine</h3>
 
         <div class="field">
           <label>Prompt</label>
@@ -123,21 +119,10 @@
         </div>
 
         <div class="chips">
-          <button class="chip" type="button" onclick="addPrompt('ultra realistic cinematic portrait')">
-            cinematic portrait
-          </button>
-
-          <button class="chip" type="button" onclick="addPrompt('soft neon luxury lighting')">
-            neon luxury
-          </button>
-
-          <button class="chip" type="button" onclick="addPrompt('natural skin texture, realistic pores, subtle imperfections')">
-            skin realism
-          </button>
-
-          <button class="chip" type="button" onclick="addPrompt('35mm lens, shallow depth of field, film grain')">
-            camera realism
-          </button>
+          <button class="chip" type="button" onclick="addPrompt('ultra realistic cinematic portrait')">cinematic portrait</button>
+          <button class="chip" type="button" onclick="addPrompt('soft neon luxury lighting')">neon luxury</button>
+          <button class="chip" type="button" onclick="addPrompt('natural skin texture, realistic pores, subtle imperfections')">skin realism</button>
+          <button class="chip" type="button" onclick="addPrompt('35mm lens, shallow depth of field, film grain')">camera realism</button>
         </div>
 
         <div class="field">
@@ -157,11 +142,7 @@
           </select>
         </div>
 
-        <button
-          id="go"
-          class="main-btn"
-          style="border:0;width:100%;margin-top:10px"
-        >
+        <button id="go" class="main-btn" style="border:0;width:100%;margin-top:10px">
           Generează imagine
         </button>
 
@@ -175,13 +156,9 @@
       <div class="result" id="result">
         <div class="loading-box">
           <div class="eyebrow">PREVIEW</div>
-
-          <h2 style="margin:10px 0">
-            Imaginea generată va apărea aici
-          </h2>
-
+          <h2 style="margin:10px 0">Imaginea generată va apărea aici</h2>
           <p style="color:var(--muted);max-width:520px;margin:auto">
-            Pentru moment, pagina poate funcționa în modul demo/mock. Următorul pas este conectarea generării reale de imagini.
+            Scrie un prompt și apasă pe Generează imagine.
           </p>
         </div>
       </div>
@@ -193,10 +170,6 @@
 const $ = (s)=>document.querySelector(s);
 const out = $('#out');
 const result = $('#result');
-
-function safeText(key, fallback){
-  return window.t ? window.t(key) : fallback;
-}
 
 function showDebug(x){
   out.textContent = typeof x === 'string' ? x : JSON.stringify(x,null,2);
@@ -247,7 +220,7 @@ function gateQuality(){
   }
 }
 
-function setLoading(prompt){
+function setLoading(){
   result.innerHTML = `
     <div class="loading-box">
       <div class="loader"></div>
@@ -260,18 +233,17 @@ function setLoading(prompt){
   `;
 }
 
-function setMockResult(data){
+function setErrorBox(data){
+  const errorText = typeof data === 'string' ? data : JSON.stringify(data,null,2);
+
   result.innerHTML = `
-    <div class="loading-box">
-      <div class="eyebrow">DEMO MODE</div>
-      <h2 style="margin:10px 0">Generatorul este pregătit</h2>
-      <p style="color:var(--muted);max-width:560px;margin:auto">
-        Endpointul de imagine răspunde, dar generarea reală trebuie conectată la modelul AI. Promptul tău a fost trimis corect.
+    <div class="error-box">
+      <div class="eyebrow">IMAGE ERROR</div>
+      <h2 style="margin:12px 0">Generarea imaginii a eșuat</h2>
+      <p style="color:#ff8ea1">
+        Serverul a răspuns, dar Replicate a returnat o eroare. Copiază eroarea de mai jos și trimite-mi-o.
       </p>
-      <div class="studio-note" style="text-align:left;margin-top:18px">
-        <strong>Prompt:</strong><br>
-        ${escapeHtml(data.prompt || '')}
-      </div>
+      <pre>${escapeHtml(errorText)}</pre>
     </div>
   `;
 }
@@ -309,7 +281,7 @@ $('#go').onclick = async ()=>{
     return alert('Scrie un prompt.');
   }
 
-  setLoading(prompt);
+  setLoading();
 
   showDebug({
     status:'generating',
@@ -336,17 +308,42 @@ $('#go').onclick = async ()=>{
 
     showDebug(data);
 
+    if(!r.ok || !data.ok){
+      setErrorBox(data);
+      return;
+    }
+
+    if(data.mode === 'mock'){
+      setErrorBox(data);
+      return;
+    }
+
     if(data.url){
       result.innerHTML = `<img src="${data.url}" alt="generated image">`;
-    } else {
-      setMockResult({
-        prompt,
-        negative,
-        quality
-      });
+      return;
     }
+
+    setErrorBox({
+      ok:false,
+      error:'missing_image_url',
+      response:data
+    });
+
   }catch(e){
-    setMockResult({
+    console.error(e);
+
+    setErrorBox({
+      ok:false,
+      error:'frontend_fetch_failed',
+      details:String(e),
+      prompt,
+      negative,
+      quality
+    });
+
+    showDebug({
+      ok:false,
+      error:String(e),
       prompt,
       negative,
       quality
