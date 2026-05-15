@@ -20,6 +20,7 @@ html,body{
   background:var(--bg);
   color:var(--ink);
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  overflow-x:hidden;
 }
 
 a{
@@ -48,14 +49,17 @@ button,input,select{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:18px;
+  gap:14px;
   padding:10px 0 24px;
+  flex-wrap:wrap;
 }
 
 .brand{
   display:flex;
   align-items:center;
   gap:12px;
+  min-width:210px;
+  flex-shrink:0;
 }
 
 .brand-mark{
@@ -67,6 +71,7 @@ button,input,select{
   font-weight:900;
   background:linear-gradient(135deg,var(--purple),var(--pink));
   box-shadow:0 0 35px rgba(155,92,255,.45);
+  flex-shrink:0;
 }
 
 .brand strong{
@@ -80,10 +85,19 @@ button,input,select{
   font-size:13px;
 }
 
+.lang-switcher{
+  min-width:92px;
+  max-width:120px;
+  flex-shrink:0;
+}
+
 .nav-actions{
   display:flex;
   gap:10px;
   align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  min-width:0;
 }
 
 .main-btn,
@@ -95,6 +109,7 @@ button,input,select{
   padding:0 18px;
   border-radius:999px;
   font-weight:800;
+  white-space:nowrap;
 }
 
 .main-btn{
@@ -165,11 +180,28 @@ button,input,select{
   max-width:620px;
 }
 
-.hero-buttons{
+.hero-buttons,
+.hero-actions{
   display:flex;
   gap:12px;
   flex-wrap:wrap;
   margin-top:32px;
+}
+
+.trust-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:28px;
+}
+
+.trust-row span{
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:8px 11px;
+  color:var(--muted);
+  background:rgba(255,255,255,.05);
+  font-size:13px;
 }
 
 .hero-stats{
@@ -308,14 +340,17 @@ button,input,select{
 }
 
 .badge{
-  position:absolute;
-  top:18px;
-  right:18px;
   padding:6px 10px;
   border-radius:999px;
   background:var(--pink);
   font-size:12px;
   font-weight:900;
+}
+
+.plan .badge{
+  position:absolute;
+  top:18px;
+  right:18px;
 }
 
 .plan h3{
@@ -341,11 +376,13 @@ button,input,select{
   border-top:1px solid var(--line);
   margin-top:70px;
   padding:28px 0;
+  flex-wrap:wrap;
 }
 
 .home-footer div{
   display:flex;
   gap:18px;
+  flex-wrap:wrap;
 }
 
 /* Compatibilitate pagini vechi */
@@ -391,7 +428,66 @@ h1{
   margin:0 0 16px;
 }
 
+/* Fix general pentru layout-uri custom */
+.premium-shell,
+.feed-shell,
+.profile-shell,
+.discover,
+.studio{
+  width:min(1280px,100%);
+}
+
+/* Tablet */
+@media(max-width:1100px){
+  .topbar{
+    align-items:flex-start;
+  }
+
+  .nav-actions{
+    justify-content:flex-start;
+  }
+
+  .feature-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+/* Mobile */
 @media(max-width:900px){
+  .home-shell{
+    padding:14px;
+  }
+
+  .topbar{
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
+  }
+
+  .brand{
+    width:100%;
+  }
+
+  .lang-switcher{
+    width:100%;
+    max-width:none;
+  }
+
+  .nav-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .nav-actions .main-btn,
+  .nav-actions .ghost-btn{
+    width:100%;
+    padding:0 12px;
+    min-height:44px;
+    font-size:14px;
+  }
+
   .feature-grid,
   .plans,
   .split{
@@ -400,6 +496,7 @@ h1{
 
   .hero{
     min-height:auto;
+    border-radius:26px;
   }
 
   .hero-content{
@@ -410,16 +507,58 @@ h1{
     grid-template-columns:1fr;
   }
 
-  .topbar{
-    align-items:flex-start;
+  .hero-actions,
+  .hero-buttons{
+    flex-direction:column;
   }
 
-  .nav-actions{
-    flex-direction:column;
-    align-items:stretch;
+  .hero-actions .main-btn,
+  .hero-actions .ghost-btn,
+  .hero-buttons .main-btn,
+  .hero-buttons .ghost-btn{
+    width:100%;
   }
 
   .home-footer{
     flex-direction:column;
   }
+
+  .home-footer div{
+    flex-direction:column;
+    gap:10px;
   }
+}
+
+/* Small mobile */
+@media(max-width:520px){
+  .nav-actions{
+    grid-template-columns:1fr;
+  }
+
+  .brand strong{
+    font-size:18px;
+  }
+
+  .brand span{
+    font-size:12px;
+  }
+
+  .hero h1{
+    font-size:42px;
+  }
+
+  .section{
+    padding-top:54px;
+  }
+
+  .section-head h2,
+  .split h2{
+    font-size:34px;
+  }
+
+  .main-btn,
+  .ghost-btn{
+    white-space:normal;
+    text-align:center;
+  }
+}
