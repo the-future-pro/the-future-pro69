@@ -1,13 +1,14 @@
-// public/i18n.js — The Future PRO — Auto Translate Engine v9
+// public/i18n.js — The Future PRO — Auto Translate Engine v10
 // Source language: RO
 // Backend: /api/translate/batch
-// Includes automatic prompt warning under prompt fields
+// Full page translation + automatic prompt warning
 
 (function () {
   const DEFAULT_LANG = "ro";
   const SOURCE_LANG = "ro";
-  const LOCAL_TRANSLATE_CACHE_KEY = "tfp_translate_cache_v9";
-  const MAX_TEXTS_PER_BATCH = 50;
+  const LOCAL_TRANSLATE_CACHE_KEY = "tfp_translate_cache_v10";
+  const MAX_TEXTS_PER_BATCH = 35;
+  const MAX_TOTAL_TEXTS = 350;
 
   const PROMPT_HINT_TEXT =
     "✨ Prompturile pot fi scrise în orice limbă, însă pentru cele mai precise și cinematice rezultate recomandăm limba engleză.";
@@ -93,7 +94,7 @@
   }
 
   function injectPromptHints() {
-    const fields = document.querySelectorAll("textarea, input[type='text']");
+    const fields = document.querySelectorAll("textarea, input[type='text'], input:not([type])");
 
     fields.forEach(function (field) {
       const id = String(field.id || "").toLowerCase();
@@ -108,7 +109,8 @@
         placeholder.includes("prompt") ||
         placeholder.includes("storyboard") ||
         placeholder.includes("cinematic") ||
-        placeholder.includes("ultra realistic");
+        placeholder.includes("ultra realistic") ||
+        placeholder.includes("portret cinematic");
 
       if (!isPromptField) return;
 
@@ -171,21 +173,6 @@
       return true;
     }
 
-    const blockText = (el.innerText || "").trim();
-
-    if (
-      blockText.startsWith("{") ||
-      blockText.startsWith("[") ||
-      blockText.includes('"ok"') ||
-      blockText.includes('"error"') ||
-      blockText.includes('"logged"') ||
-      blockText.includes('"message"') ||
-      blockText.includes("login_required") ||
-      blockText.includes("subscription_required")
-    ) {
-      return true;
-    }
-
     return false;
   }
 
@@ -195,7 +182,7 @@
     const clean = String(text || "").trim();
 
     if (clean.length < 2) return false;
-    if (clean.length > 500) return false;
+    if (clean.length > 700) return false;
 
     if (/^\d+$/.test(clean)) return false;
     if (/^[\d\s.,:;!?€$£%+\-()]+$/.test(clean)) return false;
@@ -290,6 +277,25 @@
     return texts;
   }
 
+  function applyCachedTranslations(textNodes, lang) {
+    textNodes.forEach(function (node) {
+      if (!node.__originalText) {
+        node.__originalText = node.nodeValue;
+      }
+
+      const original = String(node.__originalText || "").trim();
+
+      if (!isTranslatableText(original)) return;
+
+      const cacheKey = getCacheKey(lang, original);
+
+      if (LOCAL_CACHE[cacheKey]) {
+        node.nodeValue = node.__originalText.replace(original, LOCAL_CACHE[cacheKey]);
+        node.__autoTranslated = true;
+      }
+    });
+  }
+
   window.autoTranslatePage = async function () {
     if (isTranslating) return;
 
@@ -308,65 +314,67 @@
 
     try {
       const textNodes = collectTextNodes();
-      const uniqueTexts = [];
 
       textNodes.forEach(function (node) {
         if (!node.__originalText) {
           node.__originalText = node.nodeValue;
         }
+      });
 
+      applyCachedTranslations(textNodes, lang);
+
+      const uniqueTexts = [];
+
+      textNodes.forEach(function (node) {
         const original = String(node.__originalText || "").trim();
 
         if (!isTranslatableText(original)) return;
 
         const cacheKey = getCacheKey(lang, original);
 
-        if (LOCAL_CACHE[cacheKey]) {
-          node.nodeValue = node.__originalText.replace(original, LOCAL_CACHE[cacheKey]);
-          node.__autoTranslated = true;
-          return;
-        }
+        if (LOCAL_CACHE[cacheKey]) return;
 
         if (!uniqueTexts.includes(original)) {
           uniqueTexts.push(original);
         }
       });
 
-      const toTranslate = uniqueTexts.slice(0, MAX_TEXTS_PER_BATCH);
+      const limitedTexts = uniqueTexts.slice(0, MAX_TOTAL_TEXTS);
 
-      if (!toTranslate.length) {
+      if (!limitedTexts.length) {
         console.log("[i18n] Nothing new to translate.");
         return;
       }
 
-      console.log("[i18n] Sending to backend:", {
-        source: SOURCE_LANG,
-        target: lang,
-        count: toTranslate.length,
-        items: toTranslate
-      });
+      console.log("[i18n] Total texts to translate:", limitedTexts.length);
 
-      const translations = await translateBatch(toTranslate, lang);
+      for (let i = 0; i < limitedTexts.length; i += MAX_TEXTS_PER_BATCH) {
+        const batch = limitedTexts.slice(i, i + MAX_TEXTS_PER_BATCH);
 
-      toTranslate.forEach(function (original, index) {
-        const translated = translations[index] || original;
-        const cacheKey = getCacheKey(lang, original);
-        LOCAL_CACHE[cacheKey] = translated;
-      });
+        console.log("[i18n] Sending batch:", {
+          source: SOURCE_LANG,
+          target: lang,
+          from: i,
+          count: batch.length
+        });
 
-      saveLocalCache(LOCAL_CACHE);
+        const translations = await translateBatch(batch, lang);
 
-      textNodes.forEach(function (node) {
-        const original = String(node.__originalText || node.nodeValue || "").trim();
-        const cacheKey = getCacheKey(lang, original);
+        batch.forEach(function (original, index) {
+          const translated = translations[index] || original;
+          const cacheKey = getCacheKey(lang, original);
+          LOCAL_CACHE[cacheKey] = translated;
+        });
 
-        if (LOCAL_CACHE[cacheKey]) {
-          node.nodeValue = node.__originalText.replace(original, LOCAL_CACHE[cacheKey]);
-          node.__autoTranslated = true;
-        }
-      });
+        saveLocalCache(LOCAL_CACHE);
+        applyCachedTranslations(textNodes, lang);
 
-      console.log("[i18n] Auto translation complete.");
+        await new Promise(function (resolve) {
+          setTimeout(resolve, 180);
+        });
+      }
+
+      console.log("[i18n] Full page auto translation complete.");
     } catch (err) {
       console.warn("[i18n] Auto translation failed:", err);
     } finally {
