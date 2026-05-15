@@ -31,46 +31,55 @@
     .section-title{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:34px 0 16px}
     .section-title h2{margin:0;font-size:32px}
     .section-title p{margin:6px 0 0;color:var(--muted)}
-    .character-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .character-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
     .character-card{
       position:relative;overflow:hidden;border:1px solid var(--line);border-radius:28px;
       min-height:430px;text-decoration:none;color:var(--ink);
       background:#111;box-shadow:0 20px 70px rgba(0,0,0,.3);
-      transition:.22s transform,.22s border-color
+      transition:.22s transform,.22s border-color,.22s box-shadow
     }
-    .character-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.28)}
+    .character-card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(255,46,136,.45);
+      box-shadow:0 24px 80px rgba(255,46,136,.12)
+    }
     .character-art{
       position:absolute;inset:0;background-size:cover;background-position:center;
       filter:saturate(1.08) contrast(1.02)
+    }
+    .character-art:before{
+      content:"";position:absolute;width:250px;height:360px;left:50%;top:44%;
+      transform:translate(-50%,-50%);border-radius:48% 48% 36% 36%;
+      background:rgba(255,255,255,.13);filter:blur(20px)
     }
     .character-art:after{
       content:"";position:absolute;inset:0;
       background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25) 35%,rgba(0,0,0,.88));
     }
     .portrait-a{background:
-      radial-gradient(circle at 50% 22%,rgba(255,255,255,.28),transparent 20%),
-      radial-gradient(circle at 45% 35%,rgba(255,46,136,.35),transparent 28%),
-      linear-gradient(135deg,#211129,#050509)}
+      radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),
+      radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),
+      linear-gradient(135deg,#210820,#050509)}
     .portrait-b{background:
-      radial-gradient(circle at 52% 24%,rgba(255,255,255,.25),transparent 20%),
-      radial-gradient(circle at 50% 38%,rgba(255,190,120,.30),transparent 28%),
-      linear-gradient(135deg,#2b1b16,#07070a)}
+      radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),
+      radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),
+      linear-gradient(135deg,#2a1509,#050509)}
     .portrait-c{background:
-      radial-gradient(circle at 52% 24%,rgba(255,255,255,.23),transparent 20%),
-      radial-gradient(circle at 48% 40%,rgba(0,240,255,.28),transparent 32%),
-      linear-gradient(135deg,#071d2b,#050509)}
+      radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),
+      radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),
+      linear-gradient(135deg,#021b24,#050509)}
     .portrait-d{background:
-      radial-gradient(circle at 50% 24%,rgba(255,255,255,.25),transparent 20%),
-      radial-gradient(circle at 45% 38%,rgba(130,80,255,.34),transparent 30%),
-      linear-gradient(135deg,#1b1026,#050509)}
+      radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),
+      radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),
+      linear-gradient(135deg,#15051f,#050509)}
     .portrait-e{background:
-      radial-gradient(circle at 50% 24%,rgba(255,255,255,.25),transparent 20%),
-      radial-gradient(circle at 45% 40%,rgba(255,30,80,.28),transparent 32%),
-      linear-gradient(135deg,#2a050b,#050509)}
+      radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),
+      radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),
+      linear-gradient(135deg,#220506,#050509)}
     .portrait-f{background:
-      radial-gradient(circle at 50% 24%,rgba(255,255,255,.25),transparent 20%),
-      radial-gradient(circle at 52% 42%,rgba(255,220,120,.28),transparent 32%),
-      linear-gradient(135deg,#1d1607,#050509)}
+      radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),
+      radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),
+      linear-gradient(135deg,#071027,#050509)}
     .character-info{position:absolute;left:18px;right:18px;bottom:18px;z-index:2}
     .live{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#86efac;margin-bottom:10px}
     .live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 16px #22c55e}
@@ -106,6 +115,7 @@
       <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
 
       <div class="nav-actions">
+        <a class="ghost-btn" href="/feed.html">Feed</a>
         <a class="ghost-btn" href="/gen-image.html">Image Studio</a>
         <a class="ghost-btn" href="/gen-video.html">Video Studio</a>
         <a class="main-btn" href="/premium">Premium</a>
@@ -120,7 +130,7 @@
       </h1>
 
       <p>
-        Explorează personaje fictive cu personalitate, atmosferă, stil vizual și energie proprie. Alege vibe-ul, intră în conversație și construiește o experiență privată, cinematică și memorabilă.
+        Explorează personaje fictive feminine și masculine, fiecare cu personalitate, atmosferă, stil vizual și energie proprie. Alege vibe-ul, intră în profil și construiește o experiență privată, cinematică și memorabilă.
       </p>
 
       <div class="mood-row">
@@ -145,11 +155,11 @@
 
       <div class="character-grid">
 
-        <a class="character-card" href="/chat.html?slug=ava-noir">
+        <a class="character-card" href="/profile.html?slug=ava-noir">
           <div class="character-art portrait-a"></div>
           <div class="character-info">
             <span class="live"><i></i> online acum</span>
-            <h3>Ava Noir</h3>
+            <h3 data-no-translate>Ava Noir</h3>
             <p>Lux întunecat, mister, eleganță rece și conversații intense.</p>
             <div class="tags">
               <span class="tag">Dark Luxury</span>
@@ -159,11 +169,11 @@
           </div>
         </a>
 
-        <a class="character-card" href="/chat.html?slug=mira-vale">
+        <a class="character-card" href="/profile.html?slug=mira-vale">
           <div class="character-art portrait-b"></div>
           <div class="character-info">
             <span class="live"><i></i> online acum</span>
-            <h3>Mira Vale</h3>
+            <h3 data-no-translate>Mira Vale</h3>
             <p>Calmă, apropiată, dulce și construită pentru conversații emoționale.</p>
             <div class="tags">
               <span class="tag">Soft</span>
@@ -173,11 +183,11 @@
           </div>
         </a>
 
-        <a class="character-card" href="/chat.html?slug=kira-voss">
+        <a class="character-card" href="/profile.html?slug=kira-voss">
           <div class="character-art portrait-c"></div>
           <div class="character-info">
             <span class="live"><i></i> online acum</span>
-            <h3>Kira Voss</h3>
+            <h3 data-no-translate>Kira Voss</h3>
             <p>Muză cyberpunk, energie magnetică și atmosferă futuristă.</p>
             <div class="tags">
               <span class="tag">Cyberpunk</span>
@@ -187,16 +197,44 @@
           </div>
         </a>
 
-        <a class="character-card" href="/chat.html?slug=luna-sable">
+        <a class="character-card" href="/profile.html?slug=luna-sable">
           <div class="character-art portrait-d"></div>
           <div class="character-info">
             <span class="live"><i></i> online acum</span>
-            <h3>Luna Sable</h3>
+            <h3 data-no-translate>Luna Sable</h3>
             <p>Romantic goth, poetică, intensă și cu un aer obsesiv-premium.</p>
             <div class="tags">
               <span class="tag">Goth</span>
               <span class="tag">Poetic</span>
               <span class="tag">Dark Romance</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="character-card" href="/profile.html?slug=dante-vale">
+          <div class="character-art portrait-e"></div>
+          <div class="character-info">
+            <span class="live"><i></i> online acum</span>
+            <h3 data-no-translate>Dante Vale</h3>
+            <p>Masculin, calm, protector, elegant și cu energie de pericol controlat.</p>
+            <div class="tags">
+              <span class="tag">Masculine</span>
+              <span class="tag">Luxury</span>
+              <span class="tag">Protective</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="character-card" href="/profile.html?slug=noah-sterling">
+          <div class="character-art portrait-f"></div>
+          <div class="character-info">
+            <span class="live"><i></i> activ azi</span>
+            <h3 data-no-translate>Noah Sterling</h3>
+            <p>Elegant, inteligent, rece și construit pentru experiențe premium rafinate.</p>
+            <div class="tags">
+              <span class="tag">CEO</span>
+              <span class="tag">Elegant</span>
+              <span class="tag">Premium</span>
             </div>
           </div>
         </a>
@@ -222,7 +260,7 @@
         <button class="category" type="button">Protective</button>
         <button class="category" type="button">Mafia Vibe</button>
         <button class="category" type="button">Sweet & Emotional</button>
-        <button class="category" type="button">Dangerous</button>
+        <button class="category" type="button">Masculine Luxury</button>
       </div>
     </section>
 
@@ -239,7 +277,7 @@
         <div class="mini-card">
           <div class="eyebrow">01</div>
           <h3>Profiluri persistente</h3>
-          <p>Fiecare companion va avea lore, personalitate, stil, preferințe și istoric de conversație.</p>
+          <p>Fiecare companion are lore, personalitate, stil, preferințe și istoric de conversație.</p>
         </div>
 
         <div class="mini-card">
@@ -260,18 +298,19 @@
       <div>
         <span class="eyebrow">START EXPERIENCE</span>
         <h2>Intră în universul tău AI privat.</h2>
-        <p>Alege un companion, începe conversația și testează experiența premium.</p>
+        <p>Alege un companion, vezi profilul, începe conversația și testează experiența premium.</p>
       </div>
 
-      <a class="main-btn big" href="/chat.html?slug=ava-noir">
+      <a class="main-btn big" href="/profile.html?slug=ava-noir">
         Începe cu Ava Noir
       </a>
     </section>
 
     <footer class="home-footer">
-      <span>© The Future — PRO</span>
+      <span data-no-translate>© The Future — PRO</span>
 
       <div>
+        <a href="/feed.html">Feed</a>
         <a href="/privacy.html">Confidențialitate</a>
         <a href="/terms.html">Termeni</a>
         <a href="/safety.html">Siguranță</a>
