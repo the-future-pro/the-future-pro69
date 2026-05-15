@@ -2,11 +2,7 @@
 <html lang="ro">
 <head>
   <meta charset="utf-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1"
-  />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <title>Chat — The Future PRO</title>
 
@@ -16,696 +12,371 @@
   <style>
     .chat-shell{max-width:980px;margin:0 auto;padding:18px}
     .chat-app{
-      min-height:88vh;
-      border:1px solid var(--line);
-      border-radius:30px;
-      overflow:hidden;
+      min-height:88vh;border:1px solid var(--line);border-radius:30px;overflow:hidden;
       background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-      box-shadow:0 30px 90px rgba(0,0,0,.55);
+      box-shadow:0 30px 90px rgba(0,0,0,.55)
     }
     .chat-head{
       display:flex;justify-content:space-between;align-items:center;gap:12px;
       padding:18px;border-bottom:1px solid var(--line);
-      background:rgba(0,0,0,.28);backdrop-filter:blur(16px);
+      background:rgba(0,0,0,.28);backdrop-filter:blur(16px)
     }
     .companion{display:flex;align-items:center;gap:12px}
     .avatar{
-      width:52px;height:52px;border-radius:18px;
-      background:linear-gradient(135deg,var(--purple),var(--pink));
-      display:grid;place-items:center;font-weight:900;
-      box-shadow:0 0 35px rgba(255,46,136,.35);
+      width:54px;height:54px;border-radius:18px;overflow:hidden;flex-shrink:0;
+      box-shadow:0 0 35px rgba(255,46,136,.22)
     }
+    .ai-face{width:100%;height:100%;position:relative;overflow:hidden;background:#111}
+    .ai-face:before{
+      content:"";position:absolute;width:38%;height:44%;left:31%;top:16%;
+      border-radius:48%;background:rgba(255,255,255,.78);filter:blur(8px);opacity:.38
+    }
+    .ai-face:after{
+      content:"";position:absolute;left:18%;right:18%;bottom:0;height:48%;
+      border-radius:48% 48% 0 0;background:rgba(255,255,255,.18);filter:blur(10px)
+    }
+    .ava-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,235,.60),transparent 18%),radial-gradient(circle at 50% 42%,rgba(255,46,136,.36),transparent 32%),linear-gradient(135deg,#1d081e,#050509)}
+    .mira-face{background:radial-gradient(circle at 50% 26%,rgba(255,235,210,.60),transparent 18%),radial-gradient(circle at 52% 44%,rgba(255,176,90,.34),transparent 34%),linear-gradient(135deg,#25130c,#050509)}
+    .kira-face{background:radial-gradient(circle at 50% 26%,rgba(210,250,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(0,230,255,.34),transparent 34%),linear-gradient(135deg,#031b25,#050509)}
+    .luna-face{background:radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),linear-gradient(135deg,#15051f,#050509)}
+    .dante-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),linear-gradient(135deg,#210506,#050509)}
+    .noah-face{background:radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),linear-gradient(135deg,#071027,#050509)}
     .companion strong{display:block;font-size:18px}
     .companion span{display:block;color:var(--muted);font-size:13px}
-    .status-dot{
-      display:inline-block;
-      width:8px;
-      height:8px;
-      background:#34d399;
-      border-radius:999px;
-      margin-right:6px
-    }
+    .status-dot{display:inline-block;width:8px;height:8px;background:#34d399;border-radius:999px;margin-right:6px;box-shadow:0 0 14px #34d399}
     .chat-log{
-      height:58vh;
-      overflow:auto;
-      padding:18px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      background:
-        radial-gradient(500px 260px at 10% 20%,rgba(155,92,255,.12),transparent),
-        radial-gradient(500px 260px at 90% 40%,rgba(255,46,136,.1),transparent);
+      height:58vh;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px;
+      background:radial-gradient(500px 260px at 10% 20%,rgba(155,92,255,.12),transparent),
+      radial-gradient(500px 260px at 90% 40%,rgba(255,46,136,.1),transparent)
     }
     .bubble{
-      max-width:78%;
-      padding:13px 15px;
-      border-radius:20px;
-      line-height:1.45;
-      border:1px solid var(--line);
-      animation:pop .18s ease;
+      max-width:78%;padding:13px 15px;border-radius:20px;line-height:1.45;
+      border:1px solid var(--line);animation:pop .18s ease
     }
-    @keyframes pop{
-      from{
-        transform:translateY(4px);
-        opacity:.3
-      }
-      to{
-        transform:none;
-        opacity:1
-      }
+    @keyframes pop{from{transform:translateY(4px);opacity:.3}to{transform:none;opacity:1}}
+    .bubble.you{align-self:flex-end;background:linear-gradient(135deg,var(--red),var(--pink));color:white;border-color:transparent;border-bottom-right-radius:6px}
+    .bubble.ai{align-self:flex-start;background:rgba(255,255,255,.07);border-bottom-left-radius:6px}
+    .bubble small{display:block;color:rgba(255,255,255,.7);margin-bottom:5px}
+    .composer{padding:16px;border-top:1px solid var(--line);background:rgba(0,0,0,.28)}
+    .composer-row{display:flex;gap:10px}
+    .composer-row input{flex:1}
+    .tools{margin-top:12px;display:grid;grid-template-columns:120px 150px 1fr 150px;gap:10px}
+    .typing{color:var(--muted);font-size:13px;padding:0 18px 12px;display:none}
+    .empty{text-align:center;color:var(--muted);padding:60px 20px;line-height:1.6}
+    .profile-chip{
+      display:inline-flex;align-items:center;gap:6px;margin-top:4px;color:var(--muted);
+      font-size:12px;text-decoration:none
     }
-    .bubble.you{
-      align-self:flex-end;
-      background:linear-gradient(135deg,var(--red),var(--pink));
-      color:white;
-      border-color:transparent;
-      border-bottom-right-radius:6px;
-    }
-    .bubble.ai{
-      align-self:flex-start;
-      background:rgba(255,255,255,.07);
-      border-bottom-left-radius:6px;
-    }
-    .bubble small{
-      display:block;
-      color:rgba(255,255,255,.7);
-      margin-bottom:5px
-    }
-    .media-box{
-      margin-top:8px;
-      border-radius:18px;
-      overflow:hidden;
-      border:1px solid var(--line);
-      background:#07070a;
-    }
-    .media{
-      display:block;
-      width:100%;
-      max-height:360px;
-      object-fit:cover;
-    }
-    .blurred{
-      filter:blur(16px)
-    }
-    .unlock-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      padding:12px;
-      background:rgba(0,0,0,.42);
-    }
-    .composer{
-      padding:16px;
-      border-top:1px solid var(--line);
-      background:rgba(0,0,0,.28);
-    }
-    .composer-row{
-      display:flex;
-      gap:10px
-    }
-    .composer-row input{
-      flex:1
-    }
-    .tools{
-      margin-top:12px;
-      display:grid;
-      grid-template-columns:120px 150px 1fr 150px;
-      gap:10px;
-    }
-    .typing{
-      color:var(--muted);
-      font-size:13px;
-      padding:0 18px 12px;
-      display:none;
-    }
-    .empty{
-      text-align:center;
-      color:var(--muted);
-      padding:60px 20px;
-    }
+    .profile-chip:hover{color:#ff5fb0}
     @media(max-width:760px){
-      .chat-shell{padding:8px}
-      .chat-app{border-radius:22px}
-      .chat-log{height:56vh}
-      .tools{grid-template-columns:1fr}
-      .bubble{max-width:92%}
-      .chat-head{align-items:flex-start}
+      .chat-shell{padding:8px}.chat-app{border-radius:22px}.chat-log{height:56vh}
+      .tools{grid-template-columns:1fr}.bubble{max-width:92%}.chat-head{align-items:flex-start;flex-wrap:wrap}
     }
   </style>
 </head>
 
 <body class="home-page">
-  <main class="chat-shell">
-    <div class="chat-app">
+<main class="chat-shell">
+  <div class="chat-app">
 
-      <div class="chat-head">
-        <div class="companion">
-          <div class="avatar" id="avatar">AI</div>
-
-          <div>
-            <strong id="title">Companion</strong>
-
-            <span>
-              <i class="status-dot"></i>
-
-              <span data-i18n="online">
-                online
-              </span>
-
-              •
-
-              <span data-i18n="chat_title">
-                Chat privat
-              </span>
-            </span>
-          </div>
+    <div class="chat-head">
+      <div class="companion">
+        <div class="avatar">
+          <div id="avatarArt" class="ai-face ava-face"></div>
         </div>
 
-        <select
-          id="langSwitcher"
-          class="lang-switcher"
-          aria-label="Language"
-        ></select>
+        <div>
+          <strong id="title" data-no-translate>Ava Noir</strong>
 
-        <div class="nav-actions">
-          <a
-            class="ghost-btn"
-            href="/premium"
-            data-i18n="member_area"
-          >
-            Zona de membri
-          </a>
+          <span>
+            <i class="status-dot"></i>
+            online • <span id="vibeText">Dark luxury companion</span>
+          </span>
 
-          <a
-            class="main-btn"
-            href="/gen-image.html"
-            data-i18n="create"
-          >
-            Creează
+          <a id="profileLink" class="profile-chip" href="/profile.html?slug=ava-noir">
+            Vezi profilul companionului
           </a>
         </div>
       </div>
 
-      <div id="log" class="chat-log">
-        <div
-          class="empty"
-          id="empty"
-          data-i18n="chat_empty"
+      <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
+
+      <div class="nav-actions">
+        <a class="ghost-btn" href="/feed.html">Feed</a>
+        <a class="ghost-btn" id="backProfile" href="/profile.html?slug=ava-noir">Profil</a>
+        <a class="main-btn" href="/gen-image.html">Creează</a>
+      </div>
+    </div>
+
+    <div id="log" class="chat-log">
+      <div class="empty" id="empty">
+        Conversația privată începe aici. Scrie un mesaj companionului tău AI fictiv.
+      </div>
+    </div>
+
+    <div id="typing" class="typing">
+      AI scrie...
+    </div>
+
+    <div class="composer">
+      <div class="composer-row">
+        <input
+          id="text"
+          placeholder="Scrie un mesaj..."
+          onkeydown="if(event.key==='Enter')send()"
         >
-          Alege un companion din Premium sau începe conversația.
-        </div>
+
+        <button class="main-btn" onclick="send()" style="border:0">
+          Trimite
+        </button>
+      </div>
+
+      <div class="tools">
+        <select id="kind">
+          <option value="image">Image teaser</option>
+          <option value="video">Video teaser</option>
+        </select>
+
+        <select id="quality_img">
+          <option value="1024">1024</option>
+          <option value="2048">2048</option>
+          <option value="8k">8K</option>
+        </select>
+
+        <input
+          id="neg"
+          placeholder="Extra style / negative prompt"
+        >
+
+        <button
+          class="ghost-btn"
+          onclick="offer()"
+          style="border:1px solid var(--line)"
+        >
+          Generează teaser
+        </button>
       </div>
 
       <div
-        id="typing"
-        class="typing"
-        data-i18n="typing"
+        id="videoOpts"
+        class="tools"
+        style="display:none;grid-template-columns:1fr 1fr;margin-top:10px"
       >
-        AI scrie...
+        <select id="v_sec">
+          <option value="10">10s</option>
+          <option value="20">20s</option>
+        </select>
+
+        <select id="v_q">
+          <option>1080p</option>
+          <option>4k</option>
+        </select>
       </div>
-
-      <div class="composer">
-        <div class="composer-row">
-          <input
-            id="text"
-            data-i18n-placeholder="chat_placeholder"
-            placeholder="Scrie un mesaj..."
-            onkeydown="if(event.key==='Enter')send()"
-          >
-
-          <button
-            class="main-btn"
-            onclick="send()"
-            style="border:0"
-            data-i18n="send"
-          >
-            Trimite
-          </button>
-        </div>
-
-        <div class="tools">
-          <select id="kind">
-            <option value="image">Image teaser</option>
-            <option value="video">Video teaser</option>
-          </select>
-
-          <select id="quality_img">
-            <option value="1024">1024</option>
-            <option value="2048">2048</option>
-            <option value="8k">8K</option>
-          </select>
-
-          <input
-            id="neg"
-            data-i18n-placeholder="negative_prompt"
-            placeholder="Extra style / negative prompt"
-          >
-
-          <button
-            class="ghost-btn"
-            onclick="offer()"
-            style="border:1px solid var(--line)"
-            data-i18n="generate_teaser"
-          >
-            Generează teaser
-          </button>
-        </div>
-
-        <div
-          id="videoOpts"
-          class="tools"
-          style="display:none;grid-template-columns:1fr 1fr;margin-top:10px"
-        >
-          <select id="v_sec">
-            <option value="10">10s</option>
-            <option value="20">20s</option>
-          </select>
-
-          <select id="v_q">
-            <option>1080p</option>
-            <option>4k</option>
-          </select>
-        </div>
-      </div>
-
     </div>
-  </main>
+
+  </div>
+</main>
 
 <script>
+const profiles = {
+  "ava-noir": {
+    name: "Ava Noir",
+    face: "ava-face",
+    vibe: "Dark luxury companion",
+    intro: "Mă bucur că ai venit. Spune-mi ce fel de atmosferă vrei să creăm în seara asta.",
+    reply: "Înțeleg. O să păstrez experiența privată, cinematică și adaptată stilului tău."
+  },
+  "mira-vale": {
+    name: "Mira Vale",
+    face: "mira-face",
+    vibe: "Soft romance companion",
+    intro: "Hei. Sunt aici. Putem merge încet, calm și sincer.",
+    reply: "Îmi place cum ai spus asta. Hai să construim momentul într-un mod cald și personal."
+  },
+  "kira-voss": {
+    name: "Kira Voss",
+    face: "kira-face",
+    vibe: "Cyberpunk muse",
+    intro: "Conexiune activă. Neonul e aprins. Ce vrei să explorăm?",
+    reply: "Interesant. Îl transform într-un vibe rece, electric și cinematic."
+  },
+  "luna-sable": {
+    name: "Luna Sable",
+    face: "luna-face",
+    vibe: "Goth romantic companion",
+    intro: "Unele conversații încep în liniște. A ta ce ascunde?",
+    reply: "Asta sună ca începutul unei povești întunecate, lente și imposibil de uitat."
+  },
+  "dante-vale": {
+    name: "Dante Vale",
+    face: "dante-face",
+    vibe: "Masculine luxury companion",
+    intro: "Sunt aici. Vorbește clar. Restul îl controlez eu.",
+    reply: "Am înțeles. Păstrăm totul calm, elegant și sub control."
+  },
+  "noah-sterling": {
+    name: "Noah Sterling",
+    face: "noah-face",
+    vibe: "Elegant CEO companion",
+    intro: "Bun. Spune-mi ce vrei, iar eu îl structurez precis.",
+    reply: "Perfect. Detaliile contează, iar eu nu le las la întâmplare."
+  }
+};
+
 const qs = new URLSearchParams(location.search);
+const slug = qs.get("slug") || "ava-noir";
+const profile = profiles[slug] || profiles["ava-noir"];
 
-const slug = qs.get('slug') || '';
+document.title = profile.name + " Chat — The Future PRO";
+title.textContent = profile.name;
+vibeText.textContent = profile.vibe;
+avatarArt.className = "ai-face " + profile.face;
+profileLink.href = "/profile.html?slug=" + slug;
+backProfile.href = "/profile.html?slug=" + slug;
 
-const readableName = slug
-  ? slug
-      .replaceAll('-', ' ')
-      .replace(/\b\w/g, c => c.toUpperCase())
-  : (
-      window.t
-        ? window.t('choose_companion')
-        : 'Choose Companion'
-    );
-
-document.getElementById('title').textContent = readableName;
-
-document.getElementById('avatar').textContent =
-  readableName
-    .split(' ')
-    .map(x=>x[0])
-    .join('')
-    .slice(0,2) || 'AI';
-
-const j=(u,o)=>fetch(u,{
-  method:o?.method||'GET',
-  headers:{'Content-Type':'application/json'},
-  credentials:'include',
+const j = (u,o)=>fetch(u,{
+  method:o?.method||"GET",
+  headers:{"Content-Type":"application/json"},
+  credentials:"include",
   body:o?.body?JSON.stringify(o.body):undefined
 }).then(r=>r.json());
 
-let lastId=0;
+let lastId = 0;
+let localIntroRendered = false;
 
-document.getElementById('kind')
-  .addEventListener('change', e=>{
-
-    const v = e.target.value;
-
-    document.getElementById('quality_img').style.display =
-      v==='image'
-        ? 'block'
-        : 'none';
-
-    document.getElementById('videoOpts').style.display =
-      v==='video'
-        ? 'grid'
-        : 'none';
+document.getElementById("kind").addEventListener("change", e=>{
+  const v = e.target.value;
+  document.getElementById("quality_img").style.display = v === "image" ? "block" : "none";
+  document.getElementById("videoOpts").style.display = v === "video" ? "grid" : "none";
 });
 
+function renderIntroIfEmpty(){
+  if(localIntroRendered) return;
+  localIntroRendered = true;
+
+  render({
+    sender_type:"persona",
+    kind:"text",
+    text:profile.intro,
+    local:true
+  });
+}
+
 async function load(){
-
-  if(!slug) return;
-
   let r;
 
   try{
-
-    const lang =
-      localStorage.getItem('site_lang') || 'ro';
+    const lang = localStorage.getItem("site_lang") || "ro";
 
     r = await j(
       `/api/chat/${encodeURIComponent(slug)}/history?after=${lastId}&lang=${encodeURIComponent(lang)}`
     );
-
   }catch(e){
-
     r = {items:[]};
-
   }
 
-  (r.items||[]).forEach(m=>{
+  const items = r.items || [];
 
+  if(!items.length && lastId === 0){
+    renderIntroIfEmpty();
+    return;
+  }
+
+  items.forEach(m=>{
     lastId = Math.max(lastId, m.id || 0);
-
     render(m);
-
   });
 }
 
 function render(m){
-
-  const empty = document.getElementById('empty');
-
+  const empty = document.getElementById("empty");
   if(empty) empty.remove();
 
-  const log = document.getElementById('log');
+  const log = document.getElementById("log");
+  const d = document.createElement("div");
 
-  const d = document.createElement('div');
+  const isAI = m.sender_type === "persona" || m.sender_type === "ai";
 
-  const isAI =
-    m.sender_type === 'persona' ||
-    m.sender_type === 'ai';
+  d.className = "bubble " + (isAI ? "ai" : "you");
 
-  d.className =
-    'bubble ' +
-    (isAI ? 'ai' : 'you');
+  const msgText = m.translatedText || m.text || "";
 
-  const msgText =
-    m.translatedText ||
-    m.text ||
-    '';
-
-  if(m.kind === 'text' || !m.kind){
-
+  if(m.kind === "text" || !m.kind){
     d.innerHTML = `
-      <small>
-        ${
-          isAI
-            ? readableName
-            : (
-                window.t
-                  ? window.t('you_label')
-                  : 'You'
-              )
-        }
-      </small>
-
+      <small>${isAI ? profile.name : "Tu"}</small>
       ${escapeHtml(msgText)}
     `;
-
   } else {
-
-    const med = m.media || {};
-
-    const isLocked =
-      m.kind === 'media_locked';
-
-    const url =
-      isLocked
-        ? med.preview_url
-        : med.full_url;
-
     d.innerHTML = `
-      <small>
-        ${
-          isAI
-            ? readableName
-            : 'Media'
-        }
-      </small>
-
-      <div>
-        ${
-          isLocked
-            ? (
-                window.t
-                  ? window.t('private_teaser_locked')
-                  : 'Private teaser locked'
-              )
-            : (
-                window.t
-                  ? window.t('unlocked_media')
-                  : 'Unlocked media'
-              )
-        }
-
-        · ${med.type || ''}
-
-        · ${med.price_credits || 0}
-
-        ${
-          window.t
-            ? window.t('credits')
-            : 'credits'
-        }
-      </div>
-
-      <div class="media-box">
-
-        ${
-          med.type === 'video'
-
-            ? `
-              <video
-                controls
-                class="media ${isLocked?'blurred':''}"
-                src="${url || ''}"
-              ></video>
-            `
-
-            : `
-              <img
-                class="media ${isLocked?'blurred':''}"
-                src="${url || ''}"
-                alt="media"
-              >
-            `
-        }
-
-        ${
-          isLocked
-
-            ? `
-              <div class="unlock-row">
-
-                <span>
-                  ${
-                    window.t
-                      ? window.t('unlock_full_media')
-                      : 'Unlock full media'
-                  }
-                </span>
-
-                <button
-                  class="main-btn"
-                  data-id="${med.id}"
-                  style="border:0"
-                >
-                  ${med.price_credits || 0} cr
-                </button>
-
-              </div>
-            `
-
-            : ''
-        }
-
-      </div>
+      <small>${profile.name}</small>
+      Teaser media privat · ${m.media?.type || ""}
     `;
-
-    const btn =
-      d.querySelector('button[data-id]');
-
-    if(btn){
-
-      btn.onclick = async ()=>{
-
-        const id =
-          btn.getAttribute('data-id');
-
-        const r =
-          await j(
-            '/api/media/'+id+'/unlock',
-            {method:'POST'}
-          );
-
-        if(r.ok){
-
-          location.reload();
-
-        }else{
-
-          alert(
-            r.error ||
-            (
-              window.t
-                ? window.t('unlock_error')
-                : 'Unlock error'
-            )
-          );
-
-        }
-      };
-    }
   }
 
   log.appendChild(d);
-
   log.scrollTop = log.scrollHeight;
 }
 
 async function send(){
-
-  if(!slug){
-
-    return alert(
-      window.t
-        ? window.t('choose_companion_from_premium')
-        : 'Choose a companion from Premium.'
-    );
-
-  }
-
-  const input =
-    document.getElementById('text');
-
-  const t =
-    input.value.trim();
+  const input = document.getElementById("text");
+  const t = input.value.trim();
 
   if(!t) return;
 
   render({
-    sender_type:'user',
-    kind:'text',
+    sender_type:"user",
+    kind:"text",
     text:t
   });
 
-  input.value='';
-
-  document.getElementById('typing').style.display='block';
+  input.value = "";
+  document.getElementById("typing").style.display = "block";
 
   try{
-
-    await j(
-      `/api/chat/${encodeURIComponent(slug)}/send`,
-      {
-        method:'POST',
-        body:{text:t}
-      }
-    );
-
+    await j(`/api/chat/${encodeURIComponent(slug)}/send`,{
+      method:"POST",
+      body:{text:t}
+    });
   }catch(e){
-
     setTimeout(()=>{
-
       render({
-        sender_type:'persona',
-        kind:'text',
-        text:
-          window.t
-            ? window.t('fallback_ai_message')
-            : 'I am here. Tell me what kind of experience you want to create tonight.'
+        sender_type:"persona",
+        kind:"text",
+        text:profile.reply
       });
-
     },500);
   }
 
   setTimeout(()=>{
-
-    document.getElementById('typing').style.display='none';
-
-    load();
-
-  },600);
+    document.getElementById("typing").style.display = "none";
+    render({
+      sender_type:"persona",
+      kind:"text",
+      text:profile.reply
+    });
+  },700);
 }
 
 async function offer(){
+  const kind = document.getElementById("kind").value;
 
-  if(!slug){
-
-    return alert(
-      window.t
-        ? window.t('choose_companion_from_premium')
-        : 'Choose a companion from Premium.'
-    );
-
-  }
-
-  const kind =
-    document.getElementById('kind').value;
-
-  let body = {
-    kind,
-    negative: document.getElementById('neg').value
-  };
-
-  if(kind === 'image'){
-
-    body.quality =
-      document.getElementById('quality_img').value;
-
-  } else {
-
-    body.duration =
-      Number(
-        document.getElementById('v_sec').value
-      );
-
-    body.quality =
-      document.getElementById('v_q').value;
-  }
-
-  try{
-
-    const r = await j(
-      `/api/chat/${encodeURIComponent(slug)}/offer`,
-      {
-        method:'POST',
-        body
-      }
-    );
-
-    if(!r.ok){
-
-      alert(
-        r.error ||
-        (
-          window.t
-            ? window.t('generic_error')
-            : 'Error'
-        )
-      );
-
-    }
-
-  }catch(e){
-
-    render({
-      sender_type:'persona',
-      kind:'text',
-      text:
-        window.t
-          ? window.t('media_generation_backend_missing')
-          : 'Media teaser generation will be available after the backend route is connected.'
-    });
-
-  }
-
-  setTimeout(load,300);
+  render({
+    sender_type:"persona",
+    kind:"text",
+    text:"Teaserul premium va fi disponibil când conectăm generarea media reală și sistemul de credits."
+  });
 }
 
 function escapeHtml(str){
-
   return String(str)
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;')
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
 
 load();
-
-setInterval(load,3000);
 </script>
 
 </body>
