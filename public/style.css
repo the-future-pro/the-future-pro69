@@ -23,14 +23,8 @@ html,body{
   overflow-x:hidden;
 }
 
-a{
-  color:inherit;
-  text-decoration:none;
-}
-
-button,input,select{
-  font:inherit;
-}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit}
 
 .home-page{
   background:
@@ -74,16 +68,8 @@ button,input,select{
   flex-shrink:0;
 }
 
-.brand strong{
-  display:block;
-  font-size:20px;
-}
-
-.brand span{
-  display:block;
-  color:var(--muted);
-  font-size:13px;
-}
+.brand strong{display:block;font-size:20px}
+.brand span{display:block;color:var(--muted);font-size:13px}
 
 .lang-switcher{
   min-width:92px;
@@ -124,10 +110,7 @@ button,input,select{
   color:white;
 }
 
-.big{
-  min-height:54px;
-  padding:0 24px;
-}
+.big{min-height:54px;padding:0 24px}
 
 .hero{
   position:relative;
@@ -220,19 +203,10 @@ button,input,select{
   backdrop-filter:blur(14px);
 }
 
-.hero-stats strong{
-  display:block;
-  font-size:26px;
-}
+.hero-stats strong{display:block;font-size:26px}
+.hero-stats span{color:var(--muted);font-size:13px}
 
-.hero-stats span{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.section{
-  padding:78px 0 0;
-}
+.section{padding:78px 0 0}
 
 .section-head{
   max-width:680px;
@@ -277,16 +251,8 @@ button,input,select{
   box-shadow:0 18px 55px rgba(0,0,0,.35);
 }
 
-.feature-card h3{
-  font-size:24px;
-  margin:18px 0 10px;
-}
-
-.feature-card p{
-  color:#c7c7d4;
-  line-height:1.55;
-  margin:0;
-}
+.feature-card h3{font-size:24px;margin:18px 0 10px}
+.feature-card p{color:#c7c7d4;line-height:1.55;margin:0}
 
 .split{
   display:grid;
@@ -312,13 +278,8 @@ button,input,select{
   margin-bottom:10px;
 }
 
-.lux-row:last-child{
-  margin-bottom:0;
-}
-
-.lux-row span{
-  color:var(--muted);
-}
+.lux-row:last-child{margin-bottom:0}
+.lux-row span{color:var(--muted)}
 
 .plans{
   display:grid;
@@ -340,9 +301,15 @@ button,input,select{
 }
 
 .badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  width:max-content;
+  max-width:100%;
   padding:6px 10px;
   border-radius:999px;
   background:var(--pink);
+  color:white;
   font-size:12px;
   font-weight:900;
 }
@@ -353,20 +320,9 @@ button,input,select{
   right:18px;
 }
 
-.plan h3{
-  margin:0 0 12px;
-  font-size:24px;
-}
-
-.plan p{
-  color:var(--muted);
-}
-
-.plan strong{
-  display:block;
-  font-size:36px;
-  margin-top:20px;
-}
+.plan h3{margin:0 0 12px;font-size:24px}
+.plan p{color:var(--muted)}
+.plan strong{display:block;font-size:36px;margin-top:20px}
 
 .home-footer{
   display:flex;
@@ -401,13 +357,8 @@ input,select,button{
   padding:12px 14px;
 }
 
-button{
-  cursor:pointer;
-}
-
-button.primary{
-  background:var(--red);
-}
+button{cursor:pointer}
+button.primary{background:var(--red)}
 
 label{
   display:block;
@@ -424,9 +375,7 @@ pre{
   min-height:140px;
 }
 
-h1{
-  margin:0 0 16px;
-}
+h1{margin:0 0 16px}
 
 /* Fix general pentru layout-uri custom */
 .premium-shell,
@@ -437,26 +386,51 @@ h1{
   width:min(1280px,100%);
 }
 
+/* FIX premium badges overlap */
+.premium-shell .mini-companion{
+  position:relative;
+  overflow:hidden;
+}
+
+.premium-shell .mini-companion .badge{
+  position:static !important;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  width:max-content;
+  max-width:100%;
+  margin-bottom:10px;
+  background:rgba(255,46,136,.18);
+  border:1px solid rgba(255,46,136,.35);
+  color:#ffb3d7;
+}
+
+.premium-shell .plan-card .badge{
+  position:static !important;
+  display:inline-flex;
+  width:max-content;
+  max-width:100%;
+  margin-bottom:14px;
+}
+
+.premium-shell .plans-grid{
+  overflow:visible;
+}
+
+.premium-shell .plan-card{
+  overflow:hidden;
+}
+
 /* Tablet */
 @media(max-width:1100px){
-  .topbar{
-    align-items:flex-start;
-  }
-
-  .nav-actions{
-    justify-content:flex-start;
-  }
-
-  .feature-grid{
-    grid-template-columns:repeat(2,1fr);
-  }
+  .topbar{align-items:flex-start}
+  .nav-actions{justify-content:flex-start}
+  .feature-grid{grid-template-columns:repeat(2,1fr)}
 }
 
 /* Mobile */
 @media(max-width:900px){
-  .home-shell{
-    padding:14px;
-  }
+  .home-shell{padding:14px}
 
   .topbar{
     flex-direction:column;
@@ -464,9 +438,7 @@ h1{
     gap:12px;
   }
 
-  .brand{
-    width:100%;
-  }
+  .brand{width:100%}
 
   .lang-switcher{
     width:100%;
