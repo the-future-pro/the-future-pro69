@@ -1,1 +1,285 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
+  <title>Discover — The Future PRO</title>
+
+  <link rel="stylesheet" href="/style.css"/>
+  <script src="/i18n.js" defer></script>
+
+  <style>
+    .discover{max-width:1240px;margin:0 auto;padding:18px}
+    .discover-hero{
+      position:relative;overflow:hidden;border:1px solid var(--line);
+      border-radius:34px;padding:44px 34px;margin-top:18px;
+      background:
+        radial-gradient(700px 360px at 20% 20%,rgba(155,92,255,.22),transparent),
+        radial-gradient(700px 360px at 85% 50%,rgba(255,46,136,.18),transparent),
+        linear-gradient(135deg,#090911,#160617 70%,#06060a);
+      box-shadow:0 28px 90px rgba(0,0,0,.42)
+    }
+    .discover-hero h1{font-size:clamp(42px,7vw,86px);line-height:.95;margin:14px 0;letter-spacing:-3px}
+    .discover-hero p{max-width:760px;color:var(--muted);font-size:18px;line-height:1.6}
+    .mood-row,.category-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+    .mood,.category{
+      border:1px solid var(--line);border-radius:999px;padding:10px 14px;
+      background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer
+    }
+    .mood:hover,.category:hover{background:rgba(255,255,255,.12)}
+    .section-title{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:34px 0 16px}
+    .section-title h2{margin:0;font-size:32px}
+    .section-title p{margin:6px 0 0;color:var(--muted)}
+    .character-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .character-card{
+      position:relative;overflow:hidden;border:1px solid var(--line);border-radius:28px;
+      min-height:430px;text-decoration:none;color:var(--ink);
+      background:#111;box-shadow:0 20px 70px rgba(0,0,0,.3);
+      transition:.22s transform,.22s border-color
+    }
+    .character-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.28)}
+    .character-art{
+      position:absolute;inset:0;background-size:cover;background-position:center;
+      filter:saturate(1.08) contrast(1.02)
+    }
+    .character-art:after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25) 35%,rgba(0,0,0,.88));
+    }
+    .portrait-a{background:
+      radial-gradient(circle at 50% 22%,rgba(255,255,255,.28),transparent 20%),
+      radial-gradient(circle at 45% 35%,rgba(255,46,136,.35),transparent 28%),
+      linear-gradient(135deg,#211129,#050509)}
+    .portrait-b{background:
+      radial-gradient(circle at 52% 24%,rgba(255,255,255,.25),transparent 20%),
+      radial-gradient(circle at 50% 38%,rgba(255,190,120,.30),transparent 28%),
+      linear-gradient(135deg,#2b1b16,#07070a)}
+    .portrait-c{background:
+      radial-gradient(circle at 52% 24%,rgba(255,255,255,.23),transparent 20%),
+      radial-gradient(circle at 48% 40%,rgba(0,240,255,.28),transparent 32%),
+      linear-gradient(135deg,#071d2b,#050509)}
+    .portrait-d{background:
+      radial-gradient(circle at 50% 24%,rgba(255,255,255,.25),transparent 20%),
+      radial-gradient(circle at 45% 38%,rgba(130,80,255,.34),transparent 30%),
+      linear-gradient(135deg,#1b1026,#050509)}
+    .portrait-e{background:
+      radial-gradient(circle at 50% 24%,rgba(255,255,255,.25),transparent 20%),
+      radial-gradient(circle at 45% 40%,rgba(255,30,80,.28),transparent 32%),
+      linear-gradient(135deg,#2a050b,#050509)}
+    .portrait-f{background:
+      radial-gradient(circle at 50% 24%,rgba(255,255,255,.25),transparent 20%),
+      radial-gradient(circle at 52% 42%,rgba(255,220,120,.28),transparent 32%),
+      linear-gradient(135deg,#1d1607,#050509)}
+    .character-info{position:absolute;left:18px;right:18px;bottom:18px;z-index:2}
+    .live{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#86efac;margin-bottom:10px}
+    .live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 16px #22c55e}
+    .character-info h3{font-size:26px;margin:0 0 8px}
+    .character-info p{color:var(--muted);line-height:1.45;margin:0 0 12px}
+    .tags{display:flex;gap:7px;flex-wrap:wrap}
+    .tag{font-size:12px;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 9px;background:rgba(255,255,255,.07)}
+    .feature-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+    .mini-card{
+      border:1px solid var(--line);border-radius:26px;padding:22px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025))
+    }
+    .mini-card h3{margin:8px 0}
+    .mini-card p{color:var(--muted);line-height:1.55}
+    .footer-space{height:30px}
+    @media(max-width:1050px){.character-grid{grid-template-columns:repeat(2,1fr)}.feature-strip{grid-template-columns:1fr}}
+    @media(max-width:620px){.character-grid{grid-template-columns:1fr}.discover-hero{padding:32px 22px}.discover-hero h1{letter-spacing:-2px}}
+  </style>
+</head>
+
+<body class="home-page">
+  <main class="discover">
+
+    <nav class="topbar">
+      <a class="brand" href="/" data-no-translate>
+        <div class="brand-mark">AI</div>
+        <div>
+          <strong>The Future</strong>
+          <span>Discover</span>
+        </div>
+      </a>
+
+      <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
+
+      <div class="nav-actions">
+        <a class="ghost-btn" href="/gen-image.html">Image Studio</a>
+        <a class="ghost-btn" href="/gen-video.html">Video Studio</a>
+        <a class="main-btn" href="/premium">Premium</a>
+      </div>
+    </nav>
+
+    <section class="discover-hero">
+      <div class="eyebrow">PRIVATE AI UNIVERSE</div>
+
+      <h1>
+        Descoperă companionul AI care se potrivește stării tale.
+      </h1>
+
+      <p>
+        Explorează personaje fictive cu personalitate, atmosferă, stil vizual și energie proprie. Alege vibe-ul, intră în conversație și construiește o experiență privată, cinematică și memorabilă.
+      </p>
+
+      <div class="mood-row">
+        <button class="mood" type="button">Romantic</button>
+        <button class="mood" type="button">Dark Romance</button>
+        <button class="mood" type="button">Comfort</button>
+        <button class="mood" type="button">Luxury</button>
+        <button class="mood" type="button">Cyberpunk</button>
+        <button class="mood" type="button">Mysterious</button>
+        <button class="mood" type="button">Protective</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">TRENDING NOW</div>
+          <h2>Companions populari</h2>
+          <p>Personaje active, cu identitate cinematică și vibe diferit.</p>
+        </div>
+      </div>
+
+      <div class="character-grid">
+
+        <a class="character-card" href="/chat.html?slug=ava-noir">
+          <div class="character-art portrait-a"></div>
+          <div class="character-info">
+            <span class="live"><i></i> online acum</span>
+            <h3>Ava Noir</h3>
+            <p>Lux întunecat, mister, eleganță rece și conversații intense.</p>
+            <div class="tags">
+              <span class="tag">Dark Luxury</span>
+              <span class="tag">Mysterious</span>
+              <span class="tag">Cinematic</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="character-card" href="/chat.html?slug=mira-vale">
+          <div class="character-art portrait-b"></div>
+          <div class="character-info">
+            <span class="live"><i></i> online acum</span>
+            <h3>Mira Vale</h3>
+            <p>Calmă, apropiată, dulce și construită pentru conversații emoționale.</p>
+            <div class="tags">
+              <span class="tag">Soft</span>
+              <span class="tag">Romance</span>
+              <span class="tag">Comfort</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="character-card" href="/chat.html?slug=kira-voss">
+          <div class="character-art portrait-c"></div>
+          <div class="character-info">
+            <span class="live"><i></i> online acum</span>
+            <h3>Kira Voss</h3>
+            <p>Muză cyberpunk, energie magnetică și atmosferă futuristă.</p>
+            <div class="tags">
+              <span class="tag">Cyberpunk</span>
+              <span class="tag">Cold</span>
+              <span class="tag">Magnetic</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="character-card" href="/chat.html?slug=luna-sable">
+          <div class="character-art portrait-d"></div>
+          <div class="character-info">
+            <span class="live"><i></i> online acum</span>
+            <h3>Luna Sable</h3>
+            <p>Romantic goth, poetică, intensă și cu un aer obsesiv-premium.</p>
+            <div class="tags">
+              <span class="tag">Goth</span>
+              <span class="tag">Poetic</span>
+              <span class="tag">Dark Romance</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">CATEGORIES</div>
+          <h2>Alege după vibe</h2>
+          <p>Utilizatorul nu caută doar un personaj. Caută o stare.</p>
+        </div>
+      </div>
+
+      <div class="category-row">
+        <button class="category" type="button">Dark Romance</button>
+        <button class="category" type="button">Soft Girlfriend</button>
+        <button class="category" type="button">Luxury Muse</button>
+        <button class="category" type="button">Cyberpunk</button>
+        <button class="category" type="button">Goth Romantic</button>
+        <button class="category" type="button">Protective</button>
+        <button class="category" type="button">Mafia Vibe</button>
+        <button class="category" type="button">Sweet & Emotional</button>
+        <button class="category" type="button">Dangerous</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">COMING NEXT</div>
+          <h2>Ce construim în continuare</h2>
+          <p>Aici încep cele 150 de idei: memorie, relații, unlock-uri, feed și experiențe recurente.</p>
+        </div>
+      </div>
+
+      <div class="feature-strip">
+        <div class="mini-card">
+          <div class="eyebrow">01</div>
+          <h3>Profiluri persistente</h3>
+          <p>Fiecare companion va avea lore, personalitate, stil, preferințe și istoric de conversație.</p>
+        </div>
+
+        <div class="mini-card">
+          <div class="eyebrow">02</div>
+          <h3>Relație progresivă</h3>
+          <p>Utilizatorul poate evolua relația cu personajul: apropiere, nivel de încredere, mood și scene speciale.</p>
+        </div>
+
+        <div class="mini-card">
+          <div class="eyebrow">03</div>
+          <h3>Conținut premium unlock</h3>
+          <p>Imagini, clipuri, voice notes, story arcs și momente private deblocate prin credits sau abonament.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="premium-band" style="margin-top:34px">
+      <div>
+        <span class="eyebrow">START EXPERIENCE</span>
+        <h2>Intră în universul tău AI privat.</h2>
+        <p>Alege un companion, începe conversația și testează experiența premium.</p>
+      </div>
+
+      <a class="main-btn big" href="/chat.html?slug=ava-noir">
+        Începe cu Ava Noir
+      </a>
+    </section>
+
+    <footer class="home-footer">
+      <span>© The Future — PRO</span>
+
+      <div>
+        <a href="/privacy.html">Confidențialitate</a>
+        <a href="/terms.html">Termeni</a>
+        <a href="/safety.html">Siguranță</a>
+      </div>
+    </footer>
+
+    <div class="footer-space"></div>
+
+  </main>
+</body>
+</html>
