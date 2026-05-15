@@ -22,7 +22,10 @@
       content:"";position:absolute;inset:0;
       background:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35),rgba(0,0,0,.9))
     }
-    .profile-content{position:relative;z-index:2;display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:end;min-height:360px}
+    .profile-content{
+      position:relative;z-index:2;display:grid;grid-template-columns:1fr 360px;
+      gap:24px;align-items:end;min-height:360px
+    }
     .profile-title h1{font-size:clamp(44px,7vw,92px);line-height:.95;margin:10px 0;letter-spacing:-3px}
     .profile-title p{max-width:720px;color:var(--muted);font-size:18px;line-height:1.6}
     .avatar-large{
@@ -125,7 +128,7 @@
     <div class="panel">
       <h2>Identitate și poveste</h2>
       <p class="muted" id="loreText">
-        Ava Noir este construită ca o prezență elegantă, intensă și misterioasă. Stilul ei vizual combină luxul întunecat, luminile neon și conversațiile lente, private, cu atmosferă premium.
+        Ava Noir este construită ca o prezență elegantă, intensă și misterioasă.
       </p>
 
       <h3>Personalitate</h3>
@@ -270,8 +273,8 @@ function applyProfile(){
   heroBg.className = "profile-bg " + p.theme;
   avatarArt.className = "ai-portrait " + p.theme;
 
-  chatBtn.href = "/chat.html?slug=" + slug;
-  navChat.href = "/chat.html?slug=" + slug;
+  chatBtn.href = "/chat.html?slug=" + encodeURIComponent(slug);
+  navChat.href = "/chat.html?slug=" + encodeURIComponent(slug);
 
   tagRow.innerHTML = "";
   p.tags.forEach(function(tag){
