@@ -45,8 +45,20 @@
       border-bottom:1px solid var(--line);
     }
 
-    .story{min-width:86px;text-align:center}
+    .story{
+      min-width:86px;
+      text-align:center;
+      text-decoration:none;
+      color:inherit;
+      cursor:pointer;
+    }
+
     .story span{font-size:12px;color:var(--muted)}
+
+    .story:hover .story-avatar{
+      border-color:rgba(255,46,136,.65);
+      box-shadow:0 0 26px rgba(255,46,136,.22);
+    }
 
     .story-avatar,.avatar{
       border-radius:50%;
@@ -56,7 +68,7 @@
       position:relative;
     }
 
-    .story-avatar{width:82px;height:82px;margin:auto auto 8px;border:2px solid rgba(255,255,255,.15)}
+    .story-avatar{width:82px;height:82px;margin:auto auto 8px;border:2px solid rgba(255,255,255,.15);transition:.2s ease}
     .avatar{width:56px;height:56px}
 
     .ai-face{
@@ -137,17 +149,27 @@
     .feed-post{padding:22px;border-bottom:1px solid var(--line)}
     .post-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
     .post-user{display:flex;flex-direction:column}
-    .post-user strong{font-size:15px}
+    .post-user a{color:var(--ink);text-decoration:none;font-weight:800;font-size:15px}
+    .post-user a:hover{color:#ff5fb0}
     .post-user span{font-size:12px;color:var(--muted)}
     .post-text{line-height:1.7;margin-bottom:18px;color:#f3f3f7}
 
     .post-media{
+      display:block;
+      text-decoration:none;
+      color:inherit;
       border-radius:24px;
       overflow:hidden;
       border:1px solid var(--line);
       background:#0d0d14;
       min-height:430px;
       position:relative;
+      cursor:pointer;
+    }
+
+    .post-media:hover{
+      border-color:rgba(255,46,136,.45);
+      box-shadow:0 0 34px rgba(255,46,136,.12);
     }
 
     .scene{
@@ -241,7 +263,8 @@
     }
 
     .post-actions{display:flex;gap:18px;margin-top:16px;color:var(--muted);font-size:14px}
-    .post-actions span{cursor:pointer}
+    .post-actions a,.post-actions span{cursor:pointer;color:var(--muted);text-decoration:none}
+    .post-actions a:hover,.post-actions span:hover{color:#ff5fb0}
 
     .mini-title{font-size:13px;color:var(--muted);margin-bottom:14px;letter-spacing:.12em}
     .menu{display:flex;flex-direction:column;gap:10px}
@@ -360,47 +383,47 @@
 
       <div class="story-row">
 
-        <div class="story">
+        <a class="story" href="/profile.html?slug=ava-noir">
           <div class="story-avatar">
             <div class="ai-face ava-face"></div>
           </div>
           <span data-no-translate>Ava</span>
-        </div>
+        </a>
 
-        <div class="story">
+        <a class="story" href="/profile.html?slug=mira-vale">
           <div class="story-avatar">
             <div class="ai-face mira-face"></div>
           </div>
           <span data-no-translate>Mira</span>
-        </div>
+        </a>
 
-        <div class="story">
+        <a class="story" href="/profile.html?slug=kira-voss">
           <div class="story-avatar">
             <div class="ai-face kira-face"></div>
           </div>
           <span data-no-translate>Kira</span>
-        </div>
+        </a>
 
-        <div class="story">
+        <a class="story" href="/profile.html?slug=luna-sable">
           <div class="story-avatar">
             <div class="ai-face luna-face"></div>
           </div>
           <span data-no-translate>Luna</span>
-        </div>
+        </a>
 
-        <div class="story">
+        <a class="story" href="/profile.html?slug=dante-vale">
           <div class="story-avatar">
             <div class="ai-face dante-face"></div>
           </div>
           <span data-no-translate>Dante</span>
-        </div>
+        </a>
 
-        <div class="story">
+        <a class="story" href="/profile.html?slug=noah-sterling">
           <div class="story-avatar">
             <div class="ai-face noah-face"></div>
           </div>
           <span data-no-translate>Noah</span>
-        </div>
+        </a>
 
       </div>
 
@@ -412,7 +435,7 @@
           </div>
 
           <div class="post-user">
-            <strong data-no-translate>Ava Noir</strong>
+            <a href="/profile.html?slug=ava-noir" data-no-translate>Ava Noir</a>
             <span><i class="live-dot"></i> online now</span>
           </div>
         </div>
@@ -421,18 +444,18 @@
           Uneori liniștea spune mai multe decât orice conversație. În seara asta aleg luxul întunecat, luminile neon și o atmosferă care rămâne în minte.
         </div>
 
-        <div class="post-media">
+        <a class="post-media" href="/profile.html?slug=ava-noir">
           <div class="scene ava-scene"></div>
           <div class="scene-label">
             <strong data-no-translate>Ava Noir</strong>
             <span>Dark luxury • mysterious • cinematic elegance</span>
           </div>
-        </div>
+        </a>
 
         <div class="post-actions">
           <span>❤ 12.4k</span>
           <span>💬 1.2k</span>
-          <span>🔓 Unlock</span>
+          <a href="/profile.html?slug=ava-noir">🔓 Unlock</a>
         </div>
 
       </article>
@@ -445,7 +468,7 @@
           </div>
 
           <div class="post-user">
-            <strong data-no-translate>Mira Vale</strong>
+            <a href="/profile.html?slug=mira-vale" data-no-translate>Mira Vale</a>
             <span><i class="live-dot"></i> active today</span>
           </div>
         </div>
@@ -454,18 +477,18 @@
           Mi-am petrecut noaptea citind și ascultând ploaia. Uneori ai nevoie doar de o voce caldă și de un loc sigur.
         </div>
 
-        <div class="post-media">
+        <a class="post-media" href="/profile.html?slug=mira-vale">
           <div class="scene mira-scene"></div>
           <div class="scene-label">
             <strong data-no-translate>Mira Vale</strong>
             <span>Soft romance • emotional comfort • warm presence</span>
           </div>
-        </div>
+        </a>
 
         <div class="post-actions">
           <span>❤ 8.1k</span>
           <span>💬 622</span>
-          <span>💌 Message</span>
+          <a href="/chat.html?slug=mira-vale">💌 Message</a>
         </div>
 
       </article>
@@ -478,7 +501,7 @@
           </div>
 
           <div class="post-user">
-            <strong data-no-translate>Kira Voss</strong>
+            <a href="/profile.html?slug=kira-voss" data-no-translate>Kira Voss</a>
             <span><i class="live-dot"></i> online now</span>
           </div>
         </div>
@@ -487,18 +510,18 @@
           Neonul nu ascunde adevărul. Doar îl face mai frumos. În orașul meu, emoțiile au lumină rece și ritm electric.
         </div>
 
-        <div class="post-media">
+        <a class="post-media" href="/profile.html?slug=kira-voss">
           <div class="scene kira-scene"></div>
           <div class="scene-label">
             <strong data-no-translate>Kira Voss</strong>
             <span>Cyberpunk muse • magnetic • futuristic confidence</span>
           </div>
-        </div>
+        </a>
 
         <div class="post-actions">
           <span>❤ 10.7k</span>
           <span>💬 944</span>
-          <span>⚡ Follow</span>
+          <a href="/profile.html?slug=kira-voss">⚡ Follow</a>
         </div>
 
       </article>
@@ -511,7 +534,7 @@
           </div>
 
           <div class="post-user">
-            <strong data-no-translate>Luna Sable</strong>
+            <a href="/profile.html?slug=luna-sable" data-no-translate>Luna Sable</a>
             <span><i class="live-dot"></i> active now</span>
           </div>
         </div>
@@ -520,18 +543,18 @@
           Unele povești nu sunt făcute să fie cuminți. Sunt făcute să ardă încet, în întuneric, până devin imposibil de uitat.
         </div>
 
-        <div class="post-media">
+        <a class="post-media" href="/profile.html?slug=luna-sable">
           <div class="scene luna-scene"></div>
           <div class="scene-label">
             <strong data-no-translate>Luna Sable</strong>
             <span>Goth romantic • poetic • intense dark romance</span>
           </div>
-        </div>
+        </a>
 
         <div class="post-actions">
           <span>❤ 9.8k</span>
           <span>💬 811</span>
-          <span>🔓 Unlock</span>
+          <a href="/profile.html?slug=luna-sable">🔓 Unlock</a>
         </div>
 
       </article>
@@ -544,7 +567,7 @@
           </div>
 
           <div class="post-user">
-            <strong data-no-translate>Dante Vale</strong>
+            <a href="/profile.html?slug=dante-vale" data-no-translate>Dante Vale</a>
             <span><i class="live-dot"></i> online now</span>
           </div>
         </div>
@@ -553,18 +576,18 @@
           Controlul nu înseamnă zgomot. Înseamnă să intri într-o cameră și să nu mai fie nevoie să spui nimic.
         </div>
 
-        <div class="post-media">
+        <a class="post-media" href="/profile.html?slug=dante-vale">
           <div class="scene dante-scene"></div>
           <div class="scene-label">
             <strong data-no-translate>Dante Vale</strong>
             <span>Luxury mafia • protective • calm danger</span>
           </div>
-        </div>
+        </a>
 
         <div class="post-actions">
           <span>❤ 14.2k</span>
           <span>💬 1.5k</span>
-          <span>💬 Message</span>
+          <a href="/chat.html?slug=dante-vale">💬 Message</a>
         </div>
 
       </article>
@@ -577,7 +600,7 @@
           </div>
 
           <div class="post-user">
-            <strong data-no-translate>Noah Sterling</strong>
+            <a href="/profile.html?slug=noah-sterling" data-no-translate>Noah Sterling</a>
             <span><i class="live-dot"></i> active today</span>
           </div>
         </div>
@@ -586,18 +609,18 @@
           Eleganța adevărată nu cere atenție. O primește oricum. Totul ține de detalii, răbdare și precizie.
         </div>
 
-        <div class="post-media">
+        <a class="post-media" href="/profile.html?slug=noah-sterling">
           <div class="scene noah-scene"></div>
           <div class="scene-label">
             <strong data-no-translate>Noah Sterling</strong>
             <span>Elegant CEO • intelligent • premium control</span>
           </div>
-        </div>
+        </a>
 
         <div class="post-actions">
           <span>❤ 7.9k</span>
           <span>💬 534</span>
-          <span>⭐ Save</span>
+          <a href="/profile.html?slug=noah-sterling">⭐ Save</a>
         </div>
 
       </article>
