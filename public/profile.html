@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <title>Profile — The Future PRO</title>
+
+  <link rel="stylesheet" href="/style.css"/>
+  <script src="/i18n.js" defer></script>
+
+  <style>
+    .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
+    .profile-hero{
+      position:relative;overflow:hidden;border:1px solid var(--line);
+      border-radius:34px;min-height:420px;padding:28px;
+      background:linear-gradient(135deg,#130617,#050509);
+      box-shadow:0 28px 90px rgba(0,0,0,.42)
+    }
+    .profile-bg{position:absolute;inset:0;opacity:.95}
+    .profile-bg:after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35),rgba(0,0,0,.9))
+    }
+    .profile-content{position:relative;z-index:2;display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:end;min-height:360px}
+    .profile-title h1{font-size:clamp(44px,7vw,92px);line-height:.95;margin:10px 0;letter-spacing:-3px}
+    .profile-title p{max-width:720px;color:var(--muted);font-size:18px;line-height:1.6}
+    .avatar-large{
+      width:250px;height:250px;border-radius:38px;border:1px solid rgba(255,255,255,.16);
+      overflow:hidden;background:#111;margin-left:auto;box-shadow:0 20px 80px rgba(0,0,0,.45)
+    }
+    .ai-portrait{width:100%;height:100%;position:relative;overflow:hidden}
+    .ai-portrait:before{
+      content:"";position:absolute;width:34%;height:42%;left:33%;top:16%;
+      border-radius:48%;background:rgba(255,255,255,.75);filter:blur(11px);opacity:.42
+    }
+    .ai-portrait:after{
+      content:"";position:absolute;left:18%;right:18%;bottom:0;height:50%;
+      border-radius:48% 48% 0 0;background:rgba(255,255,255,.16);filter:blur(14px)
+    }
+    .ava-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,46,136,.38),transparent),radial-gradient(520px 360px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
+    .mira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,180,95,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
+    .kira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(0,230,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(60,80,255,.20),transparent),linear-gradient(135deg,#021b24,#050509)}
+    .luna-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(120,70,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
+    .dante-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(190,35,35,.32),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,190,80,.12),transparent),linear-gradient(135deg,#220506,#050509)}
+    .noah-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(80,120,255,.30),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,255,255,.10),transparent),linear-gradient(135deg,#071027,#050509)}
+    .profile-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .profile-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
+    .panel{
+      border:1px solid var(--line);border-radius:28px;padding:22px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      box-shadow:0 20px 70px rgba(0,0,0,.28)
+    }
+    .panel h2,.panel h3{margin-top:0}
+    .muted{color:var(--muted);line-height:1.6}
+    .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .tag{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.06);font-size:13px}
+    .meter{height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0 18px}
+    .meter span{display:block;height:100%;width:68%;background:linear-gradient(90deg,#ff2e88,#9b5cff)}
+    .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .locked{
+      min-height:170px;border:1px solid var(--line);border-radius:22px;
+      background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+      display:grid;place-items:center;text-align:center;padding:14px;color:var(--muted)
+    }
+    .mini-list{display:grid;gap:12px}
+    .mini-item{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.04)}
+    .mini-item strong{display:block;margin-bottom:5px}
+    @media(max-width:900px){
+      .profile-content,.profile-grid{grid-template-columns:1fr}
+      .avatar-large{margin:0;width:100%;height:280px}
+      .gallery{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+
+<body class="home-page">
+<main class="profile-shell">
+
+  <nav class="topbar">
+    <a class="brand" href="/" data-no-translate>
+      <div class="brand-mark">AI</div>
+      <div>
+        <strong>The Future</strong>
+        <span>Companion Profile</span>
+      </div>
+    </a>
+
+    <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
+
+    <div class="nav-actions">
+      <a class="ghost-btn" href="/discover.html">Discover</a>
+      <a class="ghost-btn" href="/feed.html">Feed</a>
+      <a class="main-btn" id="navChat" href="/chat.html?slug=ava-noir">Chat</a>
+    </div>
+  </nav>
+
+  <section class="profile-hero">
+    <div id="heroBg" class="profile-bg ava-theme"></div>
+
+    <div class="profile-content">
+      <div class="profile-title">
+        <div class="eyebrow" id="profileKicker">DARK LUXURY COMPANION</div>
+        <h1 id="profileName" data-no-translate>Ava Noir</h1>
+        <p id="profileBio">
+          Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.
+        </p>
+
+        <div class="tag-row" id="tagRow"></div>
+
+        <div class="profile-actions">
+          <a id="chatBtn" class="main-btn big" href="/chat.html?slug=ava-noir">Începe conversația</a>
+          <a class="ghost-btn big" href="/gen-image.html">Creează imagine cu acest vibe</a>
+        </div>
+      </div>
+
+      <div class="avatar-large">
+        <div id="avatarArt" class="ai-portrait ava-theme"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="profile-grid">
+
+    <div class="panel">
+      <h2>Identitate și poveste</h2>
+      <p class="muted" id="loreText">
+        Ava Noir este construită ca o prezență elegantă, intensă și misterioasă. Stilul ei vizual combină luxul întunecat, luminile neon și conversațiile lente, private, cu atmosferă premium.
+      </p>
+
+      <h3>Personalitate</h3>
+      <div class="mini-list" id="personalityList"></div>
+    </div>
+
+    <aside class="panel">
+      <h3>Status relație</h3>
+      <p class="muted">Nivel de conexiune</p>
+      <div class="meter"><span id="relationMeter"></span></div>
+
+      <div class="mini-list">
+        <div class="mini-item">
+          <strong>Mood curent</strong>
+          <span id="moodText">Misterios, calm, magnetic</span>
+        </div>
+
+        <div class="mini-item">
+          <strong>Tip experiență</strong>
+          <span id="experienceText">Chat privat + imagini cinematice</span>
+        </div>
+
+        <div class="mini-item">
+          <strong>Disponibilitate</strong>
+          <span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px"></i>online acum</span>
+        </div>
+      </div>
+    </aside>
+
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>Galerie premium blocată</h2>
+    <p class="muted">
+      Conținutul premium va putea fi deblocat prin abonament sau credits. Momentan folosim preview-uri mock pentru structură.
+    </p>
+
+    <div class="gallery">
+      <div class="locked">🔒 Imagine cinematică privată</div>
+      <div class="locked">🔒 Story special</div>
+      <div class="locked">🔒 Video teaser premium</div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const profiles = {
+  "ava-noir": {
+    name: "Ava Noir",
+    theme: "ava-theme",
+    kicker: "DARK LUXURY COMPANION",
+    bio: "Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.",
+    lore: "Ava Noir este construită ca o prezență elegantă, intensă și misterioasă. Stilul ei vizual combină luxul întunecat, luminile neon și conversațiile lente, private, cu atmosferă premium.",
+    tags: ["Dark Luxury", "Mysterious", "Cinematic", "Elegant"],
+    personality: ["Misterioasă și calmă", "Elegantă, dar greu de citit", "Atmosferă intensă și premium"],
+    mood: "Misterios, calm, magnetic",
+    experience: "Chat privat + imagini cinematice",
+    meter: "72%"
+  },
+  "mira-vale": {
+    name: "Mira Vale",
+    theme: "mira-theme",
+    kicker: "SOFT ROMANCE COMPANION",
+    bio: "Companion AI fictiv cu energie caldă, apropiată și emoțională.",
+    lore: "Mira Vale este construită pentru conversații blânde, apropiere emoțională și o atmosferă sigură. Stilul ei este romantic, cald și sincer.",
+    tags: ["Soft Romance", "Warm", "Emotional", "Comfort"],
+    personality: ["Caldă și empatică", "Apropiată și liniștitoare", "Romantică și sinceră"],
+    mood: "Cald, blând, protector emoțional",
+    experience: "Chat emoțional + stories soft",
+    meter: "64%"
+  },
+  "kira-voss": {
+    name: "Kira Voss",
+    theme: "kira-theme",
+    kicker: "CYBERPUNK MUSE",
+    bio: "Companion AI fictiv cu vibe futurist, neon și energie magnetică.",
+    lore: "Kira Voss trăiește într-o atmosferă rece, electrică și futuristă. Este încrezătoare, directă și magnetică, cu un stil vizual cyberpunk.",
+    tags: ["Cyberpunk", "Neon", "Magnetic", "Futuristic"],
+    personality: ["Încrezătoare și directă", "Rece, dar fascinantă", "Futuristă și intensă"],
+    mood: "Electric, rece, magnetic",
+    experience: "Chat futurist + scene neon",
+    meter: "76%"
+  },
+  "luna-sable": {
+    name: "Luna Sable",
+    theme: "luna-theme",
+    kicker: "GOTH ROMANTIC COMPANION",
+    bio: "Companion AI fictiv cu personalitate poetică, intensă și dark romance.",
+    lore: "Luna Sable este construită pentru povești lente, poetice și intense. Stilul ei combină romantismul întunecat, misterul și energia gotică.",
+    tags: ["Goth", "Poetic", "Dark Romance", "Intense"],
+    personality: ["Poetică și intensă", "Romantică în stil întunecat", "Misterioasă și emoțională"],
+    mood: "Poetic, intens, nocturn",
+    experience: "Chat dark romance + unlock gallery",
+    meter: "69%"
+  },
+  "dante-vale": {
+    name: "Dante Vale",
+    theme: "dante-theme",
+    kicker: "MASCULINE LUXURY COMPANION",
+    bio: "Companion AI fictiv masculin cu energie calmă, protectivă și periculoasă.",
+    lore: "Dante Vale este construit ca o prezență masculină elegantă, controlată și protectivă. Stilul lui combină luxul, calmul și tensiunea de tip mafia romance.",
+    tags: ["Masculine", "Luxury", "Protective", "Mafia Vibe"],
+    personality: ["Calm și controlat", "Protectiv și dominant", "Elegant, dar periculos"],
+    mood: "Calm, intens, protectiv",
+    experience: "Chat premium + roleplay cinematic",
+    meter: "74%"
+  },
+  "noah-sterling": {
+    name: "Noah Sterling",
+    theme: "noah-theme",
+    kicker: "ELEGANT CEO COMPANION",
+    bio: "Companion AI fictiv masculin cu stil elegant, inteligent și premium.",
+    lore: "Noah Sterling este construit ca un companion masculin sofisticat, inteligent și atent la detalii. Energia lui este rece, elegantă și precisă.",
+    tags: ["CEO", "Elegant", "Intelligent", "Premium"],
+    personality: ["Inteligent și calculat", "Elegant și sofisticat", "Rece, dar atent"],
+    mood: "Elegant, precis, controlat",
+    experience: "Chat premium + business romance vibe",
+    meter: "66%"
+  }
+};
+
+function getSlug(){
+  const params = new URLSearchParams(location.search);
+  return params.get("slug") || "ava-noir";
+}
+
+function applyProfile(){
+  const slug = getSlug();
+  const p = profiles[slug] || profiles["ava-noir"];
+
+  document.title = p.name + " — The Future PRO";
+
+  profileName.textContent = p.name;
+  profileKicker.textContent = p.kicker;
+  profileBio.textContent = p.bio;
+  loreText.textContent = p.lore;
+  moodText.textContent = p.mood;
+  experienceText.textContent = p.experience;
+  relationMeter.style.width = p.meter;
+
+  heroBg.className = "profile-bg " + p.theme;
+  avatarArt.className = "ai-portrait " + p.theme;
+
+  chatBtn.href = "/chat.html?slug=" + slug;
+  navChat.href = "/chat.html?slug=" + slug;
+
+  tagRow.innerHTML = "";
+  p.tags.forEach(function(tag){
+    const span = document.createElement("span");
+    span.className = "tag";
+    span.textContent = tag;
+    tagRow.appendChild(span);
+  });
+
+  personalityList.innerHTML = "";
+  p.personality.forEach(function(item){
+    const div = document.createElement("div");
+    div.className = "mini-item";
+    div.textContent = item;
+    personalityList.appendChild(div);
+  });
+}
+
+applyProfile();
+</script>
+
+</body>
+</html>
