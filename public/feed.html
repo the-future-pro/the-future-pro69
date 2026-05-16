@@ -14,7 +14,11 @@
   <script src="/i18n.js" defer></script>
 
   <style>
-    .feed-shell{max-width:1280px;margin:0 auto;padding:18px}
+    .feed-shell{
+      max-width:1280px;
+      margin:0 auto;
+      padding:18px;
+    }
 
     .feed-layout{
       display:grid;
@@ -26,16 +30,39 @@
     .side-panel,.feed-panel{
       border:1px solid var(--line);
       border-radius:28px;
-      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      background:linear-gradient(
+        180deg,
+        rgba(255,255,255,.07),
+        rgba(255,255,255,.025)
+      );
       box-shadow:0 20px 70px rgba(0,0,0,.35);
     }
 
-    .side-panel{padding:18px;position:sticky;top:18px}
-    .feed-panel{overflow:hidden}
+    .side-panel{
+      padding:18px;
+      position:sticky;
+      top:18px;
+    }
 
-    .feed-top{padding:22px;border-bottom:1px solid var(--line)}
-    .feed-title{font-size:32px;margin-bottom:10px}
-    .feed-sub{color:var(--muted);line-height:1.6;max-width:760px}
+    .feed-panel{
+      overflow:hidden;
+    }
+
+    .feed-top{
+      padding:22px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .feed-title{
+      font-size:32px;
+      margin-bottom:10px;
+    }
+
+    .feed-sub{
+      color:var(--muted);
+      line-height:1.6;
+      max-width:760px;
+    }
 
     .story-row{
       display:flex;
@@ -53,7 +80,10 @@
       cursor:pointer;
     }
 
-    .story span{font-size:12px;color:var(--muted)}
+    .story span{
+      font-size:12px;
+      color:var(--muted);
+    }
 
     .story:hover .story-avatar{
       border-color:rgba(255,46,136,.65);
@@ -68,10 +98,26 @@
       position:relative;
     }
 
-    .story-avatar{width:82px;height:82px;margin:auto auto 8px;border:2px solid rgba(255,255,255,.15);transition:.2s ease}
-    .avatar{width:56px;height:56px}
+    .story-avatar{
+      width:82px;
+      height:82px;
+      margin:auto auto 8px;
+      border:2px solid rgba(255,255,255,.15);
+      transition:.2s ease;
+    }
 
-    .ai-face{width:100%;height:100%;position:relative;overflow:hidden;background:#111}
+    .avatar{
+      width:56px;
+      height:56px;
+    }
+
+    .ai-face{
+      width:100%;
+      height:100%;
+      position:relative;
+      overflow:hidden;
+      background:#111;
+    }
 
     .ai-face:before{
       content:"";
@@ -98,20 +144,86 @@
       filter:blur(10px);
     }
 
-    .ava-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,235,.60),transparent 18%),radial-gradient(circle at 50% 42%,rgba(255,46,136,.36),transparent 32%),linear-gradient(135deg,#1d081e,#050509)}
-    .mira-face{background:radial-gradient(circle at 50% 26%,rgba(255,235,210,.60),transparent 18%),radial-gradient(circle at 52% 44%,rgba(255,176,90,.34),transparent 34%),linear-gradient(135deg,#25130c,#050509)}
-    .kira-face{background:radial-gradient(circle at 50% 26%,rgba(210,250,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(0,230,255,.34),transparent 34%),linear-gradient(135deg,#031b25,#050509)}
-    .luna-face{background:radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),linear-gradient(135deg,#15051f,#050509)}
-    .dante-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),linear-gradient(135deg,#210506,#050509)}
-    .noah-face{background:radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),linear-gradient(135deg,#071027,#050509)}
+    .ava-face{
+      background:
+        radial-gradient(circle at 50% 26%,rgba(255,220,235,.60),transparent 18%),
+        radial-gradient(circle at 50% 42%,rgba(255,46,136,.36),transparent 32%),
+        linear-gradient(135deg,#1d081e,#050509)
+    }
 
-    .feed-post{padding:22px;border-bottom:1px solid var(--line)}
-    .post-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-    .post-user{display:flex;flex-direction:column}
-    .post-user a{color:var(--ink);text-decoration:none;font-weight:800;font-size:15px}
-    .post-user a:hover{color:#ff5fb0}
-    .post-user span{font-size:12px;color:var(--muted)}
-    .post-text{line-height:1.7;margin-bottom:18px;color:#f3f3f7}
+    .mira-face{
+      background:
+        radial-gradient(circle at 50% 26%,rgba(255,235,210,.60),transparent 18%),
+        radial-gradient(circle at 52% 44%,rgba(255,176,90,.34),transparent 34%),
+        linear-gradient(135deg,#25130c,#050509)
+    }
+
+    .kira-face{
+      background:
+        radial-gradient(circle at 50% 26%,rgba(210,250,255,.58),transparent 18%),
+        radial-gradient(circle at 50% 44%,rgba(0,230,255,.34),transparent 34%),
+        linear-gradient(135deg,#031b25,#050509)
+    }
+
+    .luna-face{
+      background:
+        radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),
+        radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),
+        linear-gradient(135deg,#15051f,#050509)
+    }
+
+    .dante-face{
+      background:
+        radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),
+        radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),
+        linear-gradient(135deg,#210506,#050509)
+    }
+
+    .noah-face{
+      background:
+        radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),
+        radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),
+        linear-gradient(135deg,#071027,#050509)
+    }
+
+    .feed-post{
+      padding:22px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .post-head{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:16px;
+    }
+
+    .post-user{
+      display:flex;
+      flex-direction:column;
+    }
+
+    .post-user a{
+      color:var(--ink);
+      text-decoration:none;
+      font-weight:800;
+      font-size:15px;
+    }
+
+    .post-user a:hover{
+      color:#ff5fb0;
+    }
+
+    .post-user span{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .post-text{
+      line-height:1.7;
+      margin-bottom:18px;
+      color:#f3f3f7;
+    }
 
     .post-media{
       display:block;
@@ -131,7 +243,11 @@
       box-shadow:0 0 34px rgba(255,46,136,.12);
     }
 
-    .scene{position:absolute;inset:0;overflow:hidden}
+    .scene{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+    }
 
     .scene:before{
       content:"";
@@ -155,23 +271,152 @@
         linear-gradient(180deg,transparent,rgba(0,0,0,.68));
     }
 
-    .ava-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
-    .mira-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
-    .kira-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),linear-gradient(135deg,#021b24,#050509)}
-    .luna-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
-    .dante-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),linear-gradient(135deg,#220506,#050509)}
-    .noah-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),linear-gradient(135deg,#071027,#050509)}
+    .ava-scene{
+      background:
+        radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),
+        radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),
+        linear-gradient(135deg,#210820,#050509)
+    }
 
-    .scene-label{position:absolute;left:22px;bottom:22px;right:22px;z-index:2;color:white}
-    .scene-label strong{display:block;font-size:24px;margin-bottom:6px}
-    .scene-label span{color:rgba(255,255,255,.72);line-height:1.5}
+    .mira-scene{
+      background:
+        radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),
+        radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),
+        linear-gradient(135deg,#2a1509,#050509)
+    }
 
-    .post-actions{display:flex;gap:18px;margin-top:16px;color:var(--muted);font-size:14px;flex-wrap:wrap}
-    .post-actions a,.post-actions span{cursor:pointer;color:var(--muted);text-decoration:none}
-    .post-actions a:hover,.post-actions span:hover{color:#ff5fb0}
+    .kira-scene{
+      background:
+        radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),
+        radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),
+        linear-gradient(135deg,#021b24,#050509)
+    }
 
-    .mini-title{font-size:13px;color:var(--muted);margin-bottom:14px;letter-spacing:.12em}
-    .menu{display:flex;flex-direction:column;gap:10px}
+    .luna-scene{
+      background:
+        radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),
+        radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),
+        linear-gradient(135deg,#15051f,#050509)
+    }
+
+    .dante-scene{
+      background:
+        radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),
+        radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),
+        linear-gradient(135deg,#220506,#050509)
+    }
+
+    .noah-scene{
+      background:
+        radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),
+        radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),
+        linear-gradient(135deg,#071027,#050509)
+    }
+
+    .scene-label{
+      position:absolute;
+      left:22px;
+      bottom:22px;
+      right:22px;
+      z-index:2;
+      color:white;
+    }
+
+    .scene-label strong{
+      display:block;
+      font-size:24px;
+      margin-bottom:6px;
+    }
+
+    .scene-label span{
+      color:rgba(255,255,255,.72);
+      line-height:1.5;
+    }
+
+    .locked-overlay{
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
+      z-index:3;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      padding:20px;
+    }
+
+    .locked-box{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.45);
+      padding:20px;
+      border-radius:22px;
+      max-width:280px;
+    }
+
+    .locked-box strong{
+      display:block;
+      font-size:22px;
+      margin-bottom:10px;
+    }
+
+    .locked-box span{
+      display:block;
+      color:var(--muted);
+      line-height:1.5;
+      margin-bottom:16px;
+    }
+
+    .unlock-btn{
+      border:0;
+      cursor:pointer;
+      border-radius:14px;
+      padding:12px 16px;
+      font-weight:800;
+      background:linear-gradient(135deg,var(--red),var(--pink));
+      color:white;
+    }
+
+    .post-actions{
+      display:flex;
+      gap:12px;
+      margin-top:16px;
+      flex-wrap:wrap;
+    }
+
+    .action-btn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      border-radius:999px;
+      padding:10px 14px;
+      cursor:pointer;
+      transition:.2s ease;
+      font-size:14px;
+    }
+
+    .action-btn:hover{
+      color:#ff5fb0;
+      border-color:rgba(255,46,136,.4);
+    }
+
+    .action-btn.active{
+      color:#ff5fb0;
+      border-color:rgba(255,46,136,.55);
+      box-shadow:0 0 24px rgba(255,46,136,.18);
+    }
+
+    .mini-title{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:14px;
+      letter-spacing:.12em;
+    }
+
+    .menu{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
 
     .menu a{
       text-decoration:none;
@@ -181,7 +426,9 @@
       transition:.2s ease;
     }
 
-    .menu a:hover{background:rgba(255,255,255,.06)}
+    .menu a:hover{
+      background:rgba(255,255,255,.06);
+    }
 
     .trend-card{
       border:1px solid var(--line);
@@ -191,8 +438,16 @@
       background:rgba(255,255,255,.04);
     }
 
-    .trend-card strong{display:block;margin-bottom:6px}
-    .trend-card span{color:var(--muted);font-size:13px;line-height:1.5}
+    .trend-card strong{
+      display:block;
+      margin-bottom:6px;
+    }
+
+    .trend-card span{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
 
     .live-dot{
       width:8px;
@@ -205,19 +460,28 @@
     }
 
     @media(max-width:1100px){
-      .feed-layout{grid-template-columns:1fr}
-      .side-panel{position:relative;top:auto}
-      .post-media{min-height:360px}
+      .feed-layout{
+        grid-template-columns:1fr;
+      }
+
+      .side-panel{
+        position:relative;
+        top:auto;
+      }
     }
 
     @media(max-width:760px){
-      .feed-shell{padding:10px}
-      .feed-top{padding:18px}
-      .feed-title{font-size:28px}
-      .feed-post{padding:18px}
-      .post-media{min-height:320px;border-radius:20px}
-      .side-panel{padding:14px}
-      .story-row{padding:16px}
+      .feed-shell{
+        padding:10px;
+      }
+
+      .feed-post{
+        padding:18px;
+      }
+
+      .post-media{
+        min-height:320px;
+      }
     }
   </style>
 </head>
@@ -284,7 +548,7 @@
         </h1>
 
         <p class="feed-sub">
-          Feed cinematic cu personaje fictive feminine și masculine, fiecare cu personalitate, stil vizual și identitate constantă.
+          Feed cinematic cu companions fictivi premium, identități persistente și experiențe private.
         </p>
 
       </div>
@@ -295,224 +559,203 @@
           <div class="story-avatar">
             <div class="ai-face ava-face"></div>
           </div>
-          <span data-no-translate>Ava</span>
+          <span>Ava</span>
         </a>
 
         <a class="story" href="/profile.html?slug=mira-vale">
           <div class="story-avatar">
             <div class="ai-face mira-face"></div>
           </div>
-          <span data-no-translate>Mira</span>
+          <span>Mira</span>
         </a>
 
         <a class="story" href="/profile.html?slug=kira-voss">
           <div class="story-avatar">
             <div class="ai-face kira-face"></div>
           </div>
-          <span data-no-translate>Kira</span>
+          <span>Kira</span>
         </a>
 
         <a class="story" href="/profile.html?slug=luna-sable">
           <div class="story-avatar">
             <div class="ai-face luna-face"></div>
           </div>
-          <span data-no-translate>Luna</span>
-        </a>
-
-        <a class="story" href="/profile.html?slug=dante-vale">
-          <div class="story-avatar">
-            <div class="ai-face dante-face"></div>
-          </div>
-          <span data-no-translate>Dante</span>
-        </a>
-
-        <a class="story" href="/profile.html?slug=noah-sterling">
-          <div class="story-avatar">
-            <div class="ai-face noah-face"></div>
-          </div>
-          <span data-no-translate>Noah</span>
+          <span>Luna</span>
         </a>
 
       </div>
 
+      <!-- POST 1 -->
+
       <article class="feed-post">
+
         <div class="post-head">
-          <div class="avatar"><div class="ai-face ava-face"></div></div>
+
+          <div class="avatar">
+            <div class="ai-face ava-face"></div>
+          </div>
 
           <div class="post-user">
-            <a href="/profile.html?slug=ava-noir" data-no-translate>Ava Noir</a>
-            <span><i class="live-dot"></i> online now</span>
+            <a href="/profile.html?slug=ava-noir">
+              Ava Noir
+            </a>
+
+            <span>
+              <i class="live-dot"></i>
+              online now
+            </span>
           </div>
+
         </div>
 
         <div class="post-text">
-          Uneori liniștea spune mai multe decât orice conversație. În seara asta aleg luxul întunecat, luminile neon și o atmosferă care rămâne în minte.
+          Uneori liniștea spune mai multe decât orice conversație.
         </div>
 
         <a class="post-media" href="/profile.html?slug=ava-noir">
+
           <div class="scene ava-scene"></div>
+
           <div class="scene-label">
-            <strong data-no-translate>Ava Noir</strong>
-            <span>Dark luxury • mysterious • cinematic elegance</span>
+            <strong>Ava Noir</strong>
+
+            <span>
+              dark luxury • cinematic elegance
+            </span>
           </div>
+
         </a>
 
         <div class="post-actions">
-          <span>❤ 12.4k</span>
-          <span>💬 1.2k</span>
-          <a href="/credits.html">🔓 Unlock</a>
-          <a href="/chat.html?slug=ava-noir">💌 Message</a>
+
+          <button
+            class="action-btn like-btn"
+            data-id="post1-like"
+          >
+            ❤ Like
+          </button>
+
+          <button
+            class="action-btn save-btn"
+            data-id="post1-save"
+          >
+            ⭐ Save
+          </button>
+
+          <button
+            class="action-btn follow-btn"
+            data-id="ava-follow"
+          >
+            ⚡ Follow
+          </button>
+
+          <a
+            class="action-btn"
+            href="/chat.html?slug=ava-noir"
+          >
+            💬 Message
+          </a>
+
         </div>
+
       </article>
 
+      <!-- LOCKED POST -->
+
       <article class="feed-post">
+
         <div class="post-head">
-          <div class="avatar"><div class="ai-face mira-face"></div></div>
+
+          <div class="avatar">
+            <div class="ai-face luna-face"></div>
+          </div>
 
           <div class="post-user">
-            <a href="/profile.html?slug=mira-vale" data-no-translate>Mira Vale</a>
-            <span><i class="live-dot"></i> active today</span>
+            <a href="/profile.html?slug=luna-sable">
+              Luna Sable
+            </a>
+
+            <span>
+              <i class="live-dot"></i>
+              premium drop
+            </span>
           </div>
+
         </div>
 
         <div class="post-text">
-          Mi-am petrecut noaptea citind și ascultând ploaia. Uneori ai nevoie doar de o voce caldă și de un loc sigur.
+          Unele scene nu sunt pentru toată lumea.
         </div>
 
-        <a class="post-media" href="/profile.html?slug=mira-vale">
-          <div class="scene mira-scene"></div>
-          <div class="scene-label">
-            <strong data-no-translate>Mira Vale</strong>
-            <span>Soft romance • emotional comfort • warm presence</span>
-          </div>
-        </a>
+        <div class="post-media">
 
-        <div class="post-actions">
-          <span>❤ 8.1k</span>
-          <span>💬 622</span>
-          <a href="/credits.html">🔓 Unlock</a>
-          <a href="/chat.html?slug=mira-vale">💌 Message</a>
-        </div>
-      </article>
-
-      <article class="feed-post">
-        <div class="post-head">
-          <div class="avatar"><div class="ai-face kira-face"></div></div>
-
-          <div class="post-user">
-            <a href="/profile.html?slug=kira-voss" data-no-translate>Kira Voss</a>
-            <span><i class="live-dot"></i> online now</span>
-          </div>
-        </div>
-
-        <div class="post-text">
-          Neonul nu ascunde adevărul. Doar îl face mai frumos. În orașul meu, emoțiile au lumină rece și ritm electric.
-        </div>
-
-        <a class="post-media" href="/profile.html?slug=kira-voss">
-          <div class="scene kira-scene"></div>
-          <div class="scene-label">
-            <strong data-no-translate>Kira Voss</strong>
-            <span>Cyberpunk muse • magnetic • futuristic confidence</span>
-          </div>
-        </a>
-
-        <div class="post-actions">
-          <span>❤ 10.7k</span>
-          <span>💬 944</span>
-          <a href="/profile.html?slug=kira-voss">⚡ Follow</a>
-          <a href="/chat.html?slug=kira-voss">💌 Message</a>
-        </div>
-      </article>
-
-      <article class="feed-post">
-        <div class="post-head">
-          <div class="avatar"><div class="ai-face luna-face"></div></div>
-
-          <div class="post-user">
-            <a href="/profile.html?slug=luna-sable" data-no-translate>Luna Sable</a>
-            <span><i class="live-dot"></i> active now</span>
-          </div>
-        </div>
-
-        <div class="post-text">
-          Unele povești nu sunt făcute să fie cuminți. Sunt făcute să ardă încet, în întuneric, până devin imposibil de uitat.
-        </div>
-
-        <a class="post-media" href="/profile.html?slug=luna-sable">
           <div class="scene luna-scene"></div>
-          <div class="scene-label">
-            <strong data-no-translate>Luna Sable</strong>
-            <span>Goth romantic • poetic • intense dark romance</span>
+
+          <div class="locked-overlay">
+
+            <div class="locked-box">
+
+              <strong>
+                🔒 Premium Locked
+              </strong>
+
+              <span>
+                Deblochează această scenă cinematică pentru 40 credits.
+              </span>
+
+              <button
+                class="unlock-btn"
+                onclick="unlockPost('locked-luna')"
+              >
+                Unlock • 40 cr
+              </button>
+
+            </div>
+
           </div>
-        </a>
+
+          <div class="scene-label">
+            <strong>Luna Sable</strong>
+
+            <span>
+              gothic romance • private cinematic scene
+            </span>
+          </div>
+
+        </div>
 
         <div class="post-actions">
-          <span>❤ 9.8k</span>
-          <span>💬 811</span>
-          <a href="/credits.html">🔓 Unlock</a>
-          <a href="/chat.html?slug=luna-sable">💌 Message</a>
-        </div>
-      </article>
 
-      <article class="feed-post">
-        <div class="post-head">
-          <div class="avatar"><div class="ai-face dante-face"></div></div>
+          <button
+            class="action-btn like-btn"
+            data-id="post2-like"
+          >
+            ❤ Like
+          </button>
 
-          <div class="post-user">
-            <a href="/profile.html?slug=dante-vale" data-no-translate>Dante Vale</a>
-            <span><i class="live-dot"></i> online now</span>
-          </div>
-        </div>
+          <button
+            class="action-btn save-btn"
+            data-id="post2-save"
+          >
+            ⭐ Save
+          </button>
 
-        <div class="post-text">
-          Controlul nu înseamnă zgomot. Înseamnă să intri într-o cameră și să nu mai fie nevoie să spui nimic.
-        </div>
+          <a
+            class="action-btn"
+            href="/credits.html"
+          >
+            💳 Credits
+          </a>
 
-        <a class="post-media" href="/profile.html?slug=dante-vale">
-          <div class="scene dante-scene"></div>
-          <div class="scene-label">
-            <strong data-no-translate>Dante Vale</strong>
-            <span>Luxury mafia • protective • calm danger</span>
-          </div>
-        </a>
+          <a
+            class="action-btn"
+            href="/chat.html?slug=luna-sable"
+          >
+            💬 Message
+          </a>
 
-        <div class="post-actions">
-          <span>❤ 14.2k</span>
-          <span>💬 1.5k</span>
-          <a href="/credits.html">🔓 Unlock</a>
-          <a href="/chat.html?slug=dante-vale">💬 Message</a>
-        </div>
-      </article>
-
-      <article class="feed-post">
-        <div class="post-head">
-          <div class="avatar"><div class="ai-face noah-face"></div></div>
-
-          <div class="post-user">
-            <a href="/profile.html?slug=noah-sterling" data-no-translate>Noah Sterling</a>
-            <span><i class="live-dot"></i> active today</span>
-          </div>
         </div>
 
-        <div class="post-text">
-          Eleganța adevărată nu cere atenție. O primește oricum. Totul ține de detalii, răbdare și precizie.
-        </div>
-
-        <a class="post-media" href="/profile.html?slug=noah-sterling">
-          <div class="scene noah-scene"></div>
-          <div class="scene-label">
-            <strong data-no-translate>Noah Sterling</strong>
-            <span>Elegant CEO • intelligent • premium control</span>
-          </div>
-        </a>
-
-        <div class="post-actions">
-          <span>❤ 7.9k</span>
-          <span>💬 534</span>
-          <a href="/profile.html?slug=noah-sterling">⭐ Save</a>
-          <a href="/chat.html?slug=noah-sterling">💌 Message</a>
-        </div>
       </article>
 
     </section>
@@ -525,48 +768,128 @@
 
       <div class="trend-card">
         <strong># dark romance</strong>
-        <span>Cinematic companions cu atmosferă intensă și conversații private.</span>
+
+        <span>
+          companions cinematici și experiențe premium.
+        </span>
       </div>
 
       <div class="trend-card">
-        <strong># cyberpunk</strong>
-        <span>Personaje futuriste, neon și realism premium.</span>
-      </div>
+        <strong># luxury ai</strong>
 
-      <div class="trend-card">
-        <strong># soft romance</strong>
-        <span>Personaje calde, emoționale și apropiate.</span>
-      </div>
-
-      <div class="trend-card">
-        <strong># masculine luxury</strong>
-        <span>Companions masculini cu energie calmă, elegantă și protectivă.</span>
+        <span>
+          identități persistente și chat privat.
+        </span>
       </div>
 
       <div class="trend-card">
         <strong># credits unlock</strong>
-        <span>Preview-uri premium, galerii blocate și unlock-uri prin credits mock.</span>
+
+        <span>
+          teaser-uri private și galerii blocate.
+        </span>
       </div>
 
     </aside>
 
   </section>
 
-  <footer class="home-footer">
-    <span data-no-translate>© The Future — PRO</span>
-
-    <div>
-      <a href="/discover.html">Discover</a>
-      <a href="/feed.html">Feed</a>
-      <a href="/credits.html">Credits</a>
-      <a href="/premium.html">Premium</a>
-      <a href="/privacy.html">Confidențialitate</a>
-      <a href="/terms.html">Termeni</a>
-      <a href="/safety.html">Siguranță</a>
-    </div>
-  </footer>
-
 </main>
+
+<script>
+function toggleButton(btn,key,activeText,defaultText){
+
+  const active =
+    localStorage.getItem(key) === "1";
+
+  if(active){
+    btn.classList.add("active");
+    btn.textContent = activeText;
+  }else{
+    btn.classList.remove("active");
+    btn.textContent = defaultText;
+  }
+
+  btn.onclick = function(){
+
+    const isActive =
+      localStorage.getItem(key) === "1";
+
+    if(isActive){
+      localStorage.removeItem(key);
+    }else{
+      localStorage.setItem(key,"1");
+    }
+
+    toggleButton(
+      btn,
+      key,
+      activeText,
+      defaultText
+    );
+  };
+}
+
+document.querySelectorAll(".like-btn")
+.forEach(btn=>{
+  toggleButton(
+    btn,
+    btn.dataset.id,
+    "❤ Liked",
+    "❤ Like"
+  );
+});
+
+document.querySelectorAll(".save-btn")
+.forEach(btn=>{
+  toggleButton(
+    btn,
+    btn.dataset.id,
+    "⭐ Saved",
+    "⭐ Save"
+  );
+});
+
+document.querySelectorAll(".follow-btn")
+.forEach(btn=>{
+  toggleButton(
+    btn,
+    btn.dataset.id,
+    "✓ Following",
+    "⚡ Follow"
+  );
+});
+
+function unlockPost(key){
+
+  localStorage.setItem(
+    "unlock_" + key,
+    "1"
+  );
+
+  alert(
+    "Postarea premium a fost deblocată mock."
+  );
+
+  location.reload();
+}
+
+window.addEventListener("DOMContentLoaded",()=>{
+
+  if(
+    localStorage.getItem("unlock_locked-luna") === "1"
+  ){
+
+    const overlay =
+      document.querySelector(".locked-overlay");
+
+    if(overlay){
+      overlay.remove();
+    }
+  }
+
+});
+</script>
 
 </body>
 </html>
