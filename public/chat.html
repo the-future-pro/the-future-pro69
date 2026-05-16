@@ -24,14 +24,18 @@
     .luna-face{background:radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),linear-gradient(135deg,#15051f,#050509)}
     .dante-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),linear-gradient(135deg,#210506,#050509)}
     .noah-face{background:radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),linear-gradient(135deg,#071027,#050509)}
+
     .companion strong{display:block;font-size:18px}
     .companion span{display:block;color:var(--muted);font-size:13px}
     .status-dot{display:inline-block;width:8px;height:8px;background:#34d399;border-radius:999px;margin-right:6px;box-shadow:0 0 14px #34d399}
+
     .chat-log{height:58vh;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px;background:radial-gradient(500px 260px at 10% 20%,rgba(155,92,255,.12),transparent),radial-gradient(500px 260px at 90% 40%,rgba(255,46,136,.1),transparent)}
-    .bubble{max-width:78%;padding:13px 15px;border-radius:20px;line-height:1.45;border:1px solid var(--line)}
+    .bubble{max-width:78%;padding:13px 15px;border-radius:20px;line-height:1.45;border:1px solid var(--line);word-break:break-word}
     .bubble.you{align-self:flex-end;background:linear-gradient(135deg,var(--red),var(--pink));color:white;border-color:transparent;border-bottom-right-radius:6px}
     .bubble.ai{align-self:flex-start;background:rgba(255,255,255,.07);border-bottom-left-radius:6px}
     .bubble small{display:block;color:rgba(255,255,255,.7);margin-bottom:5px}
+    .bubble-media{margin-top:8px;border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(0,0,0,.25)}
+
     .composer{padding:16px;border-top:1px solid var(--line);background:rgba(0,0,0,.28)}
     .composer-row{display:flex;gap:10px}
     .composer-row input{flex:1}
@@ -40,6 +44,8 @@
     .empty{text-align:center;color:var(--muted);padding:60px 20px;line-height:1.6}
     .profile-chip{display:inline-flex;align-items:center;gap:6px;margin-top:4px;color:var(--muted);font-size:12px;text-decoration:none}
     .profile-chip:hover{color:#ff5fb0}
+    .mini-hint{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.45}
+
     @media(max-width:760px){
       .chat-shell{padding:8px}
       .chat-app{border-radius:22px}
@@ -64,8 +70,13 @@
 
         <div>
           <strong id="title" data-no-translate>Ava Noir</strong>
-          <span><i class="status-dot"></i> online • <span id="vibeText">Dark luxury companion</span></span>
-          <a id="profileLink" class="profile-chip" href="/profile.html?slug=ava-noir">Vezi profilul companionului</a>
+          <span>
+            <i class="status-dot"></i>
+            online • <span id="vibeText">Dark luxury companion</span>
+          </span>
+          <a id="profileLink" class="profile-chip" href="/profile.html?slug=ava-noir">
+            Vezi profilul companionului
+          </a>
         </div>
       </div>
 
@@ -87,8 +98,20 @@
 
     <div class="composer">
       <div class="composer-row">
-        <input id="text" placeholder="Scrie un mesaj..." onkeydown="if(event.key==='Enter')send()">
-        <button id="sendBtn" class="main-btn" onclick="send()" style="border:0">Trimite</button>
+        <input
+          id="text"
+          placeholder="Scrie un mesaj..."
+          onkeydown="if(event.key==='Enter')send()"
+        >
+
+        <button
+          id="sendBtn"
+          class="main-btn"
+          onclick="send()"
+          style="border:0"
+        >
+          Trimite
+        </button>
       </div>
 
       <div class="tools">
@@ -105,10 +128,20 @@
 
         <input id="neg" placeholder="Extra style / negative prompt">
 
-        <button class="ghost-btn" onclick="offer()" style="border:1px solid var(--line)">Generează teaser</button>
+        <button
+          class="ghost-btn"
+          onclick="offer()"
+          style="border:1px solid var(--line)"
+        >
+          Generează teaser
+        </button>
       </div>
 
-      <div id="videoOpts" class="tools" style="display:none;grid-template-columns:1fr 1fr;margin-top:10px">
+      <div
+        id="videoOpts"
+        class="tools"
+        style="display:none;grid-template-columns:1fr 1fr;margin-top:10px"
+      >
         <select id="v_sec">
           <option value="10">10s</option>
           <option value="20">20s</option>
@@ -119,6 +152,10 @@
           <option>4k</option>
         </select>
       </div>
+
+      <div class="mini-hint">
+        Chatul este conectat la backend persistent mock. Mesajele trebuie să rămână după refresh.
+      </div>
     </div>
 
   </div>
@@ -126,12 +163,36 @@
 
 <script>
 const profiles = {
-  "ava-noir": {name:"Ava Noir",face:"ava-face",vibe:"Dark luxury companion"},
-  "mira-vale": {name:"Mira Vale",face:"mira-face",vibe:"Soft romance companion"},
-  "kira-voss": {name:"Kira Voss",face:"kira-face",vibe:"Cyberpunk muse"},
-  "luna-sable": {name:"Luna Sable",face:"luna-face",vibe:"Goth romantic companion"},
-  "dante-vale": {name:"Dante Vale",face:"dante-face",vibe:"Masculine luxury companion"},
-  "noah-sterling": {name:"Noah Sterling",face:"noah-face",vibe:"Elegant CEO companion"}
+  "ava-noir": {
+    name:"Ava Noir",
+    face:"ava-face",
+    vibe:"Dark luxury companion"
+  },
+  "mira-vale": {
+    name:"Mira Vale",
+    face:"mira-face",
+    vibe:"Soft romance companion"
+  },
+  "kira-voss": {
+    name:"Kira Voss",
+    face:"kira-face",
+    vibe:"Cyberpunk muse"
+  },
+  "luna-sable": {
+    name:"Luna Sable",
+    face:"luna-face",
+    vibe:"Goth romantic companion"
+  },
+  "dante-vale": {
+    name:"Dante Vale",
+    face:"dante-face",
+    vibe:"Masculine luxury companion"
+  },
+  "noah-sterling": {
+    name:"Noah Sterling",
+    face:"noah-face",
+    vibe:"Elegant CEO companion"
+  }
 };
 
 const qs = new URLSearchParams(location.search);
@@ -139,19 +200,23 @@ const slug = qs.get("slug") || "ava-noir";
 const profile = profiles[slug] || profiles["ava-noir"];
 
 document.title = profile.name + " Chat — The Future PRO";
-title.textContent = profile.name;
-vibeText.textContent = profile.vibe;
-avatarArt.className = "ai-face " + profile.face;
-profileLink.href = "/profile.html?slug=" + slug;
-backProfile.href = "/profile.html?slug=" + slug;
+document.getElementById("title").textContent = profile.name;
+document.getElementById("vibeText").textContent = profile.vibe;
+document.getElementById("avatarArt").className = "ai-face " + profile.face;
+document.getElementById("profileLink").href = "/profile.html?slug=" + encodeURIComponent(slug);
+document.getElementById("backProfile").href = "/profile.html?slug=" + encodeURIComponent(slug);
 
 const j = (u,o)=>fetch(u,{
-  method:o?.method||"GET",
+  method:o?.method || "GET",
   headers:{"Content-Type":"application/json"},
   credentials:"include",
-  body:o?.body?JSON.stringify(o.body):undefined
+  body:o?.body ? JSON.stringify(o.body) : undefined
 }).then(async r=>{
-  const data = await r.json().catch(()=>({ok:false,error:"bad_json"}));
+  const data = await r.json().catch(()=>({
+    ok:false,
+    error:"bad_json"
+  }));
+
   data.__status = r.status;
   return data;
 });
@@ -161,16 +226,26 @@ let renderedIds = new Set();
 
 document.getElementById("kind").addEventListener("change", e=>{
   const v = e.target.value;
-  quality_img.style.display = v === "image" ? "block" : "none";
-  videoOpts.style.display = v === "video" ? "grid" : "none";
+
+  document.getElementById("quality_img").style.display =
+    v === "image" ? "block" : "none";
+
+  document.getElementById("videoOpts").style.display =
+    v === "video" ? "grid" : "none";
 });
 
 async function ensureLogin(){
   try{
     const me = await j("/api/me");
-    if(me.ok && me.logged) return true;
 
-    const r = await j("/api/mock-login?email=" + encodeURIComponent("test@future.ai"));
+    if(me.ok && me.logged){
+      return true;
+    }
+
+    const r = await j(
+      "/api/mock-login?email=" + encodeURIComponent("test@future.ai")
+    );
+
     return !!r.ok;
   }catch(e){
     return false;
@@ -187,7 +262,10 @@ async function load(){
       `/api/chat/${encodeURIComponent(slug)}/history?after=${lastId}&lang=${encodeURIComponent(lang)}`
     );
   }catch(e){
-    r = {ok:false,items:[]};
+    r = {
+      ok:false,
+      items:[]
+    };
   }
 
   if(!r.ok){
@@ -207,14 +285,18 @@ async function load(){
 
 function showEmpty(text){
   const log = document.getElementById("log");
+
   if(!document.getElementById("empty")){
     log.innerHTML = `<div class="empty" id="empty"></div>`;
   }
+
   document.getElementById("empty").textContent = text;
 }
 
 function render(m){
-  if(m.id && renderedIds.has(m.id)) return;
+  if(m.id && renderedIds.has(m.id)){
+    return;
+  }
 
   if(m.id){
     renderedIds.add(m.id);
@@ -222,21 +304,40 @@ function render(m){
   }
 
   const empty = document.getElementById("empty");
-  if(empty) empty.remove();
+
+  if(empty){
+    empty.remove();
+  }
 
   const log = document.getElementById("log");
   const d = document.createElement("div");
 
-  const isAI = m.sender_type === "persona" || m.sender_type === "ai";
-  d.className = "bubble " + (isAI ? "ai" : "you");
+  const isAI =
+    m.sender_type === "persona" ||
+    m.sender_type === "ai";
 
-  const msgText = m.translatedText || m.text || "";
+  d.className =
+    "bubble " + (isAI ? "ai" : "you");
+
+  const msgText =
+    m.translatedText ||
+    m.text ||
+    "";
 
   if(m.kind === "text" || !m.kind){
-    d.innerHTML = `<small>${isAI ? profile.name : "Tu"}</small>${escapeHtml(msgText)}`;
-  } else {
+    d.innerHTML = `
+      <small>${isAI ? profile.name : "Tu"}</small>
+      ${escapeHtml(msgText)}
+    `;
+  }else{
     const media = m.media || {};
-    d.innerHTML = `<small>${profile.name}</small>Teaser media privat · ${escapeHtml(media.type || "")} · ${escapeHtml(media.price_credits || 0)} cr`;
+
+    d.innerHTML = `
+      <small>${profile.name}</small>
+      <div class="bubble-media">
+        Teaser media privat · ${escapeHtml(media.type || "")} · ${escapeHtml(media.price_credits || 0)} cr
+      </div>
+    `;
   }
 
   log.appendChild(d);
@@ -248,16 +349,21 @@ async function send(){
   const btn = document.getElementById("sendBtn");
   const t = input.value.trim();
 
-  if(!t) return;
+  if(!t){
+    return;
+  }
 
   btn.disabled = true;
-  typing.style.display = "block";
+  document.getElementById("typing").style.display = "block";
 
   try{
-    const r = await j(`/api/chat/${encodeURIComponent(slug)}/send`,{
-      method:"POST",
-      body:{text:t}
-    });
+    const r = await j(
+      `/api/chat/${encodeURIComponent(slug)}/send`,
+      {
+        method:"POST",
+        body:{text:t}
+      }
+    );
 
     if(!r.ok){
       alert("Mesajul nu s-a salvat: " + (r.error || "eroare necunoscută"));
@@ -266,14 +372,19 @@ async function send(){
 
     input.value = "";
 
-    if(r.userMessage) render(r.userMessage);
-    if(r.personaMessage) render(r.personaMessage);
+    if(r.userMessage){
+      render(r.userMessage);
+    }
+
+    if(r.personaMessage){
+      render(r.personaMessage);
+    }
 
     await load();
   }catch(e){
     alert("Eroare la trimitere. Verifică serverul.");
   }finally{
-    typing.style.display = "none";
+    document.getElementById("typing").style.display = "none";
     btn.disabled = false;
     input.focus();
   }
@@ -288,24 +399,34 @@ async function offer(){
   };
 
   if(kind === "image"){
-    body.quality = document.getElementById("quality_img").value;
+    body.quality =
+      document.getElementById("quality_img").value;
   }else{
-    body.duration = Number(document.getElementById("v_sec").value);
-    body.quality = document.getElementById("v_q").value;
+    body.duration =
+      Number(document.getElementById("v_sec").value);
+
+    body.quality =
+      document.getElementById("v_q").value;
   }
 
   try{
-    const r = await j(`/api/chat/${encodeURIComponent(slug)}/offer`,{
-      method:"POST",
-      body
-    });
+    const r = await j(
+      `/api/chat/${encodeURIComponent(slug)}/offer`,
+      {
+        method:"POST",
+        body
+      }
+    );
 
     if(!r.ok){
       alert("Teaserul nu s-a salvat: " + (r.error || "eroare necunoscută"));
       return;
     }
 
-    if(r.item) render(r.item);
+    if(r.item){
+      render(r.item);
+    }
+
     await load();
   }catch(e){
     alert("Eroare la generarea teaserului.");
@@ -313,7 +434,7 @@ async function offer(){
 }
 
 function escapeHtml(str){
-  return String(str)
+  return String(str || "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;")
