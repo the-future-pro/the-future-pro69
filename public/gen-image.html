@@ -40,7 +40,7 @@
     }
     .result img{width:100%;height:100%;object-fit:cover;display:block}
     .statusbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
-    .pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:13px}
+    .pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:13px;text-decoration:none}
     .ok{color:#34d399;border-color:rgba(52,211,153,.45)}
     .no{color:#fb7185;border-color:rgba(251,113,133,.45)}
     .studio-note{
@@ -55,16 +55,43 @@
       border:3px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.9);
       animation:spin 1s linear infinite
     }
-    .error-box{
+    .soft-box{
       width:100%;padding:30px;text-align:left
     }
-    .error-box pre{
-      margin-top:18px;white-space:pre-wrap;word-break:break-word;color:#fff;
-      background:#111;padding:14px;border-radius:14px;
+    .soft-box pre{
+      margin-top:18px;white-space:pre-wrap;word-break:break-word;color:#d6d6df;
+      background:#07070a;padding:14px;border-radius:14px;
       border:1px solid rgba(255,255,255,.08)
     }
+    .mock-preview{
+      width:100%;height:100%;min-height:640px;position:relative;overflow:hidden;
+      background:
+        radial-gradient(380px 420px at 50% 32%,rgba(255,255,255,.13),transparent 35%),
+        radial-gradient(620px 460px at 58% 28%,rgba(255,46,136,.32),transparent),
+        radial-gradient(520px 360px at 72% 22%,rgba(155,92,255,.24),transparent),
+        linear-gradient(135deg,#210820,#050509);
+    }
+    .mock-preview:before{
+      content:"";position:absolute;width:260px;height:380px;left:50%;top:48%;
+      transform:translate(-50%,-50%);border-radius:48% 48% 36% 36%;
+      background:rgba(255,255,255,.14);filter:blur(18px)
+    }
+    .mock-preview:after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,transparent,rgba(0,0,0,.72))
+    }
+    .mock-label{
+      position:absolute;left:26px;right:26px;bottom:26px;z-index:2;text-align:left
+    }
+    .mock-label strong{display:block;font-size:28px;margin-bottom:8px}
+    .mock-label span{color:var(--muted);line-height:1.55}
+    .action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
     @keyframes spin{to{transform:rotate(360deg)}}
-    @media(max-width:900px){.studio-grid{grid-template-columns:1fr}.result{min-height:430px}}
+    @media(max-width:900px){
+      .studio{padding:12px}
+      .studio-grid{grid-template-columns:1fr}
+      .result,.mock-preview{min-height:430px}
+    }
   </style>
 </head>
 
@@ -83,8 +110,9 @@
       <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
 
       <div class="nav-actions">
-        <a class="ghost-btn" href="/premium">Premium</a>
-        <a class="ghost-btn" href="/chat.html">Chat</a>
+        <a class="ghost-btn" href="/discover.html">Discover</a>
+        <a class="ghost-btn" href="/credits.html">Credits</a>
+        <a class="ghost-btn" href="/premium.html">Premium</a>
         <a class="main-btn" href="/gen-video.html">Video</a>
       </div>
     </nav>
@@ -94,7 +122,7 @@
         <span>IMAGE STUDIO</span>
         <h2>Creează imagini AI cinematice cu realism premium.</h2>
         <p>
-          Scrie un prompt, alege calitatea și generează imagini fictive, stilizate și cinematice. Platforma acceptă prompturi în mai multe limbi, însă engleza oferă de obicei cele mai precise rezultate.
+          Momentan păstrăm generarea reală pe pauză dacă Replicate nu are credit. Platforma va afișa preview mock premium, fără să pară stricată.
         </p>
       </div>
     </section>
@@ -102,7 +130,8 @@
     <div class="statusbar">
       <span id="me" class="pill">user: -</span>
       <span id="sub" class="pill">abonament: -</span>
-      <a class="pill" href="/premium">Member Area</a>
+      <a class="pill" href="/credits.html">Credits Wallet</a>
+      <a class="pill" href="/profile.html?slug=ava-noir">Profil Ava</a>
       <a class="pill" href="/api/logout">Logout</a>
     </div>
 
@@ -114,7 +143,7 @@
           <label>Prompt</label>
           <textarea
             id="prompt"
-            placeholder="Ex: portret cinematic ultra-realist al unui companion AI fictiv, lumină neon, atmosferă premium..."
+            placeholder="Ex: cinematic portrait of a fictional AI companion, neon luxury lighting, premium atmosphere..."
           ></textarea>
         </div>
 
@@ -146,8 +175,12 @@
           Generează imagine
         </button>
 
+        <button id="mockBtn" class="ghost-btn" style="border:1px solid var(--line);width:100%;margin-top:10px">
+          Arată preview mock
+        </button>
+
         <div class="studio-note">
-          ✨ Prompturile pot fi scrise în orice limbă, însă pentru cele mai precise și cinematice rezultate recomandăm limba engleză.
+          ✨ Recomandare: pentru rezultate reale, folosește prompt în engleză. Când nu avem credit Replicate, afișăm mock premium ca să putem testa flow-ul.
         </div>
 
         <pre id="out" class="hidden-debug"></pre>
@@ -156,9 +189,9 @@
       <div class="result" id="result">
         <div class="loading-box">
           <div class="eyebrow">PREVIEW</div>
-          <h2 style="margin:10px 0">Imaginea generată va apărea aici</h2>
+          <h2 style="margin:10px 0">Imaginea va apărea aici</h2>
           <p style="color:var(--muted);max-width:520px;margin:auto">
-            Scrie un prompt și apasă pe Generează imagine.
+            Scrie un prompt și apasă pe Generează imagine. Dacă Replicate nu are credit, primești un preview mock elegant.
           </p>
         </div>
       </div>
@@ -185,13 +218,13 @@ function addPrompt(text){
 }
 
 function paintBadges(){
-  $('#me').textContent = user ? `user: ${user.email}` : 'user: -';
+  $('#me').textContent = user ? `user: ${user.email}` : 'user: test/mock';
 
   if(sub.active){
     $('#sub').textContent = `abonament: ${sub.sub?.tier || 'activ'}`;
     $('#sub').className = 'pill ok';
   } else {
-    $('#sub').textContent = 'abonament: inactiv';
+    $('#sub').textContent = 'abonament: mock/inactiv';
     $('#sub').className = 'pill no';
   }
 }
@@ -227,23 +260,55 @@ function setLoading(){
       <div class="eyebrow">GENERARE</div>
       <h2 style="margin:10px 0">Se creează imaginea...</h2>
       <p style="color:var(--muted);max-width:520px;margin:auto">
-        AI-ul procesează promptul și pregătește rezultatul cinematic.
+        Trimitem promptul către backend. Dacă Replicate nu are credit, afișăm fallback mock.
       </p>
     </div>
   `;
 }
 
-function setErrorBox(data){
+function isInsufficientCredit(data){
+  const text = JSON.stringify(data || {}).toLowerCase();
+  return text.includes('insufficient credit') || text.includes('402');
+}
+
+function setSoftErrorBox(data){
   const errorText = typeof data === 'string' ? data : JSON.stringify(data,null,2);
 
   result.innerHTML = `
-    <div class="error-box">
-      <div class="eyebrow">IMAGE ERROR</div>
-      <h2 style="margin:12px 0">Generarea imaginii a eșuat</h2>
-      <p style="color:#ff8ea1">
-        Serverul a răspuns, dar Replicate a returnat o eroare. Copiază eroarea de mai jos și trimite-mi-o.
+    <div class="soft-box">
+      <div class="eyebrow">MOCK FALLBACK</div>
+      <h2 style="margin:12px 0">Generarea reală este momentan pe pauză</h2>
+      <p style="color:var(--muted);line-height:1.7">
+        Integrarea funcționează, dar contul Replicate nu are credit sau generarea reală nu este activă acum.
+        Continuăm cu preview mock, fără costuri, până când decidem să activăm generarea reală.
       </p>
+
+      <div class="action-row">
+        <button class="main-btn" onclick="setMockPreview()" style="border:0">Afișează preview mock</button>
+        <a class="ghost-btn" href="/credits.html">Vezi Credits</a>
+        <a class="ghost-btn" href="/profile.html?slug=ava-noir">Profil Ava</a>
+      </div>
+
       <pre>${escapeHtml(errorText)}</pre>
+    </div>
+  `;
+}
+
+function setMockPreview(){
+  const prompt = $('#prompt').value.trim() || 'fictional AI companion, premium cinematic portrait';
+  const quality = $('#quality').value;
+
+  result.innerHTML = `
+    <div class="mock-preview">
+      <div class="mock-label">
+        <div class="eyebrow">MOCK PREVIEW</div>
+        <strong>Preview cinematic generat mock</strong>
+        <span>
+          Prompt: ${escapeHtml(prompt)}<br>
+          Calitate selectată: ${escapeHtml(quality)}<br>
+          Acesta este fallback vizual fără cost Replicate.
+        </span>
+      </div>
     </div>
   `;
 }
@@ -257,12 +322,30 @@ function escapeHtml(str){
     .replaceAll("'","&#039;");
 }
 
-async function boot(){
+async function ensureLogin(){
   try{
     const r1 = await fetch('/api/me',{credentials:'include'});
     const j1 = await r1.json();
-    if(j1.ok) user = j1.user;
 
+    if(j1.ok){
+      user = j1.user;
+      return;
+    }
+
+    await fetch('/api/mock-login?email=' + encodeURIComponent('test@future.ai'),{
+      credentials:'include'
+    });
+
+    const r2 = await fetch('/api/me',{credentials:'include'});
+    const j2 = await r2.json();
+    if(j2.ok) user = j2.user;
+  }catch(e){}
+}
+
+async function boot(){
+  await ensureLogin();
+
+  try{
     const r2 = await fetch('/api/sub/check',{credentials:'include'});
     const j2 = await r2.json();
     if(j2.ok) sub = {active:j2.active, sub:j2.sub};
@@ -271,6 +354,8 @@ async function boot(){
   paintBadges();
   gateQuality();
 }
+
+$('#mockBtn').onclick = setMockPreview;
 
 $('#go').onclick = async ()=>{
   const prompt = $('#prompt').value.trim();
@@ -309,12 +394,12 @@ $('#go').onclick = async ()=>{
     showDebug(data);
 
     if(!r.ok || !data.ok){
-      setErrorBox(data);
+      setSoftErrorBox(data);
       return;
     }
 
     if(data.mode === 'mock'){
-      setErrorBox(data);
+      setSoftErrorBox(data);
       return;
     }
 
@@ -323,7 +408,7 @@ $('#go').onclick = async ()=>{
       return;
     }
 
-    setErrorBox({
+    setSoftErrorBox({
       ok:false,
       error:'missing_image_url',
       response:data
@@ -332,7 +417,7 @@ $('#go').onclick = async ()=>{
   }catch(e){
     console.error(e);
 
-    setErrorBox({
+    setSoftErrorBox({
       ok:false,
       error:'frontend_fetch_failed',
       details:String(e),
