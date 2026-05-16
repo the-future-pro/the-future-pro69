@@ -13,36 +13,99 @@
     .credits-shell{max-width:1240px;margin:0 auto;padding:18px}
     .credits-hero{
       border:1px solid var(--line);border-radius:34px;padding:44px 34px;margin-top:18px;
-      background:radial-gradient(700px 360px at 20% 20%,rgba(155,92,255,.24),transparent),
-      radial-gradient(700px 360px at 85% 50%,rgba(255,46,136,.18),transparent),
-      linear-gradient(135deg,#090911,#160617 70%,#06060a);
+      background:
+        radial-gradient(700px 360px at 20% 20%,rgba(155,92,255,.24),transparent),
+        radial-gradient(700px 360px at 85% 50%,rgba(255,46,136,.18),transparent),
+        linear-gradient(135deg,#090911,#160617 70%,#06060a);
       box-shadow:0 28px 90px rgba(0,0,0,.42)
     }
+
     .credits-hero h1{font-size:clamp(42px,7vw,84px);line-height:.95;margin:14px 0;letter-spacing:-3px}
     .credits-hero p{max-width:760px;color:var(--muted);font-size:18px;line-height:1.6}
+
     .wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+
     .wallet-card,.pack-card,.history-card{
       border:1px solid var(--line);border-radius:28px;padding:22px;
       background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
       box-shadow:0 20px 70px rgba(0,0,0,.28)
     }
+
     .balance{font-size:58px;font-weight:950;margin:12px 0}
-    .balance span{font-size:18px;color:var(--muted);font-weight:600}
+    .balance span:last-child{font-size:18px;color:var(--muted);font-weight:600}
+
     .packs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
     .pack-card{transition:.2s ease}
     .pack-card:hover{transform:translateY(-3px);border-color:rgba(255,46,136,.45)}
     .pack-card h3{font-size:28px;margin:8px 0}
     .price{font-size:30px;font-weight:900;margin:10px 0}
+
     .muted{color:var(--muted);line-height:1.6}
+    .quick-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
     .history-list{display:grid;gap:12px;margin-top:14px}
+
     .history-item{
-      border:1px solid var(--line);border-radius:18px;padding:14px;
-      background:rgba(255,255,255,.04);display:flex;justify-content:space-between;gap:12px
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:rgba(255,255,255,.04);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
     }
+
+    .history-left{display:flex;gap:12px;align-items:center}
+    .history-icon{
+      width:38px;height:38px;border-radius:14px;
+      display:grid;place-items:center;
+      flex-shrink:0;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+    }
+
+    .history-title{font-weight:800}
+    .history-date{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+
+    .amount{
+      font-size:20px;
+      font-weight:950;
+      white-space:nowrap;
+      text-align:right;
+    }
+
     .good{color:#34d399}
     .bad{color:#fb7185}
-    .quick-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-    @media(max-width:950px){.wallet-grid,.packs-grid{grid-template-columns:1fr}}
+
+    .unlock-grid{display:grid;gap:12px;margin-top:14px}
+
+    .unlock-item{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:rgba(255,255,255,.04);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+
+    .unlock-item button{white-space:nowrap}
+
+    .danger-btn{
+      background:rgba(251,113,133,.12)!important;
+      border:1px solid rgba(251,113,133,.35)!important;
+      color:#fb7185!important;
+    }
+
+    @media(max-width:950px){
+      .wallet-grid,.packs-grid{grid-template-columns:1fr}
+      .credits-shell{padding:14px}
+      .credits-hero{padding:34px 22px}
+      .history-item,.unlock-item{align-items:flex-start}
+      .amount{font-size:18px}
+    }
   </style>
 </head>
 
@@ -100,7 +163,7 @@
 
       <div class="quick-links">
         <button class="main-btn" onclick="addCredits(100)" style="border:0">+100 credits test</button>
-        <button class="ghost-btn" onclick="spendCredits(20)" style="border:1px solid var(--line)">Unlock 20 cr</button>
+        <button class="ghost-btn danger-btn" onclick="spendCredits(20,'Imagine premium deblocată','🖼')">Unlock 20 cr</button>
       </div>
     </div>
 
@@ -108,25 +171,25 @@
       <div class="eyebrow">UNLOCK SYSTEM</div>
       <h2>Ce pot debloca credits</h2>
 
-      <div class="history-list">
-        <div class="history-item">
+      <div class="unlock-grid">
+        <div class="unlock-item">
           <span>Imagine privată</span>
-          <strong>20 cr</strong>
+          <button class="ghost-btn danger-btn" onclick="spendCredits(20,'Imagine premium deblocată','🖼')">-20 cr</button>
         </div>
 
-        <div class="history-item">
+        <div class="unlock-item">
           <span>Video teaser 10s</span>
-          <strong>90 cr</strong>
+          <button class="ghost-btn danger-btn" onclick="spendCredits(90,'Video teaser 10s deblocat','🎬')">-90 cr</button>
         </div>
 
-        <div class="history-item">
+        <div class="unlock-item">
           <span>Video teaser 20s</span>
-          <strong>150 cr</strong>
+          <button class="ghost-btn danger-btn" onclick="spendCredits(150,'Video teaser 20s deblocat','🎞')">-150 cr</button>
         </div>
 
-        <div class="history-item">
+        <div class="unlock-item">
           <span>Story arc premium</span>
-          <strong>300 cr</strong>
+          <button class="ghost-btn danger-btn" onclick="spendCredits(300,'Story arc premium deblocat','🔓')">-300 cr</button>
         </div>
       </div>
     </div>
@@ -188,6 +251,7 @@
     <div>
       <a href="/discover.html">Discover</a>
       <a href="/feed.html">Feed</a>
+      <a href="/credits.html">Credits</a>
       <a href="/premium.html">Premium</a>
       <a href="/privacy.html">Confidențialitate</a>
       <a href="/terms.html">Termeni</a>
@@ -207,7 +271,6 @@ function getBalance(){
 
 function setBalance(value){
   localStorage.setItem(BALANCE_KEY, String(Math.max(0, Number(value || 0))));
-  render();
 }
 
 function getHistory(){
@@ -219,28 +282,38 @@ function getHistory(){
 }
 
 function saveHistory(items){
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 10)));
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 20)));
 }
 
-function addHistory(text, amount, type){
+function addHistory(text, amount, type, icon){
   const items = getHistory();
+
   items.unshift({
     text,
     amount,
     type,
-    date: new Date().toLocaleString()
+    icon,
+    date: new Date().toLocaleString("ro-RO")
   });
+
   saveHistory(items);
 }
 
 function addCredits(amount){
   const current = getBalance();
   setBalance(current + amount);
-  addHistory("Pachet credits mock adăugat", "+" + amount + " cr", "good");
+
+  addHistory(
+    "Pachet credits mock adăugat",
+    "+" + amount + " cr",
+    "good",
+    "💳"
+  );
+
   render();
 }
 
-function spendCredits(amount){
+function spendCredits(amount, label, icon){
   const current = getBalance();
 
   if(current < amount){
@@ -249,7 +322,14 @@ function spendCredits(amount){
   }
 
   setBalance(current - amount);
-  addHistory("Unlock premium mock", "-" + amount + " cr", "bad");
+
+  addHistory(
+    label || "Unlock premium mock",
+    "-" + amount + " cr",
+    "bad",
+    icon || "🔓"
+  );
+
   render();
 }
 
@@ -262,8 +342,14 @@ function render(){
   if(!history.length){
     el.innerHTML = `
       <div class="history-item">
-        <span>Nicio activitate încă</span>
-        <strong>—</strong>
+        <div class="history-left">
+          <div class="history-icon">💤</div>
+          <div>
+            <div class="history-title">Nicio activitate încă</div>
+            <small class="history-date">Adaugă sau consumă credits pentru a vedea istoricul.</small>
+          </div>
+        </div>
+        <strong class="amount">—</strong>
       </div>
     `;
     return;
@@ -272,15 +358,25 @@ function render(){
   el.innerHTML = "";
 
   history.forEach(function(item){
+    const type = item.type === "bad" ? "bad" : "good";
+
     const d = document.createElement("div");
     d.className = "history-item";
+
     d.innerHTML = `
-      <span>
-        ${escapeHtml(item.text)}<br>
-        <small class="muted">${escapeHtml(item.date)}</small>
-      </span>
-      <strong class="${item.type === 'good' ? 'good' : 'bad'}">${escapeHtml(item.amount)}</strong>
+      <div class="history-left">
+        <div class="history-icon">${escapeHtml(item.icon || (type === "good" ? "💳" : "🔓"))}</div>
+        <div>
+          <div class="history-title">${escapeHtml(item.text)}</div>
+          <small class="history-date">${escapeHtml(item.date)}</small>
+        </div>
+      </div>
+
+      <strong class="amount ${type}">
+        ${escapeHtml(item.amount)}
+      </strong>
     `;
+
     el.appendChild(d);
   });
 }
@@ -298,4 +394,4 @@ render();
 </script>
 
 </body>
-        </html>
+</html>
