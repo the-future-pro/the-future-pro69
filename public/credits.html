@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <title>Credits — The Future PRO</title>
+
+  <link rel="stylesheet" href="/style.css"/>
+  <script src="/i18n.js" defer></script>
+
+  <style>
+    .credits-shell{max-width:1240px;margin:0 auto;padding:18px}
+    .credits-hero{
+      border:1px solid var(--line);border-radius:34px;padding:44px 34px;margin-top:18px;
+      background:radial-gradient(700px 360px at 20% 20%,rgba(155,92,255,.24),transparent),
+      radial-gradient(700px 360px at 85% 50%,rgba(255,46,136,.18),transparent),
+      linear-gradient(135deg,#090911,#160617 70%,#06060a);
+      box-shadow:0 28px 90px rgba(0,0,0,.42)
+    }
+    .credits-hero h1{font-size:clamp(42px,7vw,84px);line-height:.95;margin:14px 0;letter-spacing:-3px}
+    .credits-hero p{max-width:760px;color:var(--muted);font-size:18px;line-height:1.6}
+    .wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .wallet-card,.pack-card,.history-card{
+      border:1px solid var(--line);border-radius:28px;padding:22px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      box-shadow:0 20px 70px rgba(0,0,0,.28)
+    }
+    .balance{font-size:58px;font-weight:950;margin:12px 0}
+    .balance span{font-size:18px;color:var(--muted);font-weight:600}
+    .packs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
+    .pack-card{transition:.2s ease}
+    .pack-card:hover{transform:translateY(-3px);border-color:rgba(255,46,136,.45)}
+    .pack-card h3{font-size:28px;margin:8px 0}
+    .price{font-size:30px;font-weight:900;margin:10px 0}
+    .muted{color:var(--muted);line-height:1.6}
+    .history-list{display:grid;gap:12px;margin-top:14px}
+    .history-item{
+      border:1px solid var(--line);border-radius:18px;padding:14px;
+      background:rgba(255,255,255,.04);display:flex;justify-content:space-between;gap:12px
+    }
+    .good{color:#34d399}
+    .bad{color:#fb7185}
+    .quick-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    @media(max-width:950px){.wallet-grid,.packs-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+
+<body class="home-page">
+<main class="credits-shell">
+
+  <nav class="topbar">
+    <a class="brand" href="/" data-no-translate>
+      <div class="brand-mark">AI</div>
+      <div>
+        <strong>The Future</strong>
+        <span>Credits Wallet</span>
+      </div>
+    </a>
+
+    <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
+
+    <div class="nav-actions">
+      <a class="ghost-btn" href="/premium.html">Premium</a>
+      <a class="ghost-btn" href="/feed.html">Feed</a>
+      <a class="ghost-btn" href="/profile.html?slug=ava-noir">Profile</a>
+      <a class="main-btn" href="/gen-image.html">Image</a>
+    </div>
+  </nav>
+
+  <section class="credits-hero">
+    <div class="eyebrow">CREDITS WALLET</div>
+
+    <h1>Controlează unlock-urile premium.</h1>
+
+    <p>
+      Credits sunt moneda internă mock pentru testarea imaginilor private, teaserelor video, voice notes, story arcs și galeriilor blocate. Momentan nu există plăți reale.
+    </p>
+
+    <div class="quick-links">
+      <a class="main-btn big" href="/profile.html?slug=ava-noir">Vezi profil premium</a>
+      <a class="ghost-btn big" href="/chat.html?slug=ava-noir">Testează chat</a>
+      <a class="ghost-btn big" href="/gen-image.html">Image Studio</a>
+    </div>
+  </section>
+
+  <section class="wallet-grid">
+
+    <div class="wallet-card">
+      <div class="eyebrow">BALANȚĂ MOCK</div>
+      <h2>Credits disponibili</h2>
+
+      <div class="balance">
+        <span id="balance">240</span> <span>credits</span>
+      </div>
+
+      <p class="muted">
+        Balanța este locală, doar pentru test MVP. Mai târziu va fi conectată la cont, abonament și sistem de plăți.
+      </p>
+
+      <div class="quick-links">
+        <button class="main-btn" onclick="addCredits(100)" style="border:0">+100 credits test</button>
+        <button class="ghost-btn" onclick="spendCredits(20)" style="border:1px solid var(--line)">Unlock 20 cr</button>
+      </div>
+    </div>
+
+    <div class="wallet-card">
+      <div class="eyebrow">UNLOCK SYSTEM</div>
+      <h2>Ce pot debloca credits</h2>
+
+      <div class="history-list">
+        <div class="history-item">
+          <span>Imagine privată</span>
+          <strong>20 cr</strong>
+        </div>
+
+        <div class="history-item">
+          <span>Video teaser 10s</span>
+          <strong>90 cr</strong>
+        </div>
+
+        <div class="history-item">
+          <span>Video teaser 20s</span>
+          <strong>150 cr</strong>
+        </div>
+
+        <div class="history-item">
+          <span>Story arc premium</span>
+          <strong>300 cr</strong>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <section style="margin-top:28px">
+    <div class="section-head">
+      <span>PACHETE MOCK</span>
+      <h2>Alege un pachet credits</h2>
+      <p>Prețuri demonstrative pentru structură. Le modificăm când ajungem la monetizare reală.</p>
+    </div>
+
+    <div class="packs-grid">
+      <div class="pack-card">
+        <div class="eyebrow">START</div>
+        <h3>100 cr</h3>
+        <div class="price">4€</div>
+        <p class="muted">Pentru testarea unlock-urilor mici.</p>
+        <button class="ghost-btn" onclick="addCredits(100)" style="border:1px solid var(--line);width:100%">Adaugă mock</button>
+      </div>
+
+      <div class="pack-card">
+        <div class="eyebrow">POPULAR</div>
+        <h3>300 cr</h3>
+        <div class="price">9€</div>
+        <p class="muted">Pentru imagini și teasere scurte.</p>
+        <button class="ghost-btn" onclick="addCredits(300)" style="border:1px solid var(--line);width:100%">Adaugă mock</button>
+      </div>
+
+      <div class="pack-card">
+        <div class="eyebrow">PREMIUM</div>
+        <h3>750 cr</h3>
+        <div class="price">19€</div>
+        <p class="muted">Pentru experiențe recurente.</p>
+        <button class="main-btn" onclick="addCredits(750)" style="border:0;width:100%">Adaugă mock</button>
+      </div>
+
+      <div class="pack-card">
+        <div class="eyebrow">VIP</div>
+        <h3>1500 cr</h3>
+        <div class="price">39€</div>
+        <p class="muted">Pentru utilizatori heavy.</p>
+        <button class="main-btn" onclick="addCredits(1500)" style="border:0;width:100%">Adaugă mock</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="history-card" style="margin-top:28px">
+    <div class="eyebrow">ISTORIC MOCK</div>
+    <h2>Activitate recentă</h2>
+
+    <div id="history" class="history-list"></div>
+  </section>
+
+  <footer class="home-footer">
+    <span data-no-translate>© The Future — PRO</span>
+
+    <div>
+      <a href="/discover.html">Discover</a>
+      <a href="/feed.html">Feed</a>
+      <a href="/premium.html">Premium</a>
+      <a href="/privacy.html">Confidențialitate</a>
+      <a href="/terms.html">Termeni</a>
+      <a href="/safety.html">Siguranță</a>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+const BALANCE_KEY = "tfp_mock_credits_balance";
+const HISTORY_KEY = "tfp_mock_credits_history";
+
+function getBalance(){
+  return Number(localStorage.getItem(BALANCE_KEY) || 240);
+}
+
+function setBalance(value){
+  localStorage.setItem(BALANCE_KEY, String(Math.max(0, Number(value || 0))));
+  render();
+}
+
+function getHistory(){
+  try{
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  }catch(e){
+    return [];
+  }
+}
+
+function saveHistory(items){
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 10)));
+}
+
+function addHistory(text, amount, type){
+  const items = getHistory();
+  items.unshift({
+    text,
+    amount,
+    type,
+    date: new Date().toLocaleString()
+  });
+  saveHistory(items);
+}
+
+function addCredits(amount){
+  const current = getBalance();
+  setBalance(current + amount);
+  addHistory("Pachet credits mock adăugat", "+" + amount + " cr", "good");
+  render();
+}
+
+function spendCredits(amount){
+  const current = getBalance();
+
+  if(current < amount){
+    alert("Nu ai suficiente credits mock.");
+    return;
+  }
+
+  setBalance(current - amount);
+  addHistory("Unlock premium mock", "-" + amount + " cr", "bad");
+  render();
+}
+
+function render(){
+  document.getElementById("balance").textContent = getBalance();
+
+  const history = getHistory();
+  const el = document.getElementById("history");
+
+  if(!history.length){
+    el.innerHTML = `
+      <div class="history-item">
+        <span>Nicio activitate încă</span>
+        <strong>—</strong>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = "";
+
+  history.forEach(function(item){
+    const d = document.createElement("div");
+    d.className = "history-item";
+    d.innerHTML = `
+      <span>
+        ${escapeHtml(item.text)}<br>
+        <small class="muted">${escapeHtml(item.date)}</small>
+      </span>
+      <strong class="${item.type === 'good' ? 'good' : 'bad'}">${escapeHtml(item.amount)}</strong>
+    `;
+    el.appendChild(d);
+  });
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+render();
+</script>
+
+</body>
+        </html>
