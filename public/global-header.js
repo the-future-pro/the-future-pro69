@@ -1,25 +1,58 @@
-// global-header.js — The Future PRO global header widgets
+// global-header.js — The Future PRO global header widgets auto-injected
 
 (function(){
 
-  function createPill(){
-    const pill = document.getElementById("globalWalletPill");
+  function getNav(){
+    return document.querySelector(".nav-actions");
+  }
 
-    if(!pill){
+  function ensureGlobalHeader(){
+    const nav = getNav();
+
+    if(!nav){
       return;
     }
 
-    pill.innerHTML = `
-      <a
-        href="/credits.html"
-        class="ghost-btn"
-        style="display:inline-flex;align-items:center;gap:6px"
-      >
-        💳 <span id="globalCreditsBalance">240</span> cr
-      </a>
-    `;
+    if(!document.getElementById("globalHeaderGroup")){
+      const group = document.createElement("div");
+
+      group.id = "globalHeaderGroup";
+      group.style.display = "inline-flex";
+      group.style.alignItems = "center";
+      group.style.gap = "8px";
+      group.style.flexWrap = "wrap";
+
+      group.innerHTML = `
+        <button
+          id="globalNotifyPill"
+          class="ghost-btn"
+          type="button"
+          style="border:1px solid var(--line)"
+        >
+          🔔 0
+        </button>
+
+        <a
+          id="globalWalletPill"
+          href="/credits.html"
+          class="ghost-btn"
+          style="display:inline-flex;align-items:center;gap:6px"
+        >
+          💳 <span id="globalCreditsBalance">240</span> cr
+        </a>
+      `;
+
+      nav.insertBefore(group, nav.firstChild);
+    }
+
+    const notifyBtn = document.getElementById("globalNotifyPill");
+
+    if(notifyBtn){
+      notifyBtn.onclick = toggleNotificationsPanel;
+    }
 
     renderWalletPill();
+    renderNotifications();
   }
 
   function renderWalletPill(){
@@ -34,30 +67,6 @@
     }else{
       el.textContent = "240";
     }
-  }
-
-  function createNotifications(){
-    const nav = document.querySelector(".nav-actions");
-
-    if(!nav || document.getElementById("globalNotifyPill")){
-      return;
-    }
-
-    const btn = document.createElement("button");
-
-    btn.id = "globalNotifyPill";
-    btn.className = "ghost-btn";
-    btn.type = "button";
-    btn.style.border = "1px solid var(--line)";
-    btn.style.position = "relative";
-
-    btn.onclick = function(){
-      toggleNotificationsPanel();
-    };
-
-    nav.insertBefore(btn,nav.firstChild);
-
-    renderNotifications();
   }
 
   function renderNotifications(){
@@ -107,6 +116,7 @@
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px">
         <strong>Notificări</strong>
+
         <button
           id="markNotifRead"
           class="ghost-btn"
@@ -145,6 +155,7 @@
         >
           <div style="display:flex;gap:10px;align-items:flex-start">
             <span>${escapeHtml(item.icon)}</span>
+
             <span style="line-height:1.45;color:${item.read ? 'var(--muted)' : 'var(--ink)'}">
               ${escapeHtml(item.text)}
             </span>
@@ -173,8 +184,7 @@
   }
 
   window.addEventListener("DOMContentLoaded",function(){
-    createPill();
-    createNotifications();
+    ensureGlobalHeader();
   });
 
   window.addEventListener("tfp:wallet-updated",function(){
