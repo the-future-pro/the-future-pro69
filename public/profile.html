@@ -7,8 +7,11 @@
   <title>Profile — The Future PRO</title>
 
   <link rel="stylesheet" href="/style.css"/>
+
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
+  <script src="/app-state.js" defer></script>
+  <script src="/global-header.js" defer></script>
 
   <style>
     .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
@@ -22,12 +25,14 @@
     .ai-portrait{width:100%;height:100%;position:relative;overflow:hidden}
     .ai-portrait:before{content:"";position:absolute;width:34%;height:42%;left:33%;top:16%;border-radius:48%;background:rgba(255,255,255,.75);filter:blur(11px);opacity:.42}
     .ai-portrait:after{content:"";position:absolute;left:18%;right:18%;bottom:0;height:50%;border-radius:48% 48% 0 0;background:rgba(255,255,255,.16);filter:blur(14px)}
+
     .ava-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,46,136,.38),transparent),radial-gradient(520px 360px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
     .mira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,180,95,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
     .kira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(0,230,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(60,80,255,.20),transparent),linear-gradient(135deg,#021b24,#050509)}
     .luna-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(120,70,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
     .dante-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(190,35,35,.32),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,190,80,.12),transparent),linear-gradient(135deg,#220506,#050509)}
     .noah-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(80,120,255,.30),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,255,255,.10),transparent),linear-gradient(135deg,#071027,#050509)}
+
     .profile-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
     .profile-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
     .panel{border:1px solid var(--line);border-radius:28px;padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:0 20px 70px rgba(0,0,0,.28)}
@@ -42,11 +47,13 @@
     .mini-item strong{display:block;margin-bottom:5px}
     .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .locked{min-height:190px;border:1px solid var(--line);border-radius:22px;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));display:flex;flex-direction:column;justify-content:space-between;text-align:left;padding:16px;color:var(--muted)}
+    .locked.unlocked{border-color:rgba(52,211,153,.45);background:linear-gradient(135deg,rgba(52,211,153,.10),rgba(255,255,255,.03))}
     .locked strong{color:var(--ink);font-size:18px}
     .locked span{line-height:1.5}
     .locked-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
     .small-btn{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.06);color:white;text-decoration:none;font-size:13px;font-weight:800;cursor:pointer}
     .small-btn.unlock{border-color:rgba(251,113,133,.35);color:#fb7185;background:rgba(251,113,133,.1)}
+    .small-btn.done{border-color:rgba(52,211,153,.45);color:#34d399;background:rgba(52,211,153,.1)}
     .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px;box-shadow:0 0 14px #34d399}
     @media(max-width:900px){.profile-shell{padding:12px}.profile-content,.profile-grid{grid-template-columns:1fr}.profile-hero{padding:22px;border-radius:28px}.profile-title h1{letter-spacing:-2px}.avatar-large{margin:0;width:100%;height:280px}.gallery{grid-template-columns:1fr}}
   </style>
@@ -133,13 +140,13 @@
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>Galerie premium blocată</h2>
+    <h2>Galerie premium</h2>
     <p class="muted">Conținutul premium se poate debloca prin credits. Momentan folosim sistem mock local pentru test MVP.</p>
 
     <div class="gallery">
-      <div class="locked">
+      <div class="locked" id="cardImage">
         <div>
-          <strong>🔒 Imagine cinematică privată</strong>
+          <strong id="titleImage">🔒 Imagine cinematică privată</strong>
           <span>Preview premium pentru companionul selectat.</span>
         </div>
         <div class="locked-actions">
@@ -148,9 +155,9 @@
         </div>
       </div>
 
-      <div class="locked">
+      <div class="locked" id="cardStory">
         <div>
-          <strong>🔒 Story special</strong>
+          <strong id="titleStory">🔒 Story special</strong>
           <span>Arc privat, mood personalizat și relație progresivă.</span>
         </div>
         <div class="locked-actions">
@@ -159,9 +166,9 @@
         </div>
       </div>
 
-      <div class="locked">
+      <div class="locked" id="cardVideo">
         <div>
-          <strong>🔒 Video teaser premium</strong>
+          <strong id="titleVideo">🔒 Video teaser premium</strong>
           <span>Scenă scurtă cinematică, folosită ca unlock premium.</span>
         </div>
         <div class="locked-actions">
@@ -286,7 +293,64 @@ function spendFromProfile(amount, label, icon, unlockKey){
     return;
   }
 
-  location.href = "/credits.html";
+  renderUnlockStates();
+}
+
+function renderUnlockCard(key, cardId, titleId, buttonId, unlockedTitle){
+  if(!window.TFP_WALLET){
+    return;
+  }
+
+  if(!TFP_WALLET.isUnlocked(key)){
+    return;
+  }
+
+  const card = document.getElementById(cardId);
+  const title = document.getElementById(titleId);
+  const button = document.getElementById(buttonId);
+
+  if(card){
+    card.classList.add("unlocked");
+  }
+
+  if(title){
+    title.textContent = "✅ " + unlockedTitle;
+  }
+
+  if(button){
+    button.textContent = "Deblocat";
+    button.classList.remove("unlock");
+    button.classList.add("done");
+    button.disabled = true;
+  }
+}
+
+function renderUnlockStates(){
+  const slug = getSlug();
+
+  renderUnlockCard(
+    "profile_image_" + slug,
+    "cardImage",
+    "titleImage",
+    "unlockImage",
+    "Imagine cinematică deblocată"
+  );
+
+  renderUnlockCard(
+    "profile_story_" + slug,
+    "cardStory",
+    "titleStory",
+    "unlockStory",
+    "Story special deblocat"
+  );
+
+  renderUnlockCard(
+    "profile_video_" + slug,
+    "cardVideo",
+    "titleVideo",
+    "unlockVideo",
+    "Video teaser deblocat"
+  );
 }
 
 function applyProfile(){
@@ -359,6 +423,8 @@ function applyProfile(){
     div.textContent = item;
     personalityList.appendChild(div);
   });
+
+  renderUnlockStates();
 }
 
 window.addEventListener("DOMContentLoaded", applyProfile);
