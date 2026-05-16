@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
+  <script src="/wallet.js" defer></script>
 
   <style>
     .credits-shell{max-width:1240px;margin:0 auto;padding:18px}
@@ -262,107 +263,32 @@
 </main>
 
 <script>
-const BALANCE_KEY = "tfp_mock_credits_balance";
-const HISTORY_KEY = "tfp_mock_credits_history";
-
-function getBalance(){
-  return Number(localStorage.getItem(BALANCE_KEY) || 240);
-}
-
-function setBalance(value){
-  localStorage.setItem(BALANCE_KEY, String(Math.max(0, Number(value || 0))));
-}
-
-function getHistory(){
-  try{
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  }catch(e){
-    return [];
-  }
-}
-
-function saveHistory(items){
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 20)));
-}
-
-function addHistory(text, amount, type, icon){
-  const items = getHistory();
-
-  items.unshift({
-    text,
-    amount,
-    type,
-    icon,
-    date: new Date().toLocaleString("ro-RO")
-  });
-
-  saveHistory(items);
-}
-
 function addCredits(amount){
-  const current = getBalance();
-  setBalance(current + amount);
-
-  addHistory(
+  TFP_WALLET.add(
+    amount,
     "Pachet credits mock adăugat",
-    "+" + amount + " cr",
-    "good",
     "💳"
   );
 
-  render();
+  renderWallet();
 }
 
 function spendCredits(amount, label, icon){
-  const current = getBalance();
-
-  if(current < amount){
-    alert("Nu ai suficiente credits mock.");
-    return false;
-  }
-
-  setBalance(current - amount);
-
-  addHistory(
-    label || "Unlock premium mock",
-    "-" + amount + " cr",
-    "bad",
-    icon || "🔓"
+  const ok = TFP_WALLET.spend(
+    amount,
+    label,
+    icon
   );
 
-  render();
-  return true;
+  renderWallet();
+  return ok;
 }
 
-function handleUrlUnlock(){
-  const params = new URLSearchParams(location.search);
+function renderWallet(){
+  document.getElementById("balance").textContent =
+    TFP_WALLET.getBalance();
 
-  const spend = Number(params.get("spend") || 0);
-  const label = params.get("label") || "Unlock premium mock";
-  const icon = params.get("icon") || "🔓";
-
-  if(!spend){
-    return;
-  }
-
-  const alreadyHandledKey = "tfp_unlock_handled_" + location.search;
-
-  if(sessionStorage.getItem(alreadyHandledKey)){
-    history.replaceState({}, "", "/credits.html");
-    return;
-  }
-
-  sessionStorage.setItem(alreadyHandledKey, "1");
-
-  spendCredits(spend, label, icon);
-
-  history.replaceState({}, "", "/credits.html");
-}
-
-function render(){
-  document.getElementById("balance").textContent = getBalance();
-
-  const history = getHistory();
+  const history = TFP_WALLET.getHistory();
   const el = document.getElementById("history");
 
   if(!history.length){
@@ -408,7 +334,7 @@ function render(){
 }
 
 function escapeHtml(str){
-  return String(str)
+  return String(str || "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;")
@@ -416,8 +342,12 @@ function escapeHtml(str){
     .replaceAll("'","&#039;");
 }
 
-handleUrlUnlock();
-render();
+window.addEventListener("DOMContentLoaded", function(){
+  TFP_WALLET.handleUrlSpend();
+  renderWallet();
+});
+
+window.addEventListener("tfp:wallet-updated", renderWallet);
 </script>
 
 </body>
