@@ -71,13 +71,7 @@
     .story-avatar{width:82px;height:82px;margin:auto auto 8px;border:2px solid rgba(255,255,255,.15);transition:.2s ease}
     .avatar{width:56px;height:56px}
 
-    .ai-face{
-      width:100%;
-      height:100%;
-      position:relative;
-      overflow:hidden;
-      background:#111;
-    }
+    .ai-face{width:100%;height:100%;position:relative;overflow:hidden;background:#111}
 
     .ai-face:before{
       content:"";
@@ -104,47 +98,12 @@
       filter:blur(10px);
     }
 
-    .ava-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(255,220,235,.60),transparent 18%),
-        radial-gradient(circle at 50% 42%,rgba(255,46,136,.36),transparent 32%),
-        linear-gradient(135deg,#1d081e,#050509);
-    }
-
-    .mira-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(255,235,210,.60),transparent 18%),
-        radial-gradient(circle at 52% 44%,rgba(255,176,90,.34),transparent 34%),
-        linear-gradient(135deg,#25130c,#050509);
-    }
-
-    .kira-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(210,250,255,.58),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(0,230,255,.34),transparent 34%),
-        linear-gradient(135deg,#031b25,#050509);
-    }
-
-    .luna-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),
-        linear-gradient(135deg,#15051f,#050509);
-    }
-
-    .dante-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),
-        linear-gradient(135deg,#210506,#050509);
-    }
-
-    .noah-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),
-        linear-gradient(135deg,#071027,#050509);
-    }
+    .ava-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,235,.60),transparent 18%),radial-gradient(circle at 50% 42%,rgba(255,46,136,.36),transparent 32%),linear-gradient(135deg,#1d081e,#050509)}
+    .mira-face{background:radial-gradient(circle at 50% 26%,rgba(255,235,210,.60),transparent 18%),radial-gradient(circle at 52% 44%,rgba(255,176,90,.34),transparent 34%),linear-gradient(135deg,#25130c,#050509)}
+    .kira-face{background:radial-gradient(circle at 50% 26%,rgba(210,250,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(0,230,255,.34),transparent 34%),linear-gradient(135deg,#031b25,#050509)}
+    .luna-face{background:radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),linear-gradient(135deg,#15051f,#050509)}
+    .dante-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),linear-gradient(135deg,#210506,#050509)}
+    .noah-face{background:radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),linear-gradient(135deg,#071027,#050509)}
 
     .feed-post{padding:22px;border-bottom:1px solid var(--line)}
     .post-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
@@ -172,11 +131,7 @@
       box-shadow:0 0 34px rgba(255,46,136,.12);
     }
 
-    .scene{
-      position:absolute;
-      inset:0;
-      overflow:hidden;
-    }
+    .scene{position:absolute;inset:0;overflow:hidden}
 
     .scene:before{
       content:"";
@@ -200,69 +155,18 @@
         linear-gradient(180deg,transparent,rgba(0,0,0,.68));
     }
 
-    .ava-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),
-        linear-gradient(135deg,#210820,#050509);
-    }
+    .ava-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
+    .mira-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
+    .kira-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),linear-gradient(135deg,#021b24,#050509)}
+    .luna-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
+    .dante-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),linear-gradient(135deg,#220506,#050509)}
+    .noah-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),linear-gradient(135deg,#071027,#050509)}
 
-    .mira-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),
-        linear-gradient(135deg,#2a1509,#050509);
-    }
+    .scene-label{position:absolute;left:22px;bottom:22px;right:22px;z-index:2;color:white}
+    .scene-label strong{display:block;font-size:24px;margin-bottom:6px}
+    .scene-label span{color:rgba(255,255,255,.72);line-height:1.5}
 
-    .kira-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),
-        linear-gradient(135deg,#021b24,#050509);
-    }
-
-    .luna-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),
-        linear-gradient(135deg,#15051f,#050509);
-    }
-
-    .dante-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),
-        linear-gradient(135deg,#220506,#050509);
-    }
-
-    .noah-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),
-        linear-gradient(135deg,#071027,#050509);
-    }
-
-    .scene-label{
-      position:absolute;
-      left:22px;
-      bottom:22px;
-      right:22px;
-      z-index:2;
-      color:white;
-    }
-
-    .scene-label strong{
-      display:block;
-      font-size:24px;
-      margin-bottom:6px;
-    }
-
-    .scene-label span{
-      color:rgba(255,255,255,.72);
-      line-height:1.5;
-    }
-
-    .post-actions{display:flex;gap:18px;margin-top:16px;color:var(--muted);font-size:14px}
+    .post-actions{display:flex;gap:18px;margin-top:16px;color:var(--muted);font-size:14px;flex-wrap:wrap}
     .post-actions a,.post-actions span{cursor:pointer;color:var(--muted);text-decoration:none}
     .post-actions a:hover,.post-actions span:hover{color:#ff5fb0}
 
@@ -305,6 +209,16 @@
       .side-panel{position:relative;top:auto}
       .post-media{min-height:360px}
     }
+
+    @media(max-width:760px){
+      .feed-shell{padding:10px}
+      .feed-top{padding:18px}
+      .feed-title{font-size:28px}
+      .feed-post{padding:18px}
+      .post-media{min-height:320px;border-radius:20px}
+      .side-panel{padding:14px}
+      .story-row{padding:16px}
+    }
   </style>
 </head>
 
@@ -330,17 +244,10 @@
     ></select>
 
     <div class="nav-actions">
-      <a class="ghost-btn" href="/discover.html">
-        Discover
-      </a>
-
-      <a class="ghost-btn" href="/gen-image.html">
-        Image
-      </a>
-
-      <a class="main-btn" href="/premium">
-        Premium
-      </a>
+      <a class="ghost-btn" href="/discover.html">Discover</a>
+      <a class="ghost-btn" href="/credits.html">Credits</a>
+      <a class="ghost-btn" href="/gen-image.html">Image</a>
+      <a class="main-btn" href="/premium.html">Premium</a>
     </div>
 
   </nav>
@@ -356,6 +263,7 @@
       <div class="menu">
         <a href="/discover.html">✨ Discover</a>
         <a href="/feed.html">🔥 Trending Feed</a>
+        <a href="/credits.html">💳 Credits Wallet</a>
         <a href="/gen-image.html">🖼 AI Image Studio</a>
         <a href="/gen-video.html">🎬 AI Video Studio</a>
         <a href="/chat.html?slug=ava-noir">💬 Private Messages</a>
@@ -428,11 +336,8 @@
       </div>
 
       <article class="feed-post">
-
         <div class="post-head">
-          <div class="avatar">
-            <div class="ai-face ava-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face ava-face"></div></div>
 
           <div class="post-user">
             <a href="/profile.html?slug=ava-noir" data-no-translate>Ava Noir</a>
@@ -455,17 +360,14 @@
         <div class="post-actions">
           <span>❤ 12.4k</span>
           <span>💬 1.2k</span>
-          <a href="/profile.html?slug=ava-noir">🔓 Unlock</a>
+          <a href="/credits.html">🔓 Unlock</a>
+          <a href="/chat.html?slug=ava-noir">💌 Message</a>
         </div>
-
       </article>
 
       <article class="feed-post">
-
         <div class="post-head">
-          <div class="avatar">
-            <div class="ai-face mira-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face mira-face"></div></div>
 
           <div class="post-user">
             <a href="/profile.html?slug=mira-vale" data-no-translate>Mira Vale</a>
@@ -488,17 +390,14 @@
         <div class="post-actions">
           <span>❤ 8.1k</span>
           <span>💬 622</span>
+          <a href="/credits.html">🔓 Unlock</a>
           <a href="/chat.html?slug=mira-vale">💌 Message</a>
         </div>
-
       </article>
 
       <article class="feed-post">
-
         <div class="post-head">
-          <div class="avatar">
-            <div class="ai-face kira-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face kira-face"></div></div>
 
           <div class="post-user">
             <a href="/profile.html?slug=kira-voss" data-no-translate>Kira Voss</a>
@@ -522,16 +421,13 @@
           <span>❤ 10.7k</span>
           <span>💬 944</span>
           <a href="/profile.html?slug=kira-voss">⚡ Follow</a>
+          <a href="/chat.html?slug=kira-voss">💌 Message</a>
         </div>
-
       </article>
 
       <article class="feed-post">
-
         <div class="post-head">
-          <div class="avatar">
-            <div class="ai-face luna-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face luna-face"></div></div>
 
           <div class="post-user">
             <a href="/profile.html?slug=luna-sable" data-no-translate>Luna Sable</a>
@@ -554,17 +450,14 @@
         <div class="post-actions">
           <span>❤ 9.8k</span>
           <span>💬 811</span>
-          <a href="/profile.html?slug=luna-sable">🔓 Unlock</a>
+          <a href="/credits.html">🔓 Unlock</a>
+          <a href="/chat.html?slug=luna-sable">💌 Message</a>
         </div>
-
       </article>
 
       <article class="feed-post">
-
         <div class="post-head">
-          <div class="avatar">
-            <div class="ai-face dante-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face dante-face"></div></div>
 
           <div class="post-user">
             <a href="/profile.html?slug=dante-vale" data-no-translate>Dante Vale</a>
@@ -587,17 +480,14 @@
         <div class="post-actions">
           <span>❤ 14.2k</span>
           <span>💬 1.5k</span>
+          <a href="/credits.html">🔓 Unlock</a>
           <a href="/chat.html?slug=dante-vale">💬 Message</a>
         </div>
-
       </article>
 
       <article class="feed-post">
-
         <div class="post-head">
-          <div class="avatar">
-            <div class="ai-face noah-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face noah-face"></div></div>
 
           <div class="post-user">
             <a href="/profile.html?slug=noah-sterling" data-no-translate>Noah Sterling</a>
@@ -621,8 +511,8 @@
           <span>❤ 7.9k</span>
           <span>💬 534</span>
           <a href="/profile.html?slug=noah-sterling">⭐ Save</a>
+          <a href="/chat.html?slug=noah-sterling">💌 Message</a>
         </div>
-
       </article>
 
     </section>
@@ -654,13 +544,27 @@
       </div>
 
       <div class="trend-card">
-        <strong># emotional AI</strong>
-        <span>Companions adaptați emoțional și experiențe personalizate.</span>
+        <strong># credits unlock</strong>
+        <span>Preview-uri premium, galerii blocate și unlock-uri prin credits mock.</span>
       </div>
 
     </aside>
 
   </section>
+
+  <footer class="home-footer">
+    <span data-no-translate>© The Future — PRO</span>
+
+    <div>
+      <a href="/discover.html">Discover</a>
+      <a href="/feed.html">Feed</a>
+      <a href="/credits.html">Credits</a>
+      <a href="/premium.html">Premium</a>
+      <a href="/privacy.html">Confidențialitate</a>
+      <a href="/terms.html">Termeni</a>
+      <a href="/safety.html">Siguranță</a>
+    </div>
+  </footer>
 
 </main>
 
