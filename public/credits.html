@@ -318,7 +318,7 @@ function spendCredits(amount, label, icon){
 
   if(current < amount){
     alert("Nu ai suficiente credits mock.");
-    return;
+    return false;
   }
 
   setBalance(current - amount);
@@ -331,6 +331,32 @@ function spendCredits(amount, label, icon){
   );
 
   render();
+  return true;
+}
+
+function handleUrlUnlock(){
+  const params = new URLSearchParams(location.search);
+
+  const spend = Number(params.get("spend") || 0);
+  const label = params.get("label") || "Unlock premium mock";
+  const icon = params.get("icon") || "🔓";
+
+  if(!spend){
+    return;
+  }
+
+  const alreadyHandledKey = "tfp_unlock_handled_" + location.search;
+
+  if(sessionStorage.getItem(alreadyHandledKey)){
+    history.replaceState({}, "", "/credits.html");
+    return;
+  }
+
+  sessionStorage.setItem(alreadyHandledKey, "1");
+
+  spendCredits(spend, label, icon);
+
+  history.replaceState({}, "", "/credits.html");
 }
 
 function render(){
@@ -390,6 +416,7 @@ function escapeHtml(str){
     .replaceAll("'","&#039;");
 }
 
+handleUrlUnlock();
 render();
 </script>
 
