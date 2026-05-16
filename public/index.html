@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8"/>
 
   <meta
     name="viewport"
@@ -15,318 +15,400 @@
     content="The Future — platformă AI cinematică pentru personaje fictive, chat privat, feed, credits, generare imagine și video."
   />
 
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css"/>
+
   <script src="/i18n.js" defer></script>
+  <script src="/wallet.js" defer></script>
+  <script src="/app-state.js" defer></script>
+  <script src="/global-header.js" defer></script>
 </head>
 
 <body class="home-page">
 
-  <main class="home-shell">
+<main class="home-shell">
 
-    <nav class="topbar">
+  <nav class="topbar">
 
-      <a class="brand" href="/" data-no-translate>
-        <div class="brand-mark">AI</div>
+    <a class="brand" href="/" data-no-translate>
+      <div class="brand-mark">AI</div>
 
-        <div>
-          <strong>The Future</strong>
-          <span>Private AI Universe</span>
-        </div>
+      <div>
+        <strong>The Future</strong>
+        <span>Private AI Universe</span>
+      </div>
+    </a>
+
+    <select
+      id="langSwitcher"
+      class="lang-switcher"
+      aria-label="Language"
+    ></select>
+
+    <div class="nav-actions">
+
+      <div id="globalWalletPill"></div>
+
+      <a class="ghost-btn" href="/discover.html">
+        Discover
       </a>
 
-      <select
-        id="langSwitcher"
-        class="lang-switcher"
-        aria-label="Language"
-      ></select>
+      <a class="ghost-btn" href="/feed.html">
+        Feed
+      </a>
 
-      <div class="nav-actions">
-        <a class="ghost-btn" href="/discover.html">
-          Discover
-        </a>
+      <a class="ghost-btn" href="/credits.html">
+        Credits
+      </a>
 
-        <a class="ghost-btn" href="/feed.html">
-          Feed
-        </a>
+      <a class="ghost-btn" href="/safety.html">
+        Siguranță
+      </a>
 
-        <a class="ghost-btn" href="/credits.html">
-          Credits
-        </a>
+      <a class="ghost-btn" href="/premium.html">
+        Premium
+      </a>
 
-        <a class="ghost-btn" href="/safety.html">
-          Siguranță
-        </a>
+      <a class="main-btn" href="/discover.html">
+        Intră
+      </a>
 
-        <a class="ghost-btn" href="/premium.html">
-          Premium
-        </a>
+    </div>
 
-        <a class="main-btn" href="/discover.html">
-          Intră
-        </a>
+  </nav>
+
+  <section class="hero hero-cinematic">
+
+    <div class="hero-bg"></div>
+    <div class="hero-glow one"></div>
+    <div class="hero-glow two"></div>
+
+    <div class="hero-content">
+
+      <div class="eyebrow">
+        PRIVAT • CINEMATIC • AI COMPANIONS
       </div>
 
-    </nav>
+      <h1>
+        Creează un univers AI privat, cinematic și interactiv.
+      </h1>
 
-    <section class="hero hero-cinematic">
+      <p>
+        Descoperă personaje AI fictive, conversații private, feed cinematic, profiluri persistente, credits mock, imagini ultra-realiste și scene video scurte într-o experiență premium.
+      </p>
 
-      <div class="hero-bg"></div>
-      <div class="hero-glow one"></div>
-      <div class="hero-glow two"></div>
+      <div class="hero-actions">
 
-      <div class="hero-content">
-
-        <div class="eyebrow">
-          PRIVAT • CINEMATIC • AI COMPANIONS
-        </div>
-
-        <h1>
-          Creează un univers AI privat, cinematic și interactiv.
-        </h1>
-
-        <p>
-          Descoperă personaje AI fictive, conversații private, feed cinematic, profiluri persistente, credits mock, imagini ultra-realiste și scene video scurte într-o experiență premium.
-        </p>
-
-        <div class="hero-actions">
-
-          <a class="main-btn big" href="/discover.html">
-            Explorează companions
-          </a>
-
-          <a class="ghost-btn big" href="/feed.html">
-            Vezi feed-ul
-          </a>
-
-          <a class="ghost-btn big" href="/credits.html">
-            Wallet credits
-          </a>
-
-        </div>
-
-        <div class="trust-row">
-
-          <span>
-            Doar 18+
-          </span>
-
-          <span>
-            Doar personaje fictive
-          </span>
-
-          <span>
-            Fără deepfake-uri reale
-          </span>
-
-          <span>
-            Chat persistent mock
-          </span>
-
-        </div>
-
-      </div>
-
-    </section>
-
-    <section class="section">
-
-      <div class="section-head">
-        <span>
-          EXPLOREAZĂ
-        </span>
-
-        <h2>
-          Alege companionul AI potrivit stării tale.
-        </h2>
-
-        <p>
-          Intră în Discover Hub, explorează personaje fictive cu vibe diferit, apoi vezi feed-ul lor cinematic și pornește o conversație privată.
-        </p>
-      </div>
-
-      <div class="companion-grid">
-
-        <a class="companion-card" href="/profile.html?slug=ava-noir">
-          <div class="companion-img portrait-a"></div>
-          <div class="companion-info">
-            <span class="live"><i></i><span>online</span></span>
-            <h3 data-no-translate>Ava Noir</h3>
-            <p>Lux întunecat • elegantă • misterioasă</p>
-          </div>
-        </a>
-
-        <a class="companion-card" href="/profile.html?slug=mira-vale">
-          <div class="companion-img portrait-b"></div>
-          <div class="companion-info">
-            <span class="live"><i></i><span>online</span></span>
-            <h3 data-no-translate>Mira Vale</h3>
-            <p>Caldă • emoțională • romantică</p>
-          </div>
-        </a>
-
-        <a class="companion-card" href="/profile.html?slug=kira-voss">
-          <div class="companion-img portrait-c"></div>
-          <div class="companion-info">
-            <span class="live"><i></i><span>online</span></span>
-            <h3 data-no-translate>Kira Voss</h3>
-            <p>Cyberpunk • magnetică • încrezătoare</p>
-          </div>
-        </a>
-
-        <a class="companion-card" href="/profile.html?slug=luna-sable">
-          <div class="companion-img portrait-d"></div>
-          <div class="companion-info">
-            <span class="live"><i></i><span>online</span></span>
-            <h3 data-no-translate>Luna Sable</h3>
-            <p>Romantic goth • poetică • intensă</p>
-          </div>
-        </a>
-
-      </div>
-
-      <div style="margin-top:22px;text-align:center;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <a class="main-btn big" href="/discover.html">
-          Deschide Discover Hub
+          Explorează companions
         </a>
 
         <a class="ghost-btn big" href="/feed.html">
-          Deschide Feed
+          Vezi feed-ul
         </a>
 
         <a class="ghost-btn big" href="/credits.html">
-          Deschide Credits
+          Wallet credits
         </a>
+
       </div>
 
-    </section>
+      <div class="trust-row">
 
-    <section class="section">
-
-      <div class="section-head">
         <span>
-          CREEAZĂ
+          Doar 18+
         </span>
 
-        <h2>
-          O platformă. Mai multe experiențe AI.
-        </h2>
-
-        <p>
-          Construim totul în jurul zonelor principale: companion AI, feed social, profiluri persistente, chat privat, credits, imagini cinematice, video scurt și suport multilingv.
-        </p>
-      </div>
-
-      <div class="feature-grid">
-
-        <a class="feature-card" href="/discover.html">
-          <span class="card-kicker">01</span>
-          <h3>Discover Hub</h3>
-          <p>Explorează personaje, vibe-uri, categorii și experiențe AI recurente.</p>
-        </a>
-
-        <a class="feature-card" href="/feed.html">
-          <span class="card-kicker">02</span>
-          <h3>Social AI Feed</h3>
-          <p>Postări, stories, teasing premium și atmosferă de platformă vie.</p>
-        </a>
-
-        <a class="feature-card" href="/profile.html?slug=ava-noir">
-          <span class="card-kicker">03</span>
-          <h3>Profil companion</h3>
-          <p>Fiecare personaj are bio, mood, lore, galerie blocată și buton de chat.</p>
-        </a>
-
-        <a class="feature-card" href="/credits.html">
-          <span class="card-kicker">04</span>
-          <h3>Credits Wallet</h3>
-          <p>Controlează unlock-uri mock, balanță credits și istoric de activitate.</p>
-        </a>
-
-      </div>
-
-    </section>
-
-    <section class="section premium-band">
-
-      <div>
-        <span class="eyebrow">
-          GLOBAL AI EXPERIENCE
-        </span>
-
-        <h2>
-          Platforma se adaptează automat limbii utilizatorului.
-        </h2>
-
-        <p>
-          Interfața se poate traduce automat, iar prompturile pot fi scrise în orice limbă. Pentru cele mai precise rezultate, recomandăm folosirea limbii engleze.
-        </p>
-      </div>
-
-      <a class="main-btn big" href="/gen-image.html">
-        Încearcă generatorul
-      </a>
-
-    </section>
-
-    <section class="section">
-
-      <div class="section-head">
         <span>
-          SIGURANȚĂ
+          Doar personaje fictive
         </span>
 
-        <h2>
-          Conținut fictiv, privat și controlat.
-        </h2>
+        <span>
+          Fără deepfake-uri reale
+        </span>
 
-        <p>
-          Platforma este construită pentru personaje fictive adulte, fără deepfake-uri cu persoane reale, fără minori și fără conținut abuziv sau ilegal.
-        </p>
-      </div>
-
-      <div class="feature-grid">
-
-        <a class="feature-card" href="/safety.html">
-          <span class="card-kicker">18+</span>
-          <h3>Doar adulți</h3>
-          <p>Platforma este destinată exclusiv utilizatorilor adulți.</p>
-        </a>
-
-        <a class="feature-card" href="/safety.html">
-          <span class="card-kicker">AI</span>
-          <h3>Doar personaje fictive</h3>
-          <p>Experiențele sunt construite în jurul personajelor AI create fictiv.</p>
-        </a>
-
-        <a class="feature-card" href="/safety.html">
-          <span class="card-kicker">NO</span>
-          <h3>Fără deepfake-uri reale</h3>
-          <p>Nu permitem generarea sau folosirea imaginilor intime cu persoane reale fără consimțământ.</p>
-        </a>
+        <span>
+          Chat persistent mock
+        </span>
 
       </div>
 
-    </section>
+    </div>
 
-    <footer class="home-footer">
+  </section>
 
-      <span data-no-translate>
-        © The Future — PRO
+  <section class="section">
+
+    <div class="section-head">
+      <span>
+        EXPLOREAZĂ
       </span>
 
-      <div>
-        <a href="/discover.html">Discover</a>
-        <a href="/feed.html">Feed</a>
-        <a href="/credits.html">Credits</a>
-        <a href="/premium.html">Premium</a>
-        <a href="/privacy.html">Confidențialitate</a>
-        <a href="/terms.html">Termeni</a>
-        <a href="/safety.html">Siguranță</a>
-      </div>
+      <h2>
+        Alege companionul AI potrivit stării tale.
+      </h2>
 
-    </footer>
+      <p>
+        Intră în Discover Hub, explorează personaje fictive cu vibe diferit, apoi vezi feed-ul lor cinematic și pornește o conversație privată.
+      </p>
+    </div>
 
-  </main>
+    <div class="companion-grid">
+
+      <a class="companion-card" href="/profile.html?slug=ava-noir">
+        <div class="companion-img portrait-a"></div>
+
+        <div class="companion-info">
+          <span class="live">
+            <i></i>
+            <span>online</span>
+          </span>
+
+          <h3 data-no-translate>Ava Noir</h3>
+
+          <p>
+            Lux întunecat • elegantă • misterioasă
+          </p>
+        </div>
+      </a>
+
+      <a class="companion-card" href="/profile.html?slug=mira-vale">
+        <div class="companion-img portrait-b"></div>
+
+        <div class="companion-info">
+          <span class="live">
+            <i></i>
+            <span>online</span>
+          </span>
+
+          <h3 data-no-translate>Mira Vale</h3>
+
+          <p>
+            Caldă • emoțională • romantică
+          </p>
+        </div>
+      </a>
+
+      <a class="companion-card" href="/profile.html?slug=kira-voss">
+        <div class="companion-img portrait-c"></div>
+
+        <div class="companion-info">
+          <span class="live">
+            <i></i>
+            <span>online</span>
+          </span>
+
+          <h3 data-no-translate>Kira Voss</h3>
+
+          <p>
+            Cyberpunk • magnetică • încrezătoare
+          </p>
+        </div>
+      </a>
+
+      <a class="companion-card" href="/profile.html?slug=luna-sable">
+        <div class="companion-img portrait-d"></div>
+
+        <div class="companion-info">
+          <span class="live">
+            <i></i>
+            <span>online</span>
+          </span>
+
+          <h3 data-no-translate>Luna Sable</h3>
+
+          <p>
+            Romantic goth • poetică • intensă
+          </p>
+        </div>
+      </a>
+
+    </div>
+
+    <div style="margin-top:22px;text-align:center;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a class="main-btn big" href="/discover.html">
+        Deschide Discover Hub
+      </a>
+
+      <a class="ghost-btn big" href="/feed.html">
+        Deschide Feed
+      </a>
+
+      <a class="ghost-btn big" href="/credits.html">
+        Deschide Credits
+      </a>
+    </div>
+
+  </section>
+
+  <section class="section">
+
+    <div class="section-head">
+      <span>
+        CREEAZĂ
+      </span>
+
+      <h2>
+        O platformă. Mai multe experiențe AI.
+      </h2>
+
+      <p>
+        Construim totul în jurul zonelor principale: companion AI, feed social, profiluri persistente, chat privat, credits, imagini cinematice, video scurt și suport multilingv.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+
+      <a class="feature-card" href="/discover.html">
+        <span class="card-kicker">01</span>
+
+        <h3>
+          Discover Hub
+        </h3>
+
+        <p>
+          Explorează personaje, vibe-uri, categorii și experiențe AI recurente.
+        </p>
+      </a>
+
+      <a class="feature-card" href="/feed.html">
+        <span class="card-kicker">02</span>
+
+        <h3>
+          Social AI Feed
+        </h3>
+
+        <p>
+          Postări, stories, teasing premium și atmosferă de platformă vie.
+        </p>
+      </a>
+
+      <a class="feature-card" href="/profile.html?slug=ava-noir">
+        <span class="card-kicker">03</span>
+
+        <h3>
+          Profil companion
+        </h3>
+
+        <p>
+          Fiecare personaj are bio, mood, lore, galerie blocată și buton de chat.
+        </p>
+      </a>
+
+      <a class="feature-card" href="/credits.html">
+        <span class="card-kicker">04</span>
+
+        <h3>
+          Credits Wallet
+        </h3>
+
+        <p>
+          Controlează unlock-uri mock, balanță credits și istoric de activitate.
+        </p>
+      </a>
+
+    </div>
+
+  </section>
+
+  <section class="section premium-band">
+
+    <div>
+      <span class="eyebrow">
+        GLOBAL AI EXPERIENCE
+      </span>
+
+      <h2>
+        Platforma se adaptează automat limbii utilizatorului.
+      </h2>
+
+      <p>
+        Interfața se poate traduce automat, iar prompturile pot fi scrise în orice limbă. Pentru cele mai precise rezultate, recomandăm folosirea limbii engleze.
+      </p>
+    </div>
+
+    <a class="main-btn big" href="/gen-image.html">
+      Încearcă generatorul
+    </a>
+
+  </section>
+
+  <section class="section">
+
+    <div class="section-head">
+      <span>
+        SIGURANȚĂ
+      </span>
+
+      <h2>
+        Conținut fictiv, privat și controlat.
+      </h2>
+
+      <p>
+        Platforma este construită pentru personaje fictive adulte, fără deepfake-uri cu persoane reale, fără minori și fără conținut abuziv sau ilegal.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+
+      <a class="feature-card" href="/safety.html">
+        <span class="card-kicker">18+</span>
+
+        <h3>
+          Doar adulți
+        </h3>
+
+        <p>
+          Platforma este destinată exclusiv utilizatorilor adulți.
+        </p>
+      </a>
+
+      <a class="feature-card" href="/safety.html">
+        <span class="card-kicker">AI</span>
+
+        <h3>
+          Doar personaje fictive
+        </h3>
+
+        <p>
+          Experiențele sunt construite în jurul personajelor AI create fictiv.
+        </p>
+      </a>
+
+      <a class="feature-card" href="/safety.html">
+        <span class="card-kicker">NO</span>
+
+        <h3>
+          Fără deepfake-uri reale
+        </h3>
+
+        <p>
+          Nu permitem generarea sau folosirea imaginilor intime cu persoane reale fără consimțământ.
+        </p>
+      </a>
+
+    </div>
+
+  </section>
+
+  <footer class="home-footer">
+
+    <span data-no-translate>
+      © The Future — PRO
+    </span>
+
+    <div>
+      <a href="/discover.html">Discover</a>
+      <a href="/feed.html">Feed</a>
+      <a href="/credits.html">Credits</a>
+      <a href="/premium.html">Premium</a>
+      <a href="/privacy.html">Confidențialitate</a>
+      <a href="/terms.html">Termeni</a>
+      <a href="/safety.html">Siguranță</a>
+    </div>
+
+  </footer>
+
+</main>
 
 </body>
 </html>
