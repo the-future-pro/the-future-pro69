@@ -139,7 +139,7 @@
         <div class="profile-actions">
           <a id="chatBtn" class="main-btn big" href="/chat.html?slug=ava-noir">Începe conversația</a>
           <a id="imageBtn" class="ghost-btn big" href="/gen-image.html">Creează imagine cu acest vibe</a>
-          <a class="ghost-btn big" href="/credits.html">Unlock cu credits</a>
+          <a class="ghost-btn big" href="/credits.html">Wallet credits</a>
         </div>
       </div>
 
@@ -189,7 +189,7 @@
   <section class="panel" style="margin-top:18px">
     <h2>Galerie premium blocată</h2>
     <p class="muted">
-      Conținutul premium se va debloca prin abonament sau credits. Momentan folosim preview-uri mock pentru structură.
+      Conținutul premium se poate debloca prin credits. Momentan folosim sistem mock local pentru test MVP.
     </p>
 
     <div class="gallery">
@@ -199,7 +199,7 @@
           <span>Preview premium pentru companionul selectat.</span>
         </div>
         <div class="locked-actions">
-          <a class="small-btn unlock" href="/credits.html">-20 cr</a>
+          <a id="unlockImage" class="small-btn unlock" href="/credits.html?spend=20&label=Imagine%20premium%20deblocata&icon=🖼">-20 cr</a>
           <a class="small-btn" id="galleryImage" href="/gen-image.html">Generează vibe</a>
         </div>
       </div>
@@ -210,7 +210,7 @@
           <span>Arc privat, mood personalizat și relație progresivă.</span>
         </div>
         <div class="locked-actions">
-          <a class="small-btn unlock" href="/credits.html">-300 cr</a>
+          <a id="unlockStory" class="small-btn unlock" href="/credits.html?spend=300&label=Story%20arc%20premium%20deblocat&icon=🔓">-300 cr</a>
           <a class="small-btn" id="galleryChat" href="/chat.html?slug=ava-noir">Continuă chat</a>
         </div>
       </div>
@@ -221,7 +221,7 @@
           <span>Scenă scurtă cinematică, folosită ca unlock premium.</span>
         </div>
         <div class="locked-actions">
-          <a class="small-btn unlock" href="/credits.html">-90 cr</a>
+          <a id="unlockVideo" class="small-btn unlock" href="/credits.html?spend=90&label=Video%20teaser%20premium%20deblocat&icon=🎬">-90 cr</a>
           <a class="small-btn" href="/gen-video.html">Video Studio</a>
         </div>
       </div>
@@ -350,6 +350,10 @@ function applyProfile(){
 
   imageBtn.href = "/gen-image.html";
   galleryImage.href = "/gen-image.html";
+
+  unlockImage.href = "/credits.html?spend=20&label=" + encodeURIComponent("Imagine premium " + p.name + " deblocată") + "&icon=" + encodeURIComponent("🖼");
+  unlockStory.href = "/credits.html?spend=300&label=" + encodeURIComponent("Story arc " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🔓");
+  unlockVideo.href = "/credits.html?spend=90&label=" + encodeURIComponent("Video teaser " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🎬");
 
   tagRow.innerHTML = "";
   p.tags.forEach(function(tag){
