@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
+  <script src="/wallet.js" defer></script>
 
   <style>
     .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
@@ -86,6 +87,7 @@
       text-decoration:none;
       font-size:13px;
       font-weight:800;
+      cursor:pointer;
     }
     .small-btn.unlock{border-color:rgba(251,113,133,.35);color:#fb7185;background:rgba(251,113,133,.1)}
     .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px;box-shadow:0 0 14px #34d399}
@@ -199,7 +201,7 @@
           <span>Preview premium pentru companionul selectat.</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockImage" class="small-btn unlock" href="/credits.html?spend=20&label=Imagine%20premium%20deblocata&icon=🖼">-20 cr</a>
+          <button id="unlockImage" class="small-btn unlock" type="button">-20 cr</button>
           <a class="small-btn" id="galleryImage" href="/gen-image.html">Generează vibe</a>
         </div>
       </div>
@@ -210,7 +212,7 @@
           <span>Arc privat, mood personalizat și relație progresivă.</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockStory" class="small-btn unlock" href="/credits.html?spend=300&label=Story%20arc%20premium%20deblocat&icon=🔓">-300 cr</a>
+          <button id="unlockStory" class="small-btn unlock" type="button">-300 cr</button>
           <a class="small-btn" id="galleryChat" href="/chat.html?slug=ava-noir">Continuă chat</a>
         </div>
       </div>
@@ -221,7 +223,7 @@
           <span>Scenă scurtă cinematică, folosită ca unlock premium.</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockVideo" class="small-btn unlock" href="/credits.html?spend=90&label=Video%20teaser%20premium%20deblocat&icon=🎬">-90 cr</a>
+          <button id="unlockVideo" class="small-btn unlock" type="button">-90 cr</button>
           <a class="small-btn" href="/gen-video.html">Video Studio</a>
         </div>
       </div>
@@ -320,14 +322,33 @@ const profiles = {
   }
 };
 
+let currentProfile = null;
+
 function getSlug(){
   const params = new URLSearchParams(location.search);
   return params.get("slug") || "ava-noir";
 }
 
+function spendFromProfile(amount, label, icon){
+  if(!window.Wallet){
+    alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
+    return;
+  }
+
+  const ok = Wallet.spendCredits(amount, label, icon);
+
+  if(!ok){
+    alert("Nu ai suficiente credits.");
+    return;
+  }
+
+  location.href = "/credits.html";
+}
+
 function applyProfile(){
   const slug = getSlug();
   const p = profiles[slug] || profiles["ava-noir"];
+  currentProfile = p;
 
   document.title = p.name + " — The Future PRO";
 
@@ -351,9 +372,29 @@ function applyProfile(){
   imageBtn.href = "/gen-image.html";
   galleryImage.href = "/gen-image.html";
 
-  unlockImage.href = "/credits.html?spend=20&label=" + encodeURIComponent("Imagine premium " + p.name + " deblocată") + "&icon=" + encodeURIComponent("🖼");
-  unlockStory.href = "/credits.html?spend=300&label=" + encodeURIComponent("Story arc " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🔓");
-  unlockVideo.href = "/credits.html?spend=90&label=" + encodeURIComponent("Video teaser " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🎬");
+  unlockImage.onclick = function(){
+    spendFromProfile(
+      20,
+      "Imagine premium " + p.name + " deblocată",
+      "🖼"
+    );
+  };
+
+  unlockStory.onclick = function(){
+    spendFromProfile(
+      300,
+      "Story arc " + p.name + " deblocat",
+      "🔓"
+    );
+  };
+
+  unlockVideo.onclick = function(){
+    spendFromProfile(
+      90,
+      "Video teaser " + p.name + " deblocat",
+      "🎬"
+    );
+  };
 
   tagRow.innerHTML = "";
   p.tags.forEach(function(tag){
