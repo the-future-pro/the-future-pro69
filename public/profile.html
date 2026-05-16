@@ -41,12 +41,14 @@
       content:"";position:absolute;left:18%;right:18%;bottom:0;height:50%;
       border-radius:48% 48% 0 0;background:rgba(255,255,255,.16);filter:blur(14px)
     }
+
     .ava-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,46,136,.38),transparent),radial-gradient(520px 360px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
     .mira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,180,95,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
     .kira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(0,230,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(60,80,255,.20),transparent),linear-gradient(135deg,#021b24,#050509)}
     .luna-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(120,70,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
     .dante-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(190,35,35,.32),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,190,80,.12),transparent),linear-gradient(135deg,#220506,#050509)}
     .noah-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(80,120,255,.30),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,255,255,.10),transparent),linear-gradient(135deg,#071027,#050509)}
+
     .profile-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
     .profile-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
     .panel{
@@ -60,17 +62,38 @@
     .tag{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.06);font-size:13px}
     .meter{height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0 18px}
     .meter span{display:block;height:100%;width:68%;background:linear-gradient(90deg,#ff2e88,#9b5cff)}
-    .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .locked{
-      min-height:170px;border:1px solid var(--line);border-radius:22px;
-      background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
-      display:grid;place-items:center;text-align:center;padding:14px;color:var(--muted)
-    }
     .mini-list{display:grid;gap:12px}
     .mini-item{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.04)}
     .mini-item strong{display:block;margin-bottom:5px}
+    .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .locked{
+      min-height:190px;border:1px solid var(--line);border-radius:22px;
+      background:
+        radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),
+        linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+      display:flex;flex-direction:column;justify-content:space-between;
+      text-align:left;padding:16px;color:var(--muted)
+    }
+    .locked strong{color:var(--ink);font-size:18px}
+    .locked span{line-height:1.5}
+    .locked-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .small-btn{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 11px;
+      background:rgba(255,255,255,.06);
+      color:white;
+      text-decoration:none;
+      font-size:13px;
+      font-weight:800;
+    }
+    .small-btn.unlock{border-color:rgba(251,113,133,.35);color:#fb7185;background:rgba(251,113,133,.1)}
+    .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px;box-shadow:0 0 14px #34d399}
     @media(max-width:900px){
+      .profile-shell{padding:12px}
       .profile-content,.profile-grid{grid-template-columns:1fr}
+      .profile-hero{padding:22px;border-radius:28px}
+      .profile-title h1{letter-spacing:-2px}
       .avatar-large{margin:0;width:100%;height:280px}
       .gallery{grid-template-columns:1fr}
     }
@@ -94,6 +117,8 @@
     <div class="nav-actions">
       <a class="ghost-btn" href="/discover.html">Discover</a>
       <a class="ghost-btn" href="/feed.html">Feed</a>
+      <a class="ghost-btn" href="/credits.html">Credits</a>
+      <a class="ghost-btn" href="/gen-image.html">Image</a>
       <a class="main-btn" id="navChat" href="/chat.html?slug=ava-noir">Chat</a>
     </div>
   </nav>
@@ -113,7 +138,8 @@
 
         <div class="profile-actions">
           <a id="chatBtn" class="main-btn big" href="/chat.html?slug=ava-noir">Începe conversația</a>
-          <a class="ghost-btn big" href="/gen-image.html">Creează imagine cu acest vibe</a>
+          <a id="imageBtn" class="ghost-btn big" href="/gen-image.html">Creează imagine cu acest vibe</a>
+          <a class="ghost-btn big" href="/credits.html">Unlock cu credits</a>
         </div>
       </div>
 
@@ -153,7 +179,7 @@
 
         <div class="mini-item">
           <strong>Disponibilitate</strong>
-          <span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px"></i>online acum</span>
+          <span><i class="status-dot"></i>online acum</span>
         </div>
       </div>
     </aside>
@@ -163,15 +189,58 @@
   <section class="panel" style="margin-top:18px">
     <h2>Galerie premium blocată</h2>
     <p class="muted">
-      Conținutul premium va putea fi deblocat prin abonament sau credits. Momentan folosim preview-uri mock pentru structură.
+      Conținutul premium se va debloca prin abonament sau credits. Momentan folosim preview-uri mock pentru structură.
     </p>
 
     <div class="gallery">
-      <div class="locked">🔒 Imagine cinematică privată</div>
-      <div class="locked">🔒 Story special</div>
-      <div class="locked">🔒 Video teaser premium</div>
+      <div class="locked">
+        <div>
+          <strong>🔒 Imagine cinematică privată</strong>
+          <span>Preview premium pentru companionul selectat.</span>
+        </div>
+        <div class="locked-actions">
+          <a class="small-btn unlock" href="/credits.html">-20 cr</a>
+          <a class="small-btn" id="galleryImage" href="/gen-image.html">Generează vibe</a>
+        </div>
+      </div>
+
+      <div class="locked">
+        <div>
+          <strong>🔒 Story special</strong>
+          <span>Arc privat, mood personalizat și relație progresivă.</span>
+        </div>
+        <div class="locked-actions">
+          <a class="small-btn unlock" href="/credits.html">-300 cr</a>
+          <a class="small-btn" id="galleryChat" href="/chat.html?slug=ava-noir">Continuă chat</a>
+        </div>
+      </div>
+
+      <div class="locked">
+        <div>
+          <strong>🔒 Video teaser premium</strong>
+          <span>Scenă scurtă cinematică, folosită ca unlock premium.</span>
+        </div>
+        <div class="locked-actions">
+          <a class="small-btn unlock" href="/credits.html">-90 cr</a>
+          <a class="small-btn" href="/gen-video.html">Video Studio</a>
+        </div>
+      </div>
     </div>
   </section>
+
+  <footer class="home-footer">
+    <span data-no-translate>© The Future — PRO</span>
+
+    <div>
+      <a href="/discover.html">Discover</a>
+      <a href="/feed.html">Feed</a>
+      <a href="/credits.html">Credits</a>
+      <a href="/premium.html">Premium</a>
+      <a href="/privacy.html">Confidențialitate</a>
+      <a href="/terms.html">Termeni</a>
+      <a href="/safety.html">Siguranță</a>
+    </div>
+  </footer>
 
 </main>
 
@@ -273,8 +342,14 @@ function applyProfile(){
   heroBg.className = "profile-bg " + p.theme;
   avatarArt.className = "ai-portrait " + p.theme;
 
-  chatBtn.href = "/chat.html?slug=" + encodeURIComponent(slug);
-  navChat.href = "/chat.html?slug=" + encodeURIComponent(slug);
+  const chatUrl = "/chat.html?slug=" + encodeURIComponent(slug);
+
+  chatBtn.href = chatUrl;
+  navChat.href = chatUrl;
+  galleryChat.href = chatUrl;
+
+  imageBtn.href = "/gen-image.html";
+  galleryImage.href = "/gen-image.html";
 
   tagRow.innerHTML = "";
   p.tags.forEach(function(tag){
