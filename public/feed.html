@@ -14,474 +14,74 @@
   <script src="/i18n.js" defer></script>
 
   <style>
-    .feed-shell{
-      max-width:1280px;
-      margin:0 auto;
-      padding:18px;
-    }
-
-    .feed-layout{
-      display:grid;
-      grid-template-columns:260px 1fr 320px;
-      gap:18px;
-      align-items:start;
-    }
-
-    .side-panel,.feed-panel{
-      border:1px solid var(--line);
-      border-radius:28px;
-      background:linear-gradient(
-        180deg,
-        rgba(255,255,255,.07),
-        rgba(255,255,255,.025)
-      );
-      box-shadow:0 20px 70px rgba(0,0,0,.35);
-    }
-
-    .side-panel{
-      padding:18px;
-      position:sticky;
-      top:18px;
-    }
-
-    .feed-panel{
-      overflow:hidden;
-    }
-
-    .feed-top{
-      padding:22px;
-      border-bottom:1px solid var(--line);
-    }
-
-    .feed-title{
-      font-size:32px;
-      margin-bottom:10px;
-    }
-
-    .feed-sub{
-      color:var(--muted);
-      line-height:1.6;
-      max-width:760px;
-    }
-
-    .story-row{
-      display:flex;
-      gap:14px;
-      overflow:auto;
-      padding:18px 22px;
-      border-bottom:1px solid var(--line);
-    }
-
-    .story{
-      min-width:86px;
-      text-align:center;
-      text-decoration:none;
-      color:inherit;
-      cursor:pointer;
-    }
-
-    .story span{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .story:hover .story-avatar{
-      border-color:rgba(255,46,136,.65);
-      box-shadow:0 0 26px rgba(255,46,136,.22);
-    }
-
-    .story-avatar,.avatar{
-      border-radius:50%;
-      overflow:hidden;
-      background:#111;
-      flex-shrink:0;
-      position:relative;
-    }
-
-    .story-avatar{
-      width:82px;
-      height:82px;
-      margin:auto auto 8px;
-      border:2px solid rgba(255,255,255,.15);
-      transition:.2s ease;
-    }
-
-    .avatar{
-      width:56px;
-      height:56px;
-    }
-
-    .ai-face{
-      width:100%;
-      height:100%;
-      position:relative;
-      overflow:hidden;
-      background:#111;
-    }
-
-    .ai-face:before{
-      content:"";
-      position:absolute;
-      width:38%;
-      height:44%;
-      left:31%;
-      top:16%;
-      border-radius:48% 48% 45% 45%;
-      background:rgba(255,255,255,.78);
-      filter:blur(8px);
-      opacity:.38;
-    }
-
-    .ai-face:after{
-      content:"";
-      position:absolute;
-      left:18%;
-      right:18%;
-      bottom:0;
-      height:48%;
-      border-radius:48% 48% 0 0;
-      background:rgba(255,255,255,.18);
-      filter:blur(10px);
-    }
-
-    .ava-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(255,220,235,.60),transparent 18%),
-        radial-gradient(circle at 50% 42%,rgba(255,46,136,.36),transparent 32%),
-        linear-gradient(135deg,#1d081e,#050509)
-    }
-
-    .mira-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(255,235,210,.60),transparent 18%),
-        radial-gradient(circle at 52% 44%,rgba(255,176,90,.34),transparent 34%),
-        linear-gradient(135deg,#25130c,#050509)
-    }
-
-    .kira-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(210,250,255,.58),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(0,230,255,.34),transparent 34%),
-        linear-gradient(135deg,#031b25,#050509)
-    }
-
-    .luna-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),
-        linear-gradient(135deg,#15051f,#050509)
-    }
-
-    .dante-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),
-        linear-gradient(135deg,#210506,#050509)
-    }
-
-    .noah-face{
-      background:
-        radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),
-        radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),
-        linear-gradient(135deg,#071027,#050509)
-    }
-
-    .feed-post{
-      padding:22px;
-      border-bottom:1px solid var(--line);
-    }
-
-    .post-head{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      margin-bottom:16px;
-    }
-
-    .post-user{
-      display:flex;
-      flex-direction:column;
-    }
-
-    .post-user a{
-      color:var(--ink);
-      text-decoration:none;
-      font-weight:800;
-      font-size:15px;
-    }
-
-    .post-user a:hover{
-      color:#ff5fb0;
-    }
-
-    .post-user span{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .post-text{
-      line-height:1.7;
-      margin-bottom:18px;
-      color:#f3f3f7;
-    }
-
-    .post-media{
-      display:block;
-      text-decoration:none;
-      color:inherit;
-      border-radius:24px;
-      overflow:hidden;
-      border:1px solid var(--line);
-      background:#0d0d14;
-      min-height:430px;
-      position:relative;
-      cursor:pointer;
-    }
-
-    .post-media:hover{
-      border-color:rgba(255,46,136,.45);
-      box-shadow:0 0 34px rgba(255,46,136,.12);
-    }
-
-    .scene{
-      position:absolute;
-      inset:0;
-      overflow:hidden;
-    }
-
-    .scene:before{
-      content:"";
-      position:absolute;
-      width:260px;
-      height:360px;
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-40%);
-      border-radius:48% 48% 36% 36%;
-      background:rgba(255,255,255,.13);
-      filter:blur(20px);
-    }
-
-    .scene:after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 12%),
-        linear-gradient(180deg,transparent,rgba(0,0,0,.68));
-    }
-
-    .ava-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),
-        linear-gradient(135deg,#210820,#050509)
-    }
-
-    .mira-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),
-        linear-gradient(135deg,#2a1509,#050509)
-    }
-
-    .kira-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),
-        linear-gradient(135deg,#021b24,#050509)
-    }
-
-    .luna-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),
-        linear-gradient(135deg,#15051f,#050509)
-    }
-
-    .dante-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),
-        linear-gradient(135deg,#220506,#050509)
-    }
-
-    .noah-scene{
-      background:
-        radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),
-        radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),
-        linear-gradient(135deg,#071027,#050509)
-    }
-
-    .scene-label{
-      position:absolute;
-      left:22px;
-      bottom:22px;
-      right:22px;
-      z-index:2;
-      color:white;
-    }
-
-    .scene-label strong{
-      display:block;
-      font-size:24px;
-      margin-bottom:6px;
-    }
-
-    .scene-label span{
-      color:rgba(255,255,255,.72);
-      line-height:1.5;
-    }
-
-    .locked-overlay{
-      position:absolute;
-      inset:0;
-      background:rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
-      z-index:3;
-      display:grid;
-      place-items:center;
-      text-align:center;
-      padding:20px;
-    }
-
-    .locked-box{
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(0,0,0,.45);
-      padding:20px;
-      border-radius:22px;
-      max-width:280px;
-    }
-
-    .locked-box strong{
-      display:block;
-      font-size:22px;
-      margin-bottom:10px;
-    }
-
-    .locked-box span{
-      display:block;
-      color:var(--muted);
-      line-height:1.5;
-      margin-bottom:16px;
-    }
-
-    .unlock-btn{
-      border:0;
-      cursor:pointer;
-      border-radius:14px;
-      padding:12px 16px;
-      font-weight:800;
-      background:linear-gradient(135deg,var(--red),var(--pink));
-      color:white;
-    }
-
-    .post-actions{
-      display:flex;
-      gap:12px;
-      margin-top:16px;
-      flex-wrap:wrap;
-    }
-
-    .action-btn{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.04);
-      color:var(--muted);
-      border-radius:999px;
-      padding:10px 14px;
-      cursor:pointer;
-      transition:.2s ease;
-      font-size:14px;
-    }
-
-    .action-btn:hover{
-      color:#ff5fb0;
-      border-color:rgba(255,46,136,.4);
-    }
-
-    .action-btn.active{
-      color:#ff5fb0;
-      border-color:rgba(255,46,136,.55);
-      box-shadow:0 0 24px rgba(255,46,136,.18);
-    }
-
-    .mini-title{
-      font-size:13px;
-      color:var(--muted);
-      margin-bottom:14px;
-      letter-spacing:.12em;
-    }
-
-    .menu{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .menu a{
-      text-decoration:none;
-      color:var(--ink);
-      padding:12px 14px;
-      border-radius:16px;
-      transition:.2s ease;
-    }
-
-    .menu a:hover{
-      background:rgba(255,255,255,.06);
-    }
-
-    .trend-card{
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:14px;
-      margin-bottom:12px;
-      background:rgba(255,255,255,.04);
-    }
-
-    .trend-card strong{
-      display:block;
-      margin-bottom:6px;
-    }
-
-    .trend-card span{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.5;
-    }
-
-    .live-dot{
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:#34d399;
-      display:inline-block;
-      margin-right:6px;
-      box-shadow:0 0 14px #34d399;
-    }
+    .feed-shell{max-width:1280px;margin:0 auto;padding:18px}
+    .feed-layout{display:grid;grid-template-columns:260px 1fr 320px;gap:18px;align-items:start}
+    .side-panel,.feed-panel{border:1px solid var(--line);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:0 20px 70px rgba(0,0,0,.35)}
+    .side-panel{padding:18px;position:sticky;top:18px}
+    .feed-panel{overflow:hidden}
+    .feed-top{padding:22px;border-bottom:1px solid var(--line)}
+    .feed-title{font-size:32px;margin-bottom:10px}
+    .feed-sub{color:var(--muted);line-height:1.6;max-width:760px}
+    .story-row{display:flex;gap:14px;overflow:auto;padding:18px 22px;border-bottom:1px solid var(--line)}
+    .story{min-width:86px;text-align:center;text-decoration:none;color:inherit;cursor:pointer}
+    .story span{font-size:12px;color:var(--muted)}
+    .story:hover .story-avatar{border-color:rgba(255,46,136,.65);box-shadow:0 0 26px rgba(255,46,136,.22)}
+    .story-avatar,.avatar{border-radius:50%;overflow:hidden;background:#111;flex-shrink:0;position:relative}
+    .story-avatar{width:82px;height:82px;margin:auto auto 8px;border:2px solid rgba(255,255,255,.15);transition:.2s ease}
+    .avatar{width:56px;height:56px}
+    .ai-face{width:100%;height:100%;position:relative;overflow:hidden;background:#111}
+    .ai-face:before{content:"";position:absolute;width:38%;height:44%;left:31%;top:16%;border-radius:48% 48% 45% 45%;background:rgba(255,255,255,.78);filter:blur(8px);opacity:.38}
+    .ai-face:after{content:"";position:absolute;left:18%;right:18%;bottom:0;height:48%;border-radius:48% 48% 0 0;background:rgba(255,255,255,.18);filter:blur(10px)}
+    .ava-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,235,.60),transparent 18%),radial-gradient(circle at 50% 42%,rgba(255,46,136,.36),transparent 32%),linear-gradient(135deg,#1d081e,#050509)}
+    .mira-face{background:radial-gradient(circle at 50% 26%,rgba(255,235,210,.60),transparent 18%),radial-gradient(circle at 52% 44%,rgba(255,176,90,.34),transparent 34%),linear-gradient(135deg,#25130c,#050509)}
+    .kira-face{background:radial-gradient(circle at 50% 26%,rgba(210,250,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(0,230,255,.34),transparent 34%),linear-gradient(135deg,#031b25,#050509)}
+    .luna-face{background:radial-gradient(circle at 50% 26%,rgba(235,220,255,.58),transparent 18%),radial-gradient(circle at 50% 44%,rgba(130,70,255,.34),transparent 34%),linear-gradient(135deg,#15051f,#050509)}
+    .dante-face{background:radial-gradient(circle at 50% 26%,rgba(255,220,200,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(190,35,35,.30),transparent 34%),linear-gradient(135deg,#210506,#050509)}
+    .noah-face{background:radial-gradient(circle at 50% 26%,rgba(220,235,255,.54),transparent 18%),radial-gradient(circle at 50% 44%,rgba(80,120,255,.28),transparent 34%),linear-gradient(135deg,#071027,#050509)}
+    .feed-post{padding:22px;border-bottom:1px solid var(--line)}
+    .post-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+    .post-user{display:flex;flex-direction:column}
+    .post-user a{color:var(--ink);text-decoration:none;font-weight:800;font-size:15px}
+    .post-user a:hover{color:#ff5fb0}
+    .post-user span{font-size:12px;color:var(--muted)}
+    .post-text{line-height:1.7;margin-bottom:18px;color:#f3f3f7}
+    .post-media{display:block;text-decoration:none;color:inherit;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:#0d0d14;min-height:430px;position:relative;cursor:pointer}
+    .post-media:hover{border-color:rgba(255,46,136,.45);box-shadow:0 0 34px rgba(255,46,136,.12)}
+    .scene{position:absolute;inset:0;overflow:hidden}
+    .scene:before{content:"";position:absolute;width:260px;height:360px;left:50%;top:50%;transform:translate(-50%,-40%);border-radius:48% 48% 36% 36%;background:rgba(255,255,255,.13);filter:blur(20px)}
+    .scene:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 12%),linear-gradient(180deg,transparent,rgba(0,0,0,.68))}
+    .ava-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
+    .luna-scene{background:radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
+    .scene-label{position:absolute;left:22px;bottom:22px;right:22px;z-index:2;color:white}
+    .scene-label strong{display:block;font-size:24px;margin-bottom:6px}
+    .scene-label span{color:rgba(255,255,255,.72);line-height:1.5}
+    .locked-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);z-index:3;display:grid;place-items:center;text-align:center;padding:20px}
+    .locked-box{border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.45);padding:20px;border-radius:22px;max-width:280px}
+    .locked-box strong{display:block;font-size:22px;margin-bottom:10px}
+    .locked-box span{display:block;color:var(--muted);line-height:1.5;margin-bottom:16px}
+    .unlock-btn{border:0;cursor:pointer;border-radius:14px;padding:12px 16px;font-weight:800;background:linear-gradient(135deg,var(--red),var(--pink));color:white}
+    .post-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+    .action-btn{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);border-radius:999px;padding:10px 14px;cursor:pointer;transition:.2s ease;font-size:14px;text-decoration:none}
+    .action-btn:hover{color:#ff5fb0;border-color:rgba(255,46,136,.4)}
+    .action-btn.active{color:#ff5fb0;border-color:rgba(255,46,136,.55);box-shadow:0 0 24px rgba(255,46,136,.18)}
+    .mini-title{font-size:13px;color:var(--muted);margin-bottom:14px;letter-spacing:.12em}
+    .menu{display:flex;flex-direction:column;gap:10px}
+    .menu a{text-decoration:none;color:var(--ink);padding:12px 14px;border-radius:16px;transition:.2s ease}
+    .menu a:hover{background:rgba(255,255,255,.06)}
+    .trend-card{border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.04)}
+    .trend-card strong{display:block;margin-bottom:6px}
+    .trend-card span{color:var(--muted);font-size:13px;line-height:1.5}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:#34d399;display:inline-block;margin-right:6px;box-shadow:0 0 14px #34d399}
 
     @media(max-width:1100px){
-      .feed-layout{
-        grid-template-columns:1fr;
-      }
-
-      .side-panel{
-        position:relative;
-        top:auto;
-      }
+      .feed-layout{grid-template-columns:1fr}
+      .side-panel{position:relative;top:auto}
     }
 
     @media(max-width:760px){
-      .feed-shell{
-        padding:10px;
-      }
-
-      .feed-post{
-        padding:18px;
-      }
-
-      .post-media{
-        min-height:320px;
-      }
+      .feed-shell{padding:10px}
+      .feed-post{padding:18px}
+      .post-media{min-height:320px}
     }
   </style>
 </head>
@@ -491,21 +91,15 @@
 <main class="feed-shell">
 
   <nav class="topbar">
-
     <a class="brand" href="/" data-no-translate>
       <div class="brand-mark">AI</div>
-
       <div>
         <strong>The Future</strong>
         <span>Social AI Universe</span>
       </div>
     </a>
 
-    <select
-      id="langSwitcher"
-      class="lang-switcher"
-      aria-label="Language"
-    ></select>
+    <select id="langSwitcher" class="lang-switcher" aria-label="Language"></select>
 
     <div class="nav-actions">
       <a class="ghost-btn" href="/discover.html">Discover</a>
@@ -513,16 +107,12 @@
       <a class="ghost-btn" href="/gen-image.html">Image</a>
       <a class="main-btn" href="/premium.html">Premium</a>
     </div>
-
   </nav>
 
   <section class="feed-layout">
 
     <aside class="side-panel">
-
-      <div class="mini-title">
-        NAVIGATION
-      </div>
+      <div class="mini-title">NAVIGATION</div>
 
       <div class="menu">
         <a href="/discover.html">✨ Discover</a>
@@ -532,80 +122,50 @@
         <a href="/gen-video.html">🎬 AI Video Studio</a>
         <a href="/chat.html?slug=ava-noir">💬 Private Messages</a>
       </div>
-
     </aside>
 
     <section class="feed-panel">
 
       <div class="feed-top">
+        <div class="eyebrow">TRENDING AI FEED</div>
 
-        <div class="eyebrow">
-          TRENDING AI FEED
-        </div>
-
-        <h1 class="feed-title">
-          Explorează universul companionilor AI.
-        </h1>
+        <h1 class="feed-title">Explorează universul companionilor AI.</h1>
 
         <p class="feed-sub">
           Feed cinematic cu companions fictivi premium, identități persistente și experiențe private.
         </p>
-
       </div>
 
       <div class="story-row">
-
         <a class="story" href="/profile.html?slug=ava-noir">
-          <div class="story-avatar">
-            <div class="ai-face ava-face"></div>
-          </div>
+          <div class="story-avatar"><div class="ai-face ava-face"></div></div>
           <span>Ava</span>
         </a>
 
         <a class="story" href="/profile.html?slug=mira-vale">
-          <div class="story-avatar">
-            <div class="ai-face mira-face"></div>
-          </div>
+          <div class="story-avatar"><div class="ai-face mira-face"></div></div>
           <span>Mira</span>
         </a>
 
         <a class="story" href="/profile.html?slug=kira-voss">
-          <div class="story-avatar">
-            <div class="ai-face kira-face"></div>
-          </div>
+          <div class="story-avatar"><div class="ai-face kira-face"></div></div>
           <span>Kira</span>
         </a>
 
         <a class="story" href="/profile.html?slug=luna-sable">
-          <div class="story-avatar">
-            <div class="ai-face luna-face"></div>
-          </div>
+          <div class="story-avatar"><div class="ai-face luna-face"></div></div>
           <span>Luna</span>
         </a>
-
       </div>
 
-      <!-- POST 1 -->
-
       <article class="feed-post">
-
         <div class="post-head">
-
-          <div class="avatar">
-            <div class="ai-face ava-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face ava-face"></div></div>
 
           <div class="post-user">
-            <a href="/profile.html?slug=ava-noir">
-              Ava Noir
-            </a>
-
-            <span>
-              <i class="live-dot"></i>
-              online now
-            </span>
+            <a href="/profile.html?slug=ava-noir">Ava Noir</a>
+            <span><i class="live-dot"></i>online now</span>
           </div>
-
         </div>
 
         <div class="post-text">
@@ -613,74 +173,30 @@
         </div>
 
         <a class="post-media" href="/profile.html?slug=ava-noir">
-
           <div class="scene ava-scene"></div>
 
           <div class="scene-label">
             <strong>Ava Noir</strong>
-
-            <span>
-              dark luxury • cinematic elegance
-            </span>
+            <span>dark luxury • cinematic elegance</span>
           </div>
-
         </a>
 
         <div class="post-actions">
-
-          <button
-            class="action-btn like-btn"
-            data-id="post1-like"
-          >
-            ❤ Like
-          </button>
-
-          <button
-            class="action-btn save-btn"
-            data-id="post1-save"
-          >
-            ⭐ Save
-          </button>
-
-          <button
-            class="action-btn follow-btn"
-            data-id="ava-follow"
-          >
-            ⚡ Follow
-          </button>
-
-          <a
-            class="action-btn"
-            href="/chat.html?slug=ava-noir"
-          >
-            💬 Message
-          </a>
-
+          <button class="action-btn like-btn" data-id="post1-like">❤ Like</button>
+          <button class="action-btn save-btn" data-id="post1-save">⭐ Save</button>
+          <button class="action-btn follow-btn" data-id="ava-follow">⚡ Follow</button>
+          <a class="action-btn" href="/chat.html?slug=ava-noir">💬 Message</a>
         </div>
-
       </article>
 
-      <!-- LOCKED POST -->
-
       <article class="feed-post">
-
         <div class="post-head">
-
-          <div class="avatar">
-            <div class="ai-face luna-face"></div>
-          </div>
+          <div class="avatar"><div class="ai-face luna-face"></div></div>
 
           <div class="post-user">
-            <a href="/profile.html?slug=luna-sable">
-              Luna Sable
-            </a>
-
-            <span>
-              <i class="live-dot"></i>
-              premium drop
-            </span>
+            <a href="/profile.html?slug=luna-sable">Luna Sable</a>
+            <span><i class="live-dot"></i>premium drop</span>
           </div>
-
         </div>
 
         <div class="post-text">
@@ -688,16 +204,11 @@
         </div>
 
         <div class="post-media">
-
           <div class="scene luna-scene"></div>
 
           <div class="locked-overlay">
-
             <div class="locked-box">
-
-              <strong>
-                🔒 Premium Locked
-              </strong>
+              <strong>🔒 Premium Locked</strong>
 
               <span>
                 Deblochează această scenă cinematică pentru 40 credits.
@@ -705,91 +216,46 @@
 
               <button
                 class="unlock-btn"
-                onclick="unlockPost('locked-luna')"
+                onclick="unlockPostWithCredits('locked-luna','Luna Sable',40)"
               >
                 Unlock • 40 cr
               </button>
-
             </div>
-
           </div>
 
           <div class="scene-label">
             <strong>Luna Sable</strong>
-
-            <span>
-              gothic romance • private cinematic scene
-            </span>
+            <span>gothic romance • private cinematic scene</span>
           </div>
-
         </div>
 
         <div class="post-actions">
-
-          <button
-            class="action-btn like-btn"
-            data-id="post2-like"
-          >
-            ❤ Like
-          </button>
-
-          <button
-            class="action-btn save-btn"
-            data-id="post2-save"
-          >
-            ⭐ Save
-          </button>
-
-          <a
-            class="action-btn"
-            href="/credits.html"
-          >
-            💳 Credits
-          </a>
-
-          <a
-            class="action-btn"
-            href="/chat.html?slug=luna-sable"
-          >
-            💬 Message
-          </a>
-
+          <button class="action-btn like-btn" data-id="post2-like">❤ Like</button>
+          <button class="action-btn save-btn" data-id="post2-save">⭐ Save</button>
+          <a class="action-btn" href="/credits.html">💳 Credits</a>
+          <a class="action-btn" href="/chat.html?slug=luna-sable">💬 Message</a>
         </div>
-
       </article>
 
     </section>
 
     <aside class="side-panel">
-
-      <div class="mini-title">
-        TRENDING
-      </div>
+      <div class="mini-title">TRENDING</div>
 
       <div class="trend-card">
         <strong># dark romance</strong>
-
-        <span>
-          companions cinematici și experiențe premium.
-        </span>
+        <span>companions cinematici și experiențe premium.</span>
       </div>
 
       <div class="trend-card">
         <strong># luxury ai</strong>
-
-        <span>
-          identități persistente și chat privat.
-        </span>
+        <span>identități persistente și chat privat.</span>
       </div>
 
       <div class="trend-card">
         <strong># credits unlock</strong>
-
-        <span>
-          teaser-uri private și galerii blocate.
-        </span>
+        <span>teaser-uri private și galerii blocate.</span>
       </div>
-
     </aside>
 
   </section>
@@ -798,9 +264,7 @@
 
 <script>
 function toggleButton(btn,key,activeText,defaultText){
-
-  const active =
-    localStorage.getItem(key) === "1";
+  const active = localStorage.getItem(key) === "1";
 
   if(active){
     btn.classList.add("active");
@@ -811,9 +275,7 @@ function toggleButton(btn,key,activeText,defaultText){
   }
 
   btn.onclick = function(){
-
-    const isActive =
-      localStorage.getItem(key) === "1";
+    const isActive = localStorage.getItem(key) === "1";
 
     if(isActive){
       localStorage.removeItem(key);
@@ -821,73 +283,42 @@ function toggleButton(btn,key,activeText,defaultText){
       localStorage.setItem(key,"1");
     }
 
-    toggleButton(
-      btn,
-      key,
-      activeText,
-      defaultText
-    );
+    toggleButton(btn,key,activeText,defaultText);
   };
 }
 
-document.querySelectorAll(".like-btn")
-.forEach(btn=>{
-  toggleButton(
-    btn,
-    btn.dataset.id,
-    "❤ Liked",
-    "❤ Like"
-  );
+document.querySelectorAll(".like-btn").forEach(btn=>{
+  toggleButton(btn,btn.dataset.id,"❤ Liked","❤ Like");
 });
 
-document.querySelectorAll(".save-btn")
-.forEach(btn=>{
-  toggleButton(
-    btn,
-    btn.dataset.id,
-    "⭐ Saved",
-    "⭐ Save"
-  );
+document.querySelectorAll(".save-btn").forEach(btn=>{
+  toggleButton(btn,btn.dataset.id,"⭐ Saved","⭐ Save");
 });
 
-document.querySelectorAll(".follow-btn")
-.forEach(btn=>{
-  toggleButton(
-    btn,
-    btn.dataset.id,
-    "✓ Following",
-    "⚡ Follow"
-  );
+document.querySelectorAll(".follow-btn").forEach(btn=>{
+  toggleButton(btn,btn.dataset.id,"✓ Following","⚡ Follow");
 });
 
-function unlockPost(key){
+function unlockPostWithCredits(key,name,amount){
+  localStorage.setItem("unlock_" + key,"1");
 
-  localStorage.setItem(
-    "unlock_" + key,
-    "1"
-  );
+  const label = encodeURIComponent("Postare premium " + name + " deblocată");
+  const icon = encodeURIComponent("🔒");
 
-  alert(
-    "Postarea premium a fost deblocată mock."
-  );
-
-  location.reload();
+  location.href =
+    "/credits.html?spend=" + amount +
+    "&label=" + label +
+    "&icon=" + icon;
 }
 
 window.addEventListener("DOMContentLoaded",()=>{
-
-  if(
-    localStorage.getItem("unlock_locked-luna") === "1"
-  ){
-
-    const overlay =
-      document.querySelector(".locked-overlay");
+  if(localStorage.getItem("unlock_locked-luna") === "1"){
+    const overlay = document.querySelector(".locked-overlay");
 
     if(overlay){
       overlay.remove();
     }
   }
-
 });
 </script>
 
