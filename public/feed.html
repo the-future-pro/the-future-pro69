@@ -11,8 +11,11 @@
   <title>Feed — The Future PRO</title>
 
   <link rel="stylesheet" href="/style.css"/>
+
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
+  <script src="/app-state.js" defer></script>
+  <script src="/global-header.js" defer></script>
 
   <style>
     .feed-shell{max-width:1280px;margin:0 auto;padding:18px}
@@ -183,9 +186,9 @@
         </a>
 
         <div class="post-actions">
-          <button class="action-btn like-btn" data-id="post1-like">❤ Like</button>
-          <button class="action-btn save-btn" data-id="post1-save">⭐ Save</button>
-          <button class="action-btn follow-btn" data-id="ava-follow">⚡ Follow</button>
+          <button class="action-btn like-btn" data-type="likes" data-id="post1-like">❤ Like</button>
+          <button class="action-btn save-btn" data-type="saves" data-id="post1-save">⭐ Save</button>
+          <button class="action-btn follow-btn" data-type="follows" data-id="ava-follow">⚡ Follow</button>
           <a class="action-btn" href="/chat.html?slug=ava-noir">💬 Message</a>
         </div>
       </article>
@@ -231,8 +234,8 @@
         </div>
 
         <div class="post-actions">
-          <button class="action-btn like-btn" data-id="post2-like">❤ Like</button>
-          <button class="action-btn save-btn" data-id="post2-save">⭐ Save</button>
+          <button class="action-btn like-btn" data-type="likes" data-id="post2-like">❤ Like</button>
+          <button class="action-btn save-btn" data-type="saves" data-id="post2-save">⭐ Save</button>
           <a class="action-btn" href="/credits.html">💳 Credits</a>
           <a class="action-btn" href="/chat.html?slug=luna-sable">💬 Message</a>
         </div>
@@ -264,9 +267,7 @@
 </main>
 
 <script>
-function toggleButton(btn,key,activeText,defaultText){
-  const active = localStorage.getItem(key) === "1";
-
+function setButtonState(btn, active, activeText, defaultText){
   if(active){
     btn.classList.add("active");
     btn.textContent = activeText;
@@ -274,46 +275,74 @@ function toggleButton(btn,key,activeText,defaultText){
     btn.classList.remove("active");
     btn.textContent = defaultText;
   }
+}
+
+function setupActionButton(btn, group, key, activeText, defaultText){
+  const active =
+    window.TFP_STATE
+      ? TFP_STATE.isActive(group, key)
+      : localStorage.getItem(key) === "1";
+
+  setButtonState(btn, active, activeText, defaultText);
 
   btn.onclick = function(){
-    const isActive = localStorage.getItem(key) === "1";
+    let isActive;
 
-    if(isActive){
-      localStorage.removeItem(key);
+    if(window.TFP_STATE){
+      if(group === "likes") isActive = TFP_STATE.like(key);
+      if(group === "saves") isActive = TFP_STATE.save(key);
+      if(group === "follows") isActive = TFP_STATE.follow(key);
     }else{
-      localStorage.setItem(key,"1");
+      const old = localStorage.getItem(key) === "1";
+      if(old) localStorage.removeItem(key);
+      else localStorage.setItem(key,"1");
+      isActive = !old;
     }
 
-    toggleButton(btn,key,activeText,defaultText);
+    setButtonState(btn, isActive, activeText, defaultText);
   };
 }
 
-document.querySelectorAll(".like-btn").forEach(btn=>{
-  toggleButton(btn,btn.dataset.id,"❤ Liked","❤ Like");
-});
-
-document.querySelectorAll(".save-btn").forEach(btn=>{
-  toggleButton(btn,btn.dataset.id,"⭐ Saved","⭐ Save");
-});
-
-document.querySelectorAll(".follow-btn").forEach(btn=>{
-  toggleButton(btn,btn.dataset.id,"✓ Following","⚡ Follow");
-});
-
 function unlockPostWithCredits(key,name,amount){
-  localStorage.setItem("unlock_" + key,"1");
+  if(!window.TFP_WALLET){
+    alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
+    return;
+  }
 
-  const label = encodeURIComponent("Postare premium " + name + " deblocată");
-  const icon = encodeURIComponent("🔒");
+  const ok = TFP_WALLET.spendAndUnlock({
+    amount: amount,
+    label: "Postare premium " + name + " deblocată",
+    icon: "🔒",
+    unlockKey: "feed_" + key
+  });
 
-  location.href =
-    "/credits.html?spend=" + amount +
-    "&label=" + label +
-    "&icon=" + icon;
+  if(!ok){
+    return;
+  }
+
+  location.reload();
 }
 
 window.addEventListener("DOMContentLoaded",()=>{
-  if(localStorage.getItem("unlock_locked-luna") === "1"){
+
+  document.querySelectorAll(".like-btn").forEach(btn=>{
+    setupActionButton(btn, "likes", btn.dataset.id, "❤ Liked", "❤ Like");
+  });
+
+  document.querySelectorAll(".save-btn").forEach(btn=>{
+    setupActionButton(btn, "saves", btn.dataset.id, "⭐ Saved", "⭐ Save");
+  });
+
+  document.querySelectorAll(".follow-btn").forEach(btn=>{
+    setupActionButton(btn, "follows", btn.dataset.id, "✓ Following", "⚡ Follow");
+  });
+
+  const unlocked =
+    window.TFP_WALLET
+      ? TFP_WALLET.isUnlocked("feed_locked-luna")
+      : localStorage.getItem("unlock_locked-luna") === "1";
+
+  if(unlocked){
     const overlay = document.querySelector(".locked-overlay");
 
     if(overlay){
