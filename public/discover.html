@@ -20,83 +20,122 @@
         linear-gradient(135deg,#090911,#160617 70%,#06060a);
       box-shadow:0 28px 90px rgba(0,0,0,.42)
     }
+
     .discover-hero h1{font-size:clamp(42px,7vw,86px);line-height:.95;margin:14px 0;letter-spacing:-3px}
     .discover-hero p{max-width:760px;color:var(--muted);font-size:18px;line-height:1.6}
+
     .mood-row,.category-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
     .mood,.category{
-      border:1px solid var(--line);border-radius:999px;padding:10px 14px;
-      background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 14px;
+      background:rgba(255,255,255,.06);
+      color:var(--ink);
+      cursor:pointer
     }
+
     .mood:hover,.category:hover{background:rgba(255,255,255,.12)}
+
     .section-title{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:34px 0 16px}
     .section-title h2{margin:0;font-size:32px}
     .section-title p{margin:6px 0 0;color:var(--muted)}
+
     .character-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
     .character-card{
       position:relative;overflow:hidden;border:1px solid var(--line);border-radius:28px;
       min-height:430px;text-decoration:none;color:var(--ink);
       background:#111;box-shadow:0 20px 70px rgba(0,0,0,.3);
       transition:.22s transform,.22s border-color,.22s box-shadow
     }
+
     .character-card:hover{
       transform:translateY(-4px);
       border-color:rgba(255,46,136,.45);
       box-shadow:0 24px 80px rgba(255,46,136,.12)
     }
+
     .character-art{
-      position:absolute;inset:0;background-size:cover;background-position:center;
+      position:absolute;
+      inset:0;
+      background-size:cover;
+      background-position:center;
       filter:saturate(1.08) contrast(1.02)
     }
+
     .character-art:before{
-      content:"";position:absolute;width:250px;height:360px;left:50%;top:44%;
-      transform:translate(-50%,-50%);border-radius:48% 48% 36% 36%;
-      background:rgba(255,255,255,.13);filter:blur(20px)
+      content:"";
+      position:absolute;
+      width:250px;
+      height:360px;
+      left:50%;
+      top:44%;
+      transform:translate(-50%,-50%);
+      border-radius:48% 48% 36% 36%;
+      background:rgba(255,255,255,.13);
+      filter:blur(20px)
     }
+
     .character-art:after{
-      content:"";position:absolute;inset:0;
+      content:"";
+      position:absolute;
+      inset:0;
       background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25) 35%,rgba(0,0,0,.88));
     }
-    .portrait-a{background:
-      radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),
-      radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),
-      linear-gradient(135deg,#210820,#050509)}
-    .portrait-b{background:
-      radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),
-      radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),
-      linear-gradient(135deg,#2a1509,#050509)}
-    .portrait-c{background:
-      radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),
-      radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),
-      linear-gradient(135deg,#021b24,#050509)}
-    .portrait-d{background:
-      radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),
-      radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),
-      linear-gradient(135deg,#15051f,#050509)}
-    .portrait-e{background:
-      radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),
-      radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),
-      linear-gradient(135deg,#220506,#050509)}
-    .portrait-f{background:
-      radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),
-      radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),
-      linear-gradient(135deg,#071027,#050509)}
+
+    .portrait-a{background:radial-gradient(520px 360px at 52% 32%,rgba(255,46,136,.36),transparent),radial-gradient(420px 260px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
+    .portrait-b{background:radial-gradient(520px 360px at 52% 32%,rgba(255,180,95,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
+    .portrait-c{background:radial-gradient(520px 360px at 52% 32%,rgba(0,230,255,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(60,80,255,.20),transparent),linear-gradient(135deg,#021b24,#050509)}
+    .portrait-d{background:radial-gradient(520px 360px at 52% 32%,rgba(120,70,255,.34),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
+    .portrait-e{background:radial-gradient(520px 360px at 52% 32%,rgba(190,35,35,.32),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,190,80,.12),transparent),linear-gradient(135deg,#220506,#050509)}
+    .portrait-f{background:radial-gradient(520px 360px at 52% 32%,rgba(80,120,255,.30),transparent),radial-gradient(420px 260px at 70% 20%,rgba(255,255,255,.10),transparent),linear-gradient(135deg,#071027,#050509)}
+
     .character-info{position:absolute;left:18px;right:18px;bottom:18px;z-index:2}
     .live{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#86efac;margin-bottom:10px}
     .live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 16px #22c55e}
+
     .character-info h3{font-size:26px;margin:0 0 8px}
     .character-info p{color:var(--muted);line-height:1.45;margin:0 0 12px}
+
     .tags{display:flex;gap:7px;flex-wrap:wrap}
     .tag{font-size:12px;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 9px;background:rgba(255,255,255,.07)}
+
+    .card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .mini-link{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:7px 10px;
+      font-size:12px;
+      background:rgba(255,255,255,.08);
+      color:white;
+    }
+
     .feature-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+
     .mini-card{
-      border:1px solid var(--line);border-radius:26px;padding:22px;
+      border:1px solid var(--line);
+      border-radius:26px;
+      padding:22px;
       background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025))
     }
+
     .mini-card h3{margin:8px 0}
     .mini-card p{color:var(--muted);line-height:1.55}
     .footer-space{height:30px}
-    @media(max-width:1050px){.character-grid{grid-template-columns:repeat(2,1fr)}.feature-strip{grid-template-columns:1fr}}
-    @media(max-width:620px){.character-grid{grid-template-columns:1fr}.discover-hero{padding:32px 22px}.discover-hero h1{letter-spacing:-2px}}
+
+    @media(max-width:1050px){
+      .character-grid{grid-template-columns:repeat(2,1fr)}
+      .feature-strip{grid-template-columns:1fr}
+    }
+
+    @media(max-width:620px){
+      .discover{padding:12px}
+      .character-grid{grid-template-columns:1fr}
+      .discover-hero{padding:32px 22px}
+      .discover-hero h1{letter-spacing:-2px}
+      .section-title h2{font-size:28px}
+    }
   </style>
 </head>
 
@@ -116,9 +155,10 @@
 
       <div class="nav-actions">
         <a class="ghost-btn" href="/feed.html">Feed</a>
-        <a class="ghost-btn" href="/gen-image.html">Image Studio</a>
-        <a class="ghost-btn" href="/gen-video.html">Video Studio</a>
-        <a class="main-btn" href="/premium">Premium</a>
+        <a class="ghost-btn" href="/credits.html">Credits</a>
+        <a class="ghost-btn" href="/gen-image.html">Image</a>
+        <a class="ghost-btn" href="/gen-video.html">Video</a>
+        <a class="main-btn" href="/premium.html">Premium</a>
       </div>
     </nav>
 
@@ -166,6 +206,10 @@
               <span class="tag">Mysterious</span>
               <span class="tag">Cinematic</span>
             </div>
+            <div class="card-actions">
+              <span class="mini-link">Vezi profil</span>
+              <span class="mini-link">Chat</span>
+            </div>
           </div>
         </a>
 
@@ -179,6 +223,10 @@
               <span class="tag">Soft</span>
               <span class="tag">Romance</span>
               <span class="tag">Comfort</span>
+            </div>
+            <div class="card-actions">
+              <span class="mini-link">Vezi profil</span>
+              <span class="mini-link">Chat</span>
             </div>
           </div>
         </a>
@@ -194,6 +242,10 @@
               <span class="tag">Cold</span>
               <span class="tag">Magnetic</span>
             </div>
+            <div class="card-actions">
+              <span class="mini-link">Vezi profil</span>
+              <span class="mini-link">Chat</span>
+            </div>
           </div>
         </a>
 
@@ -207,6 +259,10 @@
               <span class="tag">Goth</span>
               <span class="tag">Poetic</span>
               <span class="tag">Dark Romance</span>
+            </div>
+            <div class="card-actions">
+              <span class="mini-link">Vezi profil</span>
+              <span class="mini-link">Chat</span>
             </div>
           </div>
         </a>
@@ -222,6 +278,10 @@
               <span class="tag">Luxury</span>
               <span class="tag">Protective</span>
             </div>
+            <div class="card-actions">
+              <span class="mini-link">Vezi profil</span>
+              <span class="mini-link">Chat</span>
+            </div>
           </div>
         </a>
 
@@ -235,6 +295,10 @@
               <span class="tag">CEO</span>
               <span class="tag">Elegant</span>
               <span class="tag">Premium</span>
+            </div>
+            <div class="card-actions">
+              <span class="mini-link">Vezi profil</span>
+              <span class="mini-link">Chat</span>
             </div>
           </div>
         </a>
@@ -261,6 +325,8 @@
         <button class="category" type="button">Mafia Vibe</button>
         <button class="category" type="button">Sweet & Emotional</button>
         <button class="category" type="button">Masculine Luxury</button>
+        <button class="category" type="button">CEO Premium</button>
+        <button class="category" type="button">Credits Unlock</button>
       </div>
     </section>
 
@@ -301,9 +367,15 @@
         <p>Alege un companion, vezi profilul, începe conversația și testează experiența premium.</p>
       </div>
 
-      <a class="main-btn big" href="/profile.html?slug=ava-noir">
-        Începe cu Ava Noir
-      </a>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="main-btn big" href="/profile.html?slug=ava-noir">
+          Începe cu Ava Noir
+        </a>
+
+        <a class="ghost-btn big" href="/credits.html">
+          Vezi Credits
+        </a>
+      </div>
     </section>
 
     <footer class="home-footer">
@@ -311,6 +383,8 @@
 
       <div>
         <a href="/feed.html">Feed</a>
+        <a href="/credits.html">Credits</a>
+        <a href="/premium.html">Premium</a>
         <a href="/privacy.html">Confidențialitate</a>
         <a href="/terms.html">Termeni</a>
         <a href="/safety.html">Siguranță</a>
@@ -321,4 +395,4 @@
 
   </main>
 </body>
-</html>
+                                    </html>
