@@ -12,51 +12,25 @@
 
   <style>
     .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
-    .profile-hero{
-      position:relative;overflow:hidden;border:1px solid var(--line);
-      border-radius:34px;min-height:420px;padding:28px;
-      background:linear-gradient(135deg,#130617,#050509);
-      box-shadow:0 28px 90px rgba(0,0,0,.42)
-    }
+    .profile-hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:34px;min-height:420px;padding:28px;background:linear-gradient(135deg,#130617,#050509);box-shadow:0 28px 90px rgba(0,0,0,.42)}
     .profile-bg{position:absolute;inset:0;opacity:.95}
-    .profile-bg:after{
-      content:"";position:absolute;inset:0;
-      background:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35),rgba(0,0,0,.9))
-    }
-    .profile-content{
-      position:relative;z-index:2;display:grid;grid-template-columns:1fr 360px;
-      gap:24px;align-items:end;min-height:360px
-    }
+    .profile-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35),rgba(0,0,0,.9))}
+    .profile-content{position:relative;z-index:2;display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:end;min-height:360px}
     .profile-title h1{font-size:clamp(44px,7vw,92px);line-height:.95;margin:10px 0;letter-spacing:-3px}
     .profile-title p{max-width:720px;color:var(--muted);font-size:18px;line-height:1.6}
-    .avatar-large{
-      width:250px;height:250px;border-radius:38px;border:1px solid rgba(255,255,255,.16);
-      overflow:hidden;background:#111;margin-left:auto;box-shadow:0 20px 80px rgba(0,0,0,.45)
-    }
+    .avatar-large{width:250px;height:250px;border-radius:38px;border:1px solid rgba(255,255,255,.16);overflow:hidden;background:#111;margin-left:auto;box-shadow:0 20px 80px rgba(0,0,0,.45)}
     .ai-portrait{width:100%;height:100%;position:relative;overflow:hidden}
-    .ai-portrait:before{
-      content:"";position:absolute;width:34%;height:42%;left:33%;top:16%;
-      border-radius:48%;background:rgba(255,255,255,.75);filter:blur(11px);opacity:.42
-    }
-    .ai-portrait:after{
-      content:"";position:absolute;left:18%;right:18%;bottom:0;height:50%;
-      border-radius:48% 48% 0 0;background:rgba(255,255,255,.16);filter:blur(14px)
-    }
-
+    .ai-portrait:before{content:"";position:absolute;width:34%;height:42%;left:33%;top:16%;border-radius:48%;background:rgba(255,255,255,.75);filter:blur(11px);opacity:.42}
+    .ai-portrait:after{content:"";position:absolute;left:18%;right:18%;bottom:0;height:50%;border-radius:48% 48% 0 0;background:rgba(255,255,255,.16);filter:blur(14px)}
     .ava-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,46,136,.38),transparent),radial-gradient(520px 360px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
     .mira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,180,95,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
     .kira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(0,230,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(60,80,255,.20),transparent),linear-gradient(135deg,#021b24,#050509)}
     .luna-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(120,70,255,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,46,136,.16),transparent),linear-gradient(135deg,#15051f,#050509)}
     .dante-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(190,35,35,.32),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,190,80,.12),transparent),linear-gradient(135deg,#220506,#050509)}
     .noah-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(80,120,255,.30),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,255,255,.10),transparent),linear-gradient(135deg,#071027,#050509)}
-
     .profile-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
     .profile-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
-    .panel{
-      border:1px solid var(--line);border-radius:28px;padding:22px;
-      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
-      box-shadow:0 20px 70px rgba(0,0,0,.28)
-    }
+    .panel{border:1px solid var(--line);border-radius:28px;padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:0 20px 70px rgba(0,0,0,.28)}
     .panel h2,.panel h3{margin-top:0}
     .muted{color:var(--muted);line-height:1.6}
     .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -67,38 +41,14 @@
     .mini-item{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.04)}
     .mini-item strong{display:block;margin-bottom:5px}
     .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .locked{
-      min-height:190px;border:1px solid var(--line);border-radius:22px;
-      background:
-        radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),
-        linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
-      display:flex;flex-direction:column;justify-content:space-between;
-      text-align:left;padding:16px;color:var(--muted)
-    }
+    .locked{min-height:190px;border:1px solid var(--line);border-radius:22px;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));display:flex;flex-direction:column;justify-content:space-between;text-align:left;padding:16px;color:var(--muted)}
     .locked strong{color:var(--ink);font-size:18px}
     .locked span{line-height:1.5}
     .locked-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-    .small-btn{
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:8px 11px;
-      background:rgba(255,255,255,.06);
-      color:white;
-      text-decoration:none;
-      font-size:13px;
-      font-weight:800;
-      cursor:pointer;
-    }
+    .small-btn{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.06);color:white;text-decoration:none;font-size:13px;font-weight:800;cursor:pointer}
     .small-btn.unlock{border-color:rgba(251,113,133,.35);color:#fb7185;background:rgba(251,113,133,.1)}
     .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px;box-shadow:0 0 14px #34d399}
-    @media(max-width:900px){
-      .profile-shell{padding:12px}
-      .profile-content,.profile-grid{grid-template-columns:1fr}
-      .profile-hero{padding:22px;border-radius:28px}
-      .profile-title h1{letter-spacing:-2px}
-      .avatar-large{margin:0;width:100%;height:280px}
-      .gallery{grid-template-columns:1fr}
-    }
+    @media(max-width:900px){.profile-shell{padding:12px}.profile-content,.profile-grid{grid-template-columns:1fr}.profile-hero{padding:22px;border-radius:28px}.profile-title h1{letter-spacing:-2px}.avatar-large{margin:0;width:100%;height:280px}.gallery{grid-template-columns:1fr}}
   </style>
 </head>
 
@@ -132,9 +82,7 @@
       <div class="profile-title">
         <div class="eyebrow" id="profileKicker">DARK LUXURY COMPANION</div>
         <h1 id="profileName" data-no-translate>Ava Noir</h1>
-        <p id="profileBio">
-          Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.
-        </p>
+        <p id="profileBio">Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.</p>
 
         <div class="tag-row" id="tagRow"></div>
 
@@ -152,12 +100,9 @@
   </section>
 
   <section class="profile-grid">
-
     <div class="panel">
       <h2>Identitate și poveste</h2>
-      <p class="muted" id="loreText">
-        Ava Noir este construită ca o prezență elegantă, intensă și misterioasă.
-      </p>
+      <p class="muted" id="loreText">Ava Noir este construită ca o prezență elegantă, intensă și misterioasă.</p>
 
       <h3>Personalitate</h3>
       <div class="mini-list" id="personalityList"></div>
@@ -185,14 +130,11 @@
         </div>
       </div>
     </aside>
-
   </section>
 
   <section class="panel" style="margin-top:18px">
     <h2>Galerie premium blocată</h2>
-    <p class="muted">
-      Conținutul premium se poate debloca prin credits. Momentan folosim sistem mock local pentru test MVP.
-    </p>
+    <p class="muted">Conținutul premium se poate debloca prin credits. Momentan folosim sistem mock local pentru test MVP.</p>
 
     <div class="gallery">
       <div class="locked">
@@ -322,23 +264,25 @@ const profiles = {
   }
 };
 
-let currentProfile = null;
-
 function getSlug(){
   const params = new URLSearchParams(location.search);
   return params.get("slug") || "ava-noir";
 }
 
-function spendFromProfile(amount, label, icon){
-  if(!window.Wallet){
+function spendFromProfile(amount, label, icon, unlockKey){
+  if(!window.TFP_WALLET){
     alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
     return;
   }
 
-  const ok = Wallet.spendCredits(amount, label, icon);
+  const ok = TFP_WALLET.spendAndUnlock({
+    amount,
+    label,
+    icon,
+    unlockKey
+  });
 
   if(!ok){
-    alert("Nu ai suficiente credits.");
     return;
   }
 
@@ -348,7 +292,6 @@ function spendFromProfile(amount, label, icon){
 function applyProfile(){
   const slug = getSlug();
   const p = profiles[slug] || profiles["ava-noir"];
-  currentProfile = p;
 
   document.title = p.name + " — The Future PRO";
 
@@ -376,7 +319,8 @@ function applyProfile(){
     spendFromProfile(
       20,
       "Imagine premium " + p.name + " deblocată",
-      "🖼"
+      "🖼",
+      "profile_image_" + slug
     );
   };
 
@@ -384,7 +328,8 @@ function applyProfile(){
     spendFromProfile(
       300,
       "Story arc " + p.name + " deblocat",
-      "🔓"
+      "🔓",
+      "profile_story_" + slug
     );
   };
 
@@ -392,11 +337,13 @@ function applyProfile(){
     spendFromProfile(
       90,
       "Video teaser " + p.name + " deblocat",
-      "🎬"
+      "🎬",
+      "profile_video_" + slug
     );
   };
 
   tagRow.innerHTML = "";
+
   p.tags.forEach(function(tag){
     const span = document.createElement("span");
     span.className = "tag";
@@ -405,6 +352,7 @@ function applyProfile(){
   });
 
   personalityList.innerHTML = "";
+
   p.personality.forEach(function(item){
     const div = document.createElement("div");
     div.className = "mini-item";
@@ -413,7 +361,7 @@ function applyProfile(){
   });
 }
 
-applyProfile();
+window.addEventListener("DOMContentLoaded", applyProfile);
 </script>
 
 </body>
