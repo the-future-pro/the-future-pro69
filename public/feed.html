@@ -16,6 +16,7 @@
   <script src="/wallet.js" defer></script>
   <script src="/app-state.js" defer></script>
   <script src="/global-header.js" defer></script>
+  <script src="/companions-data.js" defer></script>
 
   <style>
     .feed-shell{max-width:1280px;margin:0 auto;padding:18px}
@@ -140,7 +141,7 @@
         </p>
       </div>
 
-      <div class="story-row">
+      <div class="story-row" id="storyRow">
         <a class="story" href="/profile.html?slug=ava-noir">
           <div class="story-avatar"><div class="ai-face ava-face"></div></div>
           <span>Ava</span>
@@ -162,7 +163,7 @@
         </a>
       </div>
 
-      <article class="feed-post">
+      <article class="feed-post" id="postAva">
         <div class="post-head">
           <div class="avatar"><div class="ai-face ava-face"></div></div>
 
@@ -193,7 +194,7 @@
         </div>
       </article>
 
-      <article class="feed-post">
+      <article class="feed-post" id="postLuna">
         <div class="post-head">
           <div class="avatar"><div class="ai-face luna-face"></div></div>
 
@@ -325,7 +326,41 @@ function unlockPostWithCredits(key,name,amount){
   location.reload();
 }
 
+
+
+function hydrateFeedFromCompanions(){
+  const companions = window.TFP_COMPANIONS;
+  if(!companions) return;
+  const storyRow = document.getElementById("storyRow");
+  if(storyRow){
+    const order=["ava-noir","mira-vale","kira-voss","luna-sable"];
+    storyRow.innerHTML = order.map(function(slug){
+      const c = companions[slug]; if(!c) return "";
+      return '<a class="story" href="'+c.profileLink+'"><div class="story-avatar"><div class="ai-face '+c.face+'"></div></div><span>'+c.name.split(' ')[0]+'</span></a>'
+    }).join('');
+  }
+  const ava = companions["ava-noir"];
+  const luna = companions["luna-sable"];
+  if(ava){
+    const post = document.getElementById("postAva");
+    post.querySelector('.avatar .ai-face').className='ai-face '+ava.face;
+    post.querySelector('.post-user a').textContent=ava.name; post.querySelector('.post-user a').href=ava.profileLink;
+    post.querySelector('.action-btn[href^="/chat.html"]').href=ava.chatLink;
+    const media = post.querySelector('.post-media'); media.href=ava.profileLink; media.querySelector('.scene').className='scene '+ava.scene;
+    media.querySelector('.scene-label strong').textContent=ava.name;
+  }
+  if(luna){
+    const post = document.getElementById("postLuna");
+    post.querySelector('.avatar .ai-face').className='ai-face '+luna.face;
+    post.querySelector('.post-user a').textContent=luna.name; post.querySelector('.post-user a').href=luna.profileLink;
+    post.querySelector('.action-btn[href^="/chat.html"]').href=luna.chatLink;
+    post.querySelector('.scene').className='scene '+luna.scene;
+    post.querySelector('.scene-label strong').textContent=luna.name;
+  }
+}
+
 window.addEventListener("DOMContentLoaded",()=>{
+  hydrateFeedFromCompanions();
 
   document.querySelectorAll(".like-btn").forEach(btn=>{
     setupActionButton(btn, "likes", btn.dataset.id, "❤ Liked", "❤ Like");

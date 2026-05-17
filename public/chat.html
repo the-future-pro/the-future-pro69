@@ -270,6 +270,7 @@
   <script src="/wallet.js" defer></script>
   <script src="/app-state.js" defer></script>
   <script src="/global-header.js" defer></script>
+  <script src="/companions-data.js" defer></script>
 </head>
 
 <body class="home-page">
@@ -405,38 +406,7 @@
 </main>
 
 <script>
-const profiles = {
-  "ava-noir":{
-    name:"Ava Noir",
-    face:"ava-face",
-    vibe:"Dark luxury companion"
-  },
-  "mira-vale":{
-    name:"Mira Vale",
-    face:"mira-face",
-    vibe:"Soft romance companion"
-  },
-  "kira-voss":{
-    name:"Kira Voss",
-    face:"kira-face",
-    vibe:"Cyberpunk muse"
-  },
-  "luna-sable":{
-    name:"Luna Sable",
-    face:"luna-face",
-    vibe:"Goth romantic companion"
-  },
-  "dante-vale":{
-    name:"Dante Vale",
-    face:"dante-face",
-    vibe:"Masculine luxury companion"
-  },
-  "noah-sterling":{
-    name:"Noah Sterling",
-    face:"noah-face",
-    vibe:"Elegant CEO companion"
-  }
-};
+const profiles = window.TFP_COMPANIONS || {};
 
 const qs = new URLSearchParams(location.search);
 

@@ -12,6 +12,7 @@
   <script src="/wallet.js" defer></script>
   <script src="/app-state.js" defer></script>
   <script src="/global-header.js" defer></script>
+  <script src="/companions-data.js" defer></script>
 
   <style>
     .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
@@ -196,80 +197,7 @@
 </main>
 
 <script>
-const profiles = {
-  "ava-noir": {
-    name: "Ava Noir",
-    theme: "ava-theme",
-    kicker: "DARK LUXURY COMPANION",
-    bio: "Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.",
-    lore: "Ava Noir este construită ca o prezență elegantă, intensă și misterioasă. Stilul ei vizual combină luxul întunecat, luminile neon și conversațiile lente, private, cu atmosferă premium.",
-    tags: ["Dark Luxury", "Mysterious", "Cinematic", "Elegant"],
-    personality: ["Misterioasă și calmă", "Elegantă, dar greu de citit", "Atmosferă intensă și premium"],
-    mood: "Misterios, calm, magnetic",
-    experience: "Chat privat + imagini cinematice",
-    meter: "72%"
-  },
-  "mira-vale": {
-    name: "Mira Vale",
-    theme: "mira-theme",
-    kicker: "SOFT ROMANCE COMPANION",
-    bio: "Companion AI fictiv cu energie caldă, apropiată și emoțională.",
-    lore: "Mira Vale este construită pentru conversații blânde, apropiere emoțională și o atmosferă sigură. Stilul ei este romantic, cald și sincer.",
-    tags: ["Soft Romance", "Warm", "Emotional", "Comfort"],
-    personality: ["Caldă și empatică", "Apropiată și liniștitoare", "Romantică și sinceră"],
-    mood: "Cald, blând, protector emoțional",
-    experience: "Chat emoțional + stories soft",
-    meter: "64%"
-  },
-  "kira-voss": {
-    name: "Kira Voss",
-    theme: "kira-theme",
-    kicker: "CYBERPUNK MUSE",
-    bio: "Companion AI fictiv cu vibe futurist, neon și energie magnetică.",
-    lore: "Kira Voss trăiește într-o atmosferă rece, electrică și futuristă. Este încrezătoare, directă și magnetică, cu un stil vizual cyberpunk.",
-    tags: ["Cyberpunk", "Neon", "Magnetic", "Futuristic"],
-    personality: ["Încrezătoare și directă", "Rece, dar fascinantă", "Futuristă și intensă"],
-    mood: "Electric, rece, magnetic",
-    experience: "Chat futurist + scene neon",
-    meter: "76%"
-  },
-  "luna-sable": {
-    name: "Luna Sable",
-    theme: "luna-theme",
-    kicker: "GOTH ROMANTIC COMPANION",
-    bio: "Companion AI fictiv cu personalitate poetică, intensă și dark romance.",
-    lore: "Luna Sable este construită pentru povești lente, poetice și intense. Stilul ei combină romantismul întunecat, misterul și energia gotică.",
-    tags: ["Goth", "Poetic", "Dark Romance", "Intense"],
-    personality: ["Poetică și intensă", "Romantică în stil întunecat", "Misterioasă și emoțională"],
-    mood: "Poetic, intens, nocturn",
-    experience: "Chat dark romance + unlock gallery",
-    meter: "69%"
-  },
-  "dante-vale": {
-    name: "Dante Vale",
-    theme: "dante-theme",
-    kicker: "MASCULINE LUXURY COMPANION",
-    bio: "Companion AI fictiv masculin cu energie calmă, protectivă și periculoasă.",
-    lore: "Dante Vale este construit ca o prezență masculină elegantă, controlată și protectivă. Stilul lui combină luxul, calmul și tensiunea de tip mafia romance.",
-    tags: ["Masculine", "Luxury", "Protective", "Mafia Vibe"],
-    personality: ["Calm și controlat", "Protectiv și dominant", "Elegant, dar periculos"],
-    mood: "Calm, intens, protectiv",
-    experience: "Chat premium + roleplay cinematic",
-    meter: "74%"
-  },
-  "noah-sterling": {
-    name: "Noah Sterling",
-    theme: "noah-theme",
-    kicker: "ELEGANT CEO COMPANION",
-    bio: "Companion AI fictiv masculin cu stil elegant, inteligent și premium.",
-    lore: "Noah Sterling este construit ca un companion masculin sofisticat, inteligent și atent la detalii. Energia lui este rece, elegantă și precisă.",
-    tags: ["CEO", "Elegant", "Intelligent", "Premium"],
-    personality: ["Inteligent și calculat", "Elegant și sofisticat", "Rece, dar atent"],
-    mood: "Elegant, precis, controlat",
-    experience: "Chat premium + business romance vibe",
-    meter: "66%"
-  }
-};
+const profiles = window.TFP_COMPANIONS || {};
 
 function getSlug(){
   const params = new URLSearchParams(location.search);
