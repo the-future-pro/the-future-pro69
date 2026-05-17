@@ -437,6 +437,15 @@ function escapeHtml(str){
     .replaceAll("'","&#039;");
 }
 
+function deleteCustomCompanionBySlug(slug){
+  const companions = TFP_COMPANIONS.getCustomCompanions();
+  const filtered = companions.filter(function(item){
+    return item.slug !== slug;
+  });
+  TFP_COMPANIONS.saveCustomCompanions(filtered);
+  renderCustomCompanions();
+}
+
 function renderCustomCompanions(){
   const gridEl = document.getElementById("customCompanionGrid");
   if(!gridEl) return;
@@ -467,12 +476,34 @@ function renderCustomCompanions(){
           </div>
           <div class="card-actions">
             <span class="mini-link">Vezi profil</span>
+            <button type="button" class="mini-link js-delete-custom-companion" data-slug="${escapeHtml(item.slug)}">Șterge</button>
           </div>
         </div>
       </a>
     `;
   }).join("");
 }
+
+window.addEventListener("DOMContentLoaded", function(){
+  const gridEl = document.getElementById("customCompanionGrid");
+  if(!gridEl) return;
+
+  gridEl.addEventListener("click", function(event){
+    const deleteBtn = event.target.closest(".js-delete-custom-companion");
+    if(!deleteBtn) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const slug = deleteBtn.getAttribute("data-slug");
+    if(!slug) return;
+
+    const ok = window.confirm("Sigur vrei să ștergi acest companion local?");
+    if(!ok) return;
+
+    deleteCustomCompanionBySlug(slug);
+  });
+});
 
 window.addEventListener("DOMContentLoaded", refreshHeaderCredits);
 window.addEventListener("DOMContentLoaded", renderCustomCompanions);
