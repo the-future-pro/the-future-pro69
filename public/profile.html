@@ -374,9 +374,9 @@ function applyProfile(){
 
 
 const premiumItems = {
-  private_cinematic_image: { amount:20, labelPrefix:"Imagine premium", icon:"🖼", btn:unlockImage },
-  special_story: { amount:300, labelPrefix:"Story arc", icon:"🔓", btn:unlockStory },
-  premium_video_teaser: { amount:90, labelPrefix:"Video teaser", icon:"🎬", btn:unlockVideo }
+  private_cinematic_image: { amount:20, historyLabel:"Imagine cinematică privată", icon:"🖼", btn:unlockImage },
+  special_story: { amount:300, historyLabel:"Story special", icon:"🔓", btn:unlockStory },
+  premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", btn:unlockVideo }
 };
 
 function refreshPremiumButtons(name){
@@ -394,7 +394,7 @@ function attemptUnlockPremium(key, companionName){
   const result = TFP_WALLET.spendAndUnlockPremium(
     key,
     cfg.amount,
-    cfg.labelPrefix + " " + companionName + " deblocat",
+    cfg.historyLabel,
     cfg.icon
   );
 
