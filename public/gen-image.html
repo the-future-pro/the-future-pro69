@@ -91,6 +91,13 @@
     .mock-label strong{display:block;font-size:28px;margin-bottom:8px}
     .mock-label span{color:var(--muted);line-height:1.55}
     .action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .history-panel{margin-top:16px;border:1px solid var(--line);border-radius:18px;padding:12px;background:rgba(255,255,255,.03)}
+    .history-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .history-list{display:grid;gap:8px}
+    .history-item{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.2)}
+    .history-meta{color:var(--muted);font-size:12px}
+    .history-text{margin-top:6px;font-size:13px;line-height:1.4}
+    .clear-history-btn{font-size:12px;padding:6px 10px}
     @keyframes spin{to{transform:rotate(360deg)}}
     @media(max-width:900px){
       .studio{padding:12px}
@@ -193,6 +200,14 @@
           ✨ Recomandare: pentru rezultate reale, folosește prompt în engleză. Când nu avem credit Replicate, afișăm previzualizare demo premium pentru continuitatea experienței.
         </div>
 
+        <div class="history-panel">
+          <div class="history-head">
+            <strong>Istoric creații</strong>
+            <button id="clearCreationHistoryBtn" class="ghost-btn clear-history-btn" type="button">Șterge istoricul creațiilor</button>
+          </div>
+          <div id="creationHistoryList" class="history-list"></div>
+        </div>
+
         <pre id="out" class="hidden-debug"></pre>
       </div>
 
@@ -213,6 +228,7 @@
 const $ = (s)=>document.querySelector(s);
 const out = $('#out');
 const result = $('#result');
+const creationHistoryKey = "tfp_creation_history";
 
 const slugParams = new URLSearchParams(location.search);
 const currentSlug = slugParams.get("slug") || "ava-noir";
@@ -375,6 +391,67 @@ function setMockPreview(){
       </div>
     </div>
   `;
+  addCreationHistory({
+    type:"image_demo",
+    companionSlug: currentSlug,
+    companionName: active.name || "Companion selectat",
+    vibe: active.vibe || "",
+    prompt,
+    quality,
+    date: new Date().toISOString(),
+    mode:"demo"
+  });
+}
+
+function getCreationHistory(){
+  try{
+    const raw = localStorage.getItem(creationHistoryKey);
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveCreationHistory(items){
+  const clean = Array.isArray(items) ? items.slice(0,20) : [];
+  localStorage.setItem(creationHistoryKey, JSON.stringify(clean));
+}
+
+function addCreationHistory(item){
+  const list = getCreationHistory();
+  list.unshift(item);
+  saveCreationHistory(list);
+  renderCreationHistory();
+}
+
+function clearCreationHistory(){
+  localStorage.removeItem(creationHistoryKey);
+  renderCreationHistory();
+}
+
+function renderCreationHistory(){
+  const listEl = $('#creationHistoryList');
+  if(!listEl) return;
+  const items = getCreationHistory().slice(0,5);
+  if(!items.length){
+    listEl.innerHTML = `<div class="history-meta">Nu există creații salvate încă.</div>`;
+    return;
+  }
+  listEl.innerHTML = items.map((item)=>{
+    const typeLabel = item.type || "creation";
+    const text = item.prompt || item.storyboard || item.enrichedPrompt || item.enrichedStoryboard || "-";
+    const shortText = String(text).slice(0,120);
+    return `
+      <div class="history-item">
+        <div>
+          <strong><span data-no-translate data-character-name>${escapeHtml(item.companionName || "Companion")}</span></strong>
+          <div class="history-meta">${escapeHtml(typeLabel)} • ${escapeHtml(item.mode || "-")} • ${escapeHtml(new Date(item.date || Date.now()).toLocaleString("ro-RO"))}</div>
+        </div>
+        <div class="history-text">${escapeHtml(shortText)}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 function escapeHtml(str){
@@ -480,6 +557,18 @@ $('#go').onclick = async ()=>{
 
     if(data.url){
       result.innerHTML = `<img src="${data.url}" alt="generated image">`;
+      const active = companionContext[currentSlug] || companionContext["ava-noir"] || { name:"Companion selectat" };
+      addCreationHistory({
+        type:"image_real",
+        url:data.url,
+        companionSlug: currentSlug,
+        companionName: active.name || "Companion selectat",
+        prompt,
+        enrichedPrompt,
+        quality,
+        date: new Date().toISOString(),
+        mode:"real"
+      });
       return;
     }
 
@@ -538,6 +627,11 @@ function refreshHeaderCredits(){
 
 window.addEventListener("DOMContentLoaded", refreshHeaderCredits);
 window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);
+window.addEventListener("DOMContentLoaded", function(){
+  renderCreationHistory();
+  const clearBtn = $('#clearCreationHistoryBtn');
+  if(clearBtn) clearBtn.onclick = clearCreationHistory;
+});
 </script>
 
 </body>
