@@ -137,6 +137,7 @@
       <a class="ghost-btn" href="/premium.html">Premium</a>
       <a class="ghost-btn" href="/feed.html">Feed</a>
       <a class="ghost-btn" href="/profile.html?slug=ava-noir">Profile</a>
+      <a class="ghost-btn" id="headerCreditsBalance" href="/credits.html">Credits: 0 CR</a>
       <a class="main-btn" href="/gen-image.html">Image</a>
     </div>
   </nav>
@@ -293,6 +294,12 @@ function spendCredits(amount, label, icon){
   return ok;
 }
 
+function refreshHeaderCredits(){
+  const el = document.getElementById("headerCreditsBalance");
+  if(!el || !window.TFP_WALLET) return;
+  el.textContent = "Credits: " + TFP_WALLET.getBalance() + " CR";
+}
+
 function renderWallet(){
   document.getElementById("balance").textContent =
     TFP_WALLET.getBalance();
@@ -354,9 +361,13 @@ function escapeHtml(str){
 window.addEventListener("DOMContentLoaded", function(){
   TFP_WALLET.handleUrlSpend();
   renderWallet();
+  refreshHeaderCredits();
 });
 
-window.addEventListener("tfp:wallet-updated", renderWallet);
+window.addEventListener("tfp:wallet-updated", function(){
+  renderWallet();
+  refreshHeaderCredits();
+});
 </script>
 
 </body>
