@@ -10,7 +10,11 @@
     "noah-sterling": { slug:"noah-sterling", name:"Noah Sterling", theme:"noah-theme", kicker:"COMPANION CEO ELEGANT", bio:"Companion AI fictiv masculin cu stil elegant, inteligent și premium.", lore:"Noah Sterling este construit ca un companion masculin sofisticat, inteligent și atent la detalii. Energia lui este rece, elegantă și precisă.", tags:["CEO","Elegant","Inteligent","Premium"], personality:["Inteligent și calculat","Elegant și sofisticat","Rece, dar atent"], mood:"Elegant, precis, controlat", experience:"Chat premium + business romance vibe", meter:"66%", vibe:"elegant CEO • premium • intelligent", promptStyle:"elegant CEO, premium, intelligent, refined luxury, controlled sophisticated mood", face:"noah-face", class:"portrait-f" }
   };
 
-  function getCustomCompanions(){ try{ const raw = localStorage.getItem(customCompanionsKey); const parsed = JSON.parse(raw || "[]"); return Array.isArray(parsed) ? parsed : []; }catch(e){ return []; } }
+  let backendCustomCompanions = [];
+  let backendLoadPromise = null;
+  let hasDispatchedBackendUpdate = false;
+
+  function getLocalCustomCompanions(){ try{ const raw = localStorage.getItem(customCompanionsKey); const parsed = JSON.parse(raw || "[]"); return Array.isArray(parsed) ? parsed : []; }catch(e){ return []; } }
   function saveCustomCompanions(items){ localStorage.setItem(customCompanionsKey, JSON.stringify(Array.isArray(items) ? items : [])); }
   function slugifyName(name){ return String(name||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-").replace(/-+/g,"-"); }
   function createCompanionFromData(data){
@@ -19,18 +23,72 @@
     let slug = baseSlug;
     const all = getAllCompanions();
     if(all.some(function(item){ return item && item.slug === slug && item.slug !== src.slug; })){ slug = baseSlug + "-" + Date.now(); }
-    return { slug, name: src.name || "Companion", theme: src.theme || "ava-theme", kicker: src.kicker || "COMPANION CUSTOM", bio: src.bio || "", lore: src.lore || src.bio || "", tags: Array.isArray(src.tags)?src.tags:[], personality: Array.isArray(src.personality)?src.personality:[], mood: src.mood || src.vibe || "custom vibe", experience: src.experience || "Chat + image + video", meter: src.meter || "50%", vibe: src.vibe || "premium • cinematic • companion", promptStyle: src.promptStyle || "premium cinematic fictional AI companion atmosphere", face: src.face || "ava-face", class: src.class || "portrait-a" };
+    return { slug, name: src.name || "Companion", theme: src.theme || "ava-theme", kicker: src.kicker || "COMPANION CUSTOM", bio: src.bio || "", lore: src.lore || src.bio || "", tags: Array.isArray(src.tags)?src.tags:[], personality: Array.isArray(src.personality)?src.personality:[], mood: src.mood || src.vibe || "custom vibe", experience: src.experience || "Chat + image + video", meter: src.meter || "50%", vibe: src.vibe || "premium • cinematic • companion", promptStyle: src.promptStyle || src.prompt_style || "premium cinematic fictional AI companion atmosphere", face: src.face || "ava-face", class: src.class || "portrait-a", createdAt: src.createdAt || src.created_at || null, updatedAt: src.updatedAt || src.updated_at || null, userEmail: src.userEmail || src.user_email || null };
   }
+
+  function getMergedCustomCompanions(){
+    const localItems = getLocalCustomCompanions();
+    const localSlugs = new Set(localItems.map(function(item){ return item && item.slug; }).filter(Boolean));
+    const merged = localItems.slice();
+
+    backendCustomCompanions.forEach(function(item){
+      if(!item || !item.slug) return;
+      if(defaultCompanions[item.slug]) return;
+      if(localSlugs.has(item.slug)) return;
+      merged.push(item);
+    });
+
+    return merged;
+  }
+
+  function getCustomCompanions(){ return getLocalCustomCompanions(); }
+  function getEffectiveCustomCompanions(){ return getMergedCustomCompanions(); }
+
   function getCompanionBySlug(slug){
     const key = slug || "ava-noir";
     const defaultMatch = defaultCompanions[key];
     if(defaultMatch) return defaultMatch;
-    const customMatch = getCustomCompanions().find(function(item){ return item && item.slug===key; });
+    const customMatch = getMergedCustomCompanions().find(function(item){ return item && item.slug===key; });
     if(customMatch) return customMatch;
     return defaultCompanions["ava-noir"];
   }
   function getCompanionContext(slug){ const c = getCompanionBySlug(slug); return { slug:c.slug, name:c.name, vibe:c.vibe, promptStyle:c.promptStyle, theme:c.theme, face:c.face }; }
-  function getAllCompanions(){ return Object.values(defaultCompanions).concat(getCustomCompanions()); }
+  function getAllCompanions(){ return Object.values(defaultCompanions).concat(getMergedCustomCompanions()); }
 
-  window.TFP_COMPANIONS = { defaultCompanions, getCustomCompanions, saveCustomCompanions, slugifyName, createCompanionFromData, getCompanionBySlug, getCompanionContext, getAllCompanions };
+  function dispatchCompanionsUpdated(){
+    window.dispatchEvent(new CustomEvent("tfp:companions-updated", { detail:{ source:"backend-custom", hasBackend:backendCustomCompanions.length > 0 } }));
+  }
+
+  async function loadBackendCompanions(){
+    if(backendLoadPromise) return backendLoadPromise;
+
+    backendLoadPromise = (async function(){
+      try{
+        const me = await fetch("/api/me", { credentials:"include" }).then(function(r){ return r.json(); }).catch(function(){ return null; });
+        if(!me || !me.ok || !me.logged){
+          backendCustomCompanions = [];
+          return [];
+        }
+
+        const payload = await fetch("/api/companions/custom", { credentials:"include" }).then(function(r){ return r.json(); }).catch(function(){ return null; });
+        const items = payload && payload.ok && Array.isArray(payload.items) ? payload.items : [];
+        backendCustomCompanions = items.map(function(item){ return createCompanionFromData(item); }).filter(function(item){ return item && item.slug && !defaultCompanions[item.slug]; });
+        return backendCustomCompanions;
+      }catch(e){
+        backendCustomCompanions = [];
+        return [];
+      }finally{
+        if(!hasDispatchedBackendUpdate){
+          hasDispatchedBackendUpdate = true;
+          dispatchCompanionsUpdated();
+        }
+      }
+    })();
+
+    return backendLoadPromise;
+  }
+
+  const readyPromise = loadBackendCompanions();
+
+  window.TFP_COMPANIONS = { defaultCompanions, getCustomCompanions, getEffectiveCustomCompanions, saveCustomCompanions, slugifyName, createCompanionFromData, getCompanionBySlug, getCompanionContext, getAllCompanions, loadBackendCompanions, readyPromise };
 })();

@@ -513,7 +513,8 @@ function deleteCustomCompanionBySlug(slug){
 function renderCustomCompanions(){
   const gridEl = document.getElementById("customCompanionGrid");
   if(!gridEl) return;
-  const companions = TFP_COMPANIONS.getCustomCompanions();
+  const companions = (TFP_COMPANIONS.getEffectiveCustomCompanions ? TFP_COMPANIONS.getEffectiveCustomCompanions() : TFP_COMPANIONS.getCustomCompanions());
+  const localSlugs = new Set(TFP_COMPANIONS.getCustomCompanions().map(function(item){ return item && item.slug; }).filter(Boolean));
   if(!companions.length){
     gridEl.innerHTML = `
       <article class="mini-card" style="grid-column:1/-1">
@@ -532,7 +533,7 @@ function renderCustomCompanions(){
       <a class="character-card" href="/profile.html?slug=${encodeURIComponent(item.slug)}">
         <div class="character-art portrait-a"></div>
         <div class="character-info">
-          <span class="live"><i></i> companion custom</span>
+          <span class="live"><i></i> ${localSlugs.has(item.slug) ? "companion custom" : "companion backend"}</span>
           <h3 data-no-translate data-character-name>${escapeHtml(item.name || "Companion")}</h3>
           <p>${escapeHtml(bio)}</p>
           <div class="tags">
@@ -540,8 +541,8 @@ function renderCustomCompanions(){
           </div>
           <div class="card-actions">
             <span class="mini-link">Vezi profil</span>
-            <button type="button" class="mini-link js-edit-custom-companion" data-slug="${escapeHtml(item.slug)}">Editează</button>
-            <button type="button" class="mini-link js-delete-custom-companion" data-slug="${escapeHtml(item.slug)}">Șterge</button>
+            ${localSlugs.has(item.slug) ? `<button type="button" class="mini-link js-edit-custom-companion" data-slug="${escapeHtml(item.slug)}">Editează</button>
+            <button type="button" class="mini-link js-delete-custom-companion" data-slug="${escapeHtml(item.slug)}">Șterge</button>` : ""}
           </div>
         </div>
       </a>
@@ -608,7 +609,17 @@ window.addEventListener("DOMContentLoaded", function(){
 });
 
 window.addEventListener("DOMContentLoaded", refreshHeaderCredits);
-window.addEventListener("DOMContentLoaded", renderCustomCompanions);
+window.addEventListener("DOMContentLoaded", function(){
+  renderCustomCompanions();
+  if(window.TFP_COMPANIONS && typeof window.TFP_COMPANIONS.loadBackendCompanions === "function"){
+    window.TFP_COMPANIONS.loadBackendCompanions().catch(function(){
+      return null;
+    });
+  }
+});
+window.addEventListener("tfp:companions-updated", function(){
+  renderCustomCompanions();
+});
 window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);
 </script>
 
