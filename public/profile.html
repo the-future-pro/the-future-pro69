@@ -227,8 +227,9 @@ function spendFromProfile(amount, labelKey, params, label, icon, unlockKey){
     return;
   }
 
-  renderUnlockStates();
+  renderUnlockStates(getSlug());
 }
+
 
 function renderUnlockCard(key, cardId, titleId, buttonId, unlockedTitle){
   if(!window.TFP_WALLET){
@@ -259,8 +260,7 @@ function renderUnlockCard(key, cardId, titleId, buttonId, unlockedTitle){
   }
 }
 
-function renderUnlockStates(){
-  const slug = getSlug();
+function renderUnlockStates(slug){
 
   renderUnlockCard(
     "profile_image_" + slug,
@@ -290,6 +290,7 @@ function renderUnlockStates(){
 function applyProfile(){
   const slug = getSlug();
   const p = profiles[slug] || profiles["ava-noir"];
+  const companionSlug = p.slug || slug;
 
   document.title = p.name + " — The Future PRO";
 
@@ -324,7 +325,7 @@ function applyProfile(){
   heroBgEl.className = "profile-bg " + p.theme;
   avatarArtEl.className = "ai-portrait " + p.theme;
 
-  const chatUrl = "/chat.html?slug=" + encodeURIComponent(slug);
+  const chatUrl = "/chat.html?slug=" + encodeURIComponent(companionSlug);
 
   chatBtnEl.href = chatUrl;
   navChatEl.href = chatUrl;
@@ -340,7 +341,7 @@ function applyProfile(){
       {name: p.name},
       "Imagine premium " + p.name + " deblocată",
       "🖼",
-      "profile_image_" + slug
+      "profile_image_" + companionSlug
     );
   };
 
@@ -351,7 +352,7 @@ function applyProfile(){
       {name: p.name},
       "Story arc " + p.name + " deblocat",
       "🔓",
-      "profile_story_" + slug
+      "profile_story_" + companionSlug
     );
   };
 
@@ -362,7 +363,7 @@ function applyProfile(){
       {name: p.name},
       "Video teaser " + p.name + " deblocat",
       "🎬",
-      "profile_video_" + slug
+      "profile_video_" + companionSlug
     );
   };
 
@@ -384,8 +385,9 @@ function applyProfile(){
     personalityListEl.appendChild(div);
   });
 
-  renderUnlockStates();
+  renderUnlockStates(companionSlug);
 }
+
 
 window.addEventListener("DOMContentLoaded", applyProfile);
 </script>
