@@ -208,15 +208,19 @@ function byId(id){
   return document.getElementById(id);
 }
 
-async function spendFromProfile(type, amount, unlockKey){
+async function spendFromProfile(type){
   if(!window.TFP_WALLET){
     alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
     return;
   }
 
-  const response = await TFP_WALLET.unlockPremium(type, amount);
+  const response = await TFP_WALLET.unlockPremium(type);
   if(!response.ok){
-    alert(response.error === "INSUFFICIENT_CREDITS" ? "Nu ai suficiente credits." : "Unlock eșuat.");
+    if(response.error === "INSUFFICIENT_CREDITS"){
+      alert("Nu ai suficiente credits.");
+    } else {
+      alert(response.message || "Unlock eșuat.");
+    }
     return;
   }
   renderUnlockStates(getSlug());
@@ -327,11 +331,11 @@ function applyProfile(){
   imageBtnEl.href = "/gen-image.html";
   galleryImageEl.href = "/gen-image.html";
 
-  unlockImageBtn.onclick = async function(){ unlockImageBtn.disabled = true; unlockImageBtn.textContent = "Se procesează..."; await spendFromProfile("private_cinematic_image",20,"profile_image_" + companionSlug); unlockImageBtn.disabled=false; renderUnlockStates(companionSlug); };
+  unlockImageBtn.onclick = async function(){ unlockImageBtn.disabled = true; unlockImageBtn.textContent = "Se procesează..."; await spendFromProfile("private_cinematic_image"); unlockImageBtn.disabled=false; renderUnlockStates(companionSlug); };
 
-  unlockStoryBtn.onclick = async function(){ unlockStoryBtn.disabled = true; unlockStoryBtn.textContent = "Se procesează..."; await spendFromProfile("special_story",300,"profile_story_" + companionSlug); unlockStoryBtn.disabled=false; renderUnlockStates(companionSlug); };
+  unlockStoryBtn.onclick = async function(){ unlockStoryBtn.disabled = true; unlockStoryBtn.textContent = "Se procesează..."; await spendFromProfile("special_story"); unlockStoryBtn.disabled=false; renderUnlockStates(companionSlug); };
 
-  unlockVideoBtn.onclick = async function(){ unlockVideoBtn.disabled = true; unlockVideoBtn.textContent = "Se procesează..."; await spendFromProfile("premium_video_teaser",90,"profile_video_" + companionSlug); unlockVideoBtn.disabled=false; renderUnlockStates(companionSlug); };
+  unlockVideoBtn.onclick = async function(){ unlockVideoBtn.disabled = true; unlockVideoBtn.textContent = "Se procesează..."; await spendFromProfile("premium_video_teaser"); unlockVideoBtn.disabled=false; renderUnlockStates(companionSlug); };
 
   tagRowEl.innerHTML = "";
 

@@ -265,28 +265,31 @@
 </main>
 
 <script>
-function addCredits(amount){
-  TFP_WALLET.add(amount,{
+async function addCredits(amount){
+  await TFP_WALLET.add(amount,{
     labelKey: "credits_purchase",
     text: "Pachet credits mock adăugat",
     icon: "💳"
   });
 
-  renderWallet();
+  await renderWallet();
 }
 
-function spendCredits(amount, label, icon){
-  const ok = TFP_WALLET.spend(
+async function spendCredits(amount, label, icon){
+  const ok = await TFP_WALLET.spend(
     amount,
     label,
     icon
   );
 
-  renderWallet();
+  await renderWallet();
   return ok;
 }
 
-function renderWallet(){
+async function renderWallet(){
+  if(window.TFP_WALLET){
+    await TFP_WALLET.sync();
+  }
   document.getElementById("balance").textContent =
     TFP_WALLET.getBalance();
 
@@ -312,7 +315,10 @@ function renderWallet(){
   el.innerHTML = "";
 
   history.forEach(function(item){
-    const type = item.type === "bad" ? "bad" : "good";
+    const amountNum = Number(item.amount || 0);
+    const type = amountNum < 0 ? "bad" : "good";
+    const formattedAmount = (amountNum >= 0 ? "+" : "") + amountNum + " CR";
+    const createdAt = item.createdAt || item.date || "";
 
     const d = document.createElement("div");
     d.className = "history-item";
@@ -322,12 +328,12 @@ function renderWallet(){
         <div class="history-icon">${escapeHtml(item.icon || (type === "good" ? "💳" : "🔓"))}</div>
         <div>
           <div class="history-title">${escapeHtml(resolveHistoryLabel(item))}</div>
-          <small class="history-date">${escapeHtml(item.date)}</small>
+          <small class="history-date">${escapeHtml(createdAt)}</small>
         </div>
       </div>
 
       <strong class="amount ${type}">
-        ${escapeHtml(item.amount)}
+        ${escapeHtml(formattedAmount)}
       </strong>
     `;
 
@@ -357,9 +363,9 @@ function escapeHtml(str){
     .replaceAll("'","&#039;");
 }
 
-window.addEventListener("DOMContentLoaded", function(){
+window.addEventListener("DOMContentLoaded", async function(){
   TFP_WALLET.handleUrlSpend();
-  renderWallet();
+  await renderWallet();
 });
 
 window.addEventListener("tfp:wallet-updated", renderWallet);
