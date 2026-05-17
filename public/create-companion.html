@@ -6,6 +6,7 @@
   <title>Creează companion AI</title>
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
+  <script src="/companions.js" defer></script>
   <style>
     .wrap{max-width:900px;margin:0 auto;padding:18px}
     .panel{border:1px solid var(--line);border-radius:24px;padding:20px;background:rgba(255,255,255,.04)}
@@ -34,32 +35,29 @@
     </section>
   </main>
 <script>
-const storageKey = "tfp_custom_companions";
-function getCustomCompanions(){ try{ const p=JSON.parse(localStorage.getItem(storageKey)||"[]"); return Array.isArray(p)?p:[]; }catch(e){ return []; } }
-function saveCustomCompanions(items){ localStorage.setItem(storageKey, JSON.stringify(Array.isArray(items)?items:[])); }
-function slugifyName(name){ return String(name||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-").replace(/-+/g,"-"); }
 function parseCommaList(value){ return String(value||"").split(",").map(s=>s.trim()).filter(Boolean); }
 function makeCompanionFromForm(){
   const name = document.getElementById("name").value.trim();
   if(!name){ alert("Completează numele companionului."); return null; }
-  const slugBase = slugifyName(name) || "companion";
-  const list = getCustomCompanions();
-  let slug = slugBase;
-  if(list.some(item => item && item.slug === slug)){ slug = slugBase + "-" + Date.now(); }
-  const bio = document.getElementById("bio").value.trim();
-  const vibe = document.getElementById("vibe").value.trim();
-  const personality = parseCommaList(document.getElementById("personality").value);
-  const tags = parseCommaList(document.getElementById("tags").value);
-  const promptStyle = document.getElementById("promptStyle").value.trim();
-  const theme = document.getElementById("theme").value;
-  return { slug, name, kicker: "COMPANION CUSTOM", bio, lore: bio, mood: vibe || "custom vibe", experience: "Chat + image + video", tags, personality, vibe, promptStyle, theme, createdAt: new Date().toISOString() };
+  return TFP_COMPANIONS.createCompanionFromData({
+    slug: TFP_COMPANIONS.slugifyName(name),
+    name,
+    bio: document.getElementById("bio").value.trim(),
+    vibe: document.getElementById("vibe").value.trim(),
+    personality: parseCommaList(document.getElementById("personality").value),
+    tags: parseCommaList(document.getElementById("tags").value),
+    promptStyle: document.getElementById("promptStyle").value.trim(),
+    theme: document.getElementById("theme").value,
+    kicker: "COMPANION CUSTOM",
+    experience: "Chat + image + video"
+  });
 }
 document.getElementById("saveBtn").addEventListener("click", function(){
   const item = makeCompanionFromForm();
   if(!item) return;
-  const list = getCustomCompanions();
+  const list = TFP_COMPANIONS.getCustomCompanions();
   list.unshift(item);
-  saveCustomCompanions(list);
+  TFP_COMPANIONS.saveCustomCompanions(list);
   document.getElementById("viewBtn").href = "/profile.html?slug=" + encodeURIComponent(item.slug);
   alert("Companion salvat local.");
 });
