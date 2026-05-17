@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/style.css" />
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
-  <script src="/companions.js" defer></script>
+  <script src="/companions.js"></script>
 
   <style>
     .chat-shell{max-width:980px;margin:0 auto;padding:18px}
@@ -166,14 +166,21 @@
 <script>
 const qs = new URLSearchParams(location.search);
 const slug = qs.get("slug") || "ava-noir";
-const profile = TFP_COMPANIONS.getCompanionBySlug(slug);
-const safeFace = profile.face || "ava-face";
+const companionsApi = window.TFP_COMPANIONS;
+if(!companionsApi){
+  console.error("TFP_COMPANIONS nu este disponibil pe /chat.html.");
+}
+const profile = companionsApi ? companionsApi.getCompanionBySlug(slug) : null;
+if(!profile){
+  console.error("Companion indisponibil pentru slug:", slug);
+}
+const safeFace = (profile && profile.face) || "ava-face";
 
-document.title = profile.name + " Chat — The Future PRO";
-document.getElementById("title").textContent = profile.name;
+document.title = (profile ? profile.name : "Companion") + " Chat — The Future PRO";
+document.getElementById("title").textContent = profile ? profile.name : "Companion";
 document.getElementById("title").setAttribute("data-no-translate", "");
 document.getElementById("title").setAttribute("data-character-name", "");
-document.getElementById("vibeText").textContent = profile.vibe || "premium companion";
+document.getElementById("vibeText").textContent = (profile && profile.vibe) || "premium companion";
 document.getElementById("avatarArt").className = "ai-face " + safeFace;
 document.getElementById("profileLink").href = "/profile.html?slug=" + encodeURIComponent(slug);
 document.getElementById("backProfile").href = "/profile.html?slug=" + encodeURIComponent(slug);

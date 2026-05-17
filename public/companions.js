@@ -21,7 +21,14 @@
     if(all.some(function(item){ return item && item.slug === slug && item.slug !== src.slug; })){ slug = baseSlug + "-" + Date.now(); }
     return { slug, name: src.name || "Companion", theme: src.theme || "ava-theme", kicker: src.kicker || "COMPANION CUSTOM", bio: src.bio || "", lore: src.lore || src.bio || "", tags: Array.isArray(src.tags)?src.tags:[], personality: Array.isArray(src.personality)?src.personality:[], mood: src.mood || src.vibe || "custom vibe", experience: src.experience || "Chat + image + video", meter: src.meter || "50%", vibe: src.vibe || "premium • cinematic • companion", promptStyle: src.promptStyle || "premium cinematic fictional AI companion atmosphere", face: src.face || "ava-face", class: src.class || "portrait-a" };
   }
-  function getCompanionBySlug(slug){ const key = slug || "ava-noir"; return defaultCompanions[key] || getCustomCompanions().find(function(item){ return item && item.slug===key; }) || defaultCompanions["ava-noir"]; }
+  function getCompanionBySlug(slug){
+    const key = slug || "ava-noir";
+    const defaultMatch = defaultCompanions[key];
+    if(defaultMatch) return defaultMatch;
+    const customMatch = getCustomCompanions().find(function(item){ return item && item.slug===key; });
+    if(customMatch) return customMatch;
+    return defaultCompanions["ava-noir"];
+  }
   function getCompanionContext(slug){ const c = getCompanionBySlug(slug); return { slug:c.slug, name:c.name, vibe:c.vibe, promptStyle:c.promptStyle, theme:c.theme, face:c.face }; }
   function getAllCompanions(){ return Object.values(defaultCompanions).concat(getCustomCompanions()); }
 
