@@ -122,7 +122,7 @@
     <div class="nav-actions">
       <a class="ghost-btn" href="/discover.html">Discover</a>
       <a class="ghost-btn" href="/feed.html">Feed</a>
-      <a class="ghost-btn" href="/credits.html">Credits</a>
+      <a class="ghost-btn" id="headerCreditsBalance" href="/credits.html">Credits: 0 CR</a>
       <a class="ghost-btn" href="/gen-image.html">Image</a>
       <a class="main-btn" id="navChat" href="/chat.html?slug=ava-noir">Chat</a>
     </div>
@@ -456,6 +456,12 @@ function bindPremiumAction(el, key){
   });
 }
 
+function refreshHeaderCredits(){
+  const el = document.getElementById("headerCreditsBalance");
+  if(!el || !window.TFP_WALLET) return;
+  el.textContent = "Credits: " + TFP_WALLET.getBalance() + " CR";
+}
+
 function initProfilePremiumFlow(){
   applyProfile();
 
@@ -467,6 +473,8 @@ function initProfilePremiumFlow(){
   bindPremiumAction(galleryChatEl, "special_story");
   bindPremiumAction(galleryVideoEl, "premium_video_teaser");
   window.addEventListener("tfp:premium-updated", refreshPremiumButtons);
+  window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);
+  refreshHeaderCredits();
 }
 
 window.addEventListener("DOMContentLoaded", function(){
