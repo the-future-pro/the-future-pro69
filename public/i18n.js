@@ -61,7 +61,11 @@
 
   window.setLang = function (lang) {
     localStorage.setItem("site_lang", normalizeLang(lang));
-    location.reload();
+    const selectedLang = window.getLangCode();
+    document.documentElement.lang = selectedLang;
+    window.dispatchEvent(new CustomEvent("tfp:language-changed", {
+      detail: { lang: selectedLang }
+    }));
   };
 
   window.clearTranslateCache = function () {
@@ -135,6 +139,7 @@
   function shouldSkipElement(el) {
     if (!el) return true;
     if (el.closest("[data-no-translate]")) return true;
+    if (el.closest("[data-character-name]")) return true;
 
     const tag = el.tagName;
 
