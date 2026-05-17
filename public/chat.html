@@ -661,6 +661,11 @@ async function send(){
 
     if(!r.ok){
 
+      if(r.error === "PREMIUM_LOCKED"){
+        alert("Acest conținut este premium. Deblochează-l cu credite pentru a continua.");
+        return;
+      }
+
       alert(
         "Mesajul nu s-a salvat."
       );
