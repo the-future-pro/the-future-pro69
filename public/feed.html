@@ -17,6 +17,7 @@
   <script src="/app-state.js" defer></script>
   <script src="/global-header.js" defer></script>
   <script src="/companions-data.js" defer></script>
+  <script src="/global-render.js" defer></script>
 
   <style>
     .feed-shell{max-width:1280px;margin:0 auto;padding:18px}
@@ -331,13 +332,8 @@ function unlockPostWithCredits(key,name,amount){
 function hydrateFeedFromCompanions(){
   const companions = window.TFP_COMPANIONS;
   if(!companions) return;
-  const storyRow = document.getElementById("storyRow");
-  if(storyRow){
-    const order=["ava-noir","mira-vale","kira-voss","luna-sable"];
-    storyRow.innerHTML = order.map(function(slug){
-      const c = companions[slug]; if(!c) return "";
-      return '<a class="story" href="'+c.profileLink+'"><div class="story-avatar"><div class="ai-face '+c.face+'"></div></div><span>'+c.name.split(' ')[0]+'</span></a>'
-    }).join('');
+  if(window.TFP_RENDER){
+    TFP_RENDER.renderStoryRow("#storyRow", ["ava-noir","mira-vale","kira-voss","luna-sable"]);
   }
   const ava = companions["ava-noir"];
   const luna = companions["luna-sable"];
