@@ -245,6 +245,7 @@
     <div class="locked-actions" style="margin-top:10px;margin-bottom:12px">
       <a id="companionCreateImageLink" class="small-btn" href="/gen-image.html?slug=ava-noir">Creează imagine</a>
       <a id="companionCreateVideoLink" class="small-btn" href="/gen-video.html?slug=ava-noir">Creează video</a>
+      <button id="clearCompanionCreationHistoryBtn" type="button" class="small-btn">Șterge istoricul creațiilor pentru acest companion</button>
     </div>
     <div id="companionCreationHistoryList" class="mini-list"></div>
   </section>
@@ -290,6 +291,28 @@ function getCreationHistoryReadOnly(){
   }
 }
 
+function clearCompanionCreationHistory(slug){
+  const confirmed = window.confirm("Sigur vrei să ștergi istoricul creațiilor pentru acest companion?");
+  if(!confirmed) return;
+
+  try{
+    const raw = localStorage.getItem("tfp_creation_history");
+    const parsed = JSON.parse(raw || "[]");
+    const list = Array.isArray(parsed) ? parsed : [];
+
+    const filtered = list.filter(function(item){
+      return !item || typeof item !== "object" || item.companionSlug !== slug;
+    });
+
+    localStorage.setItem("tfp_creation_history", JSON.stringify(filtered));
+  }catch(e){
+    return;
+  }
+
+  const companion = window.TFP_COMPANIONS.getCompanionBySlug(slug);
+  renderCompanionCreationHistory(slug, companion?.name || "Companion");
+}
+
 function getCreationTypeLabel(type){
   if(type === "image_demo" || type === "image_real") return "Imagine";
   if(type === "video_demo" || type === "video_real") return "Video";
@@ -301,10 +324,16 @@ function renderCompanionCreationHistory(slug, companionName){
   const titleNameEl = document.getElementById("companionCreationTitleName");
   const imageLinkEl = document.getElementById("companionCreateImageLink");
   const videoLinkEl = document.getElementById("companionCreateVideoLink");
+  const clearHistoryBtnEl = document.getElementById("clearCompanionCreationHistoryBtn");
 
   if(titleNameEl) titleNameEl.textContent = companionName || "Companion";
   if(imageLinkEl) imageLinkEl.href = "/gen-image.html?slug=" + encodeURIComponent(slug);
   if(videoLinkEl) videoLinkEl.href = "/gen-video.html?slug=" + encodeURIComponent(slug);
+  if(clearHistoryBtnEl){
+    clearHistoryBtnEl.onclick = function(){
+      clearCompanionCreationHistory(slug);
+    };
+  }
 
   if(!listEl) return;
 
