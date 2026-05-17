@@ -366,12 +366,12 @@ function renderWallet(){
       <div class="history-left">
         <div class="history-icon">${escapeHtml(item.icon || (type === "good" ? "💳" : "🔓"))}</div>
         <div>
-          <div class="history-title">${escapeHtml(item.text)}</div>
-          <small class="history-date">${escapeHtml(item.date)}</small>
+          <div class="history-title" data-no-translate>${escapeHtml(item.text)}</div>
+          <small class="history-date" data-no-translate>${escapeHtml(item.date)}</small>
         </div>
       </div>
 
-      <strong class="amount ${type}">
+      <strong class="amount ${type}" data-no-translate>
         ${escapeHtml(item.amount)}
       </strong>
     `;
