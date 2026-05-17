@@ -141,6 +141,7 @@
   <script src="/app-state.js" defer></script>
   <script src="/global-header.js" defer></script>
   <script src="/companions-data.js" defer></script>
+  <script src="/global-render.js" defer></script>
 </head>
 
 <body class="home-page">
@@ -401,25 +402,9 @@
 
 <script>
 window.addEventListener("DOMContentLoaded", function(){
-  const grid = document.getElementById("characterGrid");
-  const companions = window.TFP_COMPANIONS;
-  if(!grid || !companions) return;
+  if(!window.TFP_RENDER) return;
   const order = ["ava-noir","mira-vale","kira-voss","luna-sable","dante-vale","noah-sterling"];
-  const cards = order.map(function(slug){
-    const c = companions[slug];
-    if(!c) return "";
-    const tags = (c.tags || []).slice(0,3).map(function(tag){ return '<span class="tag">'+tag+'</span>'; }).join('');
-    return '<a class="character-card" href="'+c.profileLink+'">' +
-      '<div class="character-art '+(c.portrait||'')+'"></div>' +
-      '<div class="character-info">' +
-      '<span class="live"><i></i> '+(c.status||'online acum')+'</span>' +
-      '<h3 data-no-translate>'+c.name+'</h3>' +
-      '<p>'+c.bio+'</p>' +
-      '<div class="tags">'+tags+'</div>' +
-      '<div class="card-actions"><span class="mini-link">Vezi profil</span><span class="mini-link">Chat</span></div>' +
-      '</div></a>';
-  }).join('');
-  if(cards) grid.innerHTML = cards;
+  TFP_RENDER.renderCompanionCards("#characterGrid", order);
 });
 </script>
 </body>
