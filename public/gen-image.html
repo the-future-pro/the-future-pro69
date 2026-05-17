@@ -286,7 +286,7 @@ function setSoftErrorBox(data){
         Continuăm cu preview mock, fără costuri, până când decidem să activăm generarea reală.
       </p>
 
-      <div class="action-row">
+      <div class="action-row" id="galleryActions">
         <button class="main-btn" onclick="setMockPreview()" style="border:0">Afișează preview mock</button>
         <a class="ghost-btn" href="/credits.html">Vezi Credits</a>
         <a class="ghost-btn" href="/profile.html?slug=ava-noir">Profil Ava</a>
@@ -407,7 +407,8 @@ $('#go').onclick = async ()=>{
     }
 
     if(data.url){
-      result.innerHTML = `<img src="${data.url}" alt="generated image">`;
+      await fetch('/api/gallery/save',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:data.url,prompt,negative,quality,unlocked:true})});
+      result.innerHTML = `<img src="${data.url}" alt="generated image"><div style="margin-top:12px;display:flex;gap:10px;justify-content:center"><button class="ghost-btn" onclick="window.open('${data.url}','_blank')">Vezi imaginea</button><button class="ghost-btn" onclick="document.getElementById('go').click()">Regenerează</button><button class="main-btn" onclick="window.open('${data.url}','_blank')">Salvează</button></div>`;
       return;
     }
 

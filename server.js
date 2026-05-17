@@ -33,6 +33,8 @@ const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
 const IMG_DIR = path.join(PUBLIC_DIR, IMAGES_DIR_NAME);
 const SESS_DIR = path.join(__dirname, "db");
 const CHAT_FILE = path.join(SESS_DIR, "chat-history.json");
+const WALLET_FILE = path.join(SESS_DIR, "wallet-state.json");
+const GALLERY_FILE = path.join(SESS_DIR, "image-gallery.json");
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -74,6 +76,34 @@ function requireLogin(req, res, next) {
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
   next();
+}
+
+function userKey(req) {
+  return String(req.session?.user?.email || req.session?.user?.id || "guest");
+}
+
+function loadJsonSafe(file, fallback) {
+  try {
+    if (!fs.existsSync(file)) return fallback;
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+function saveJsonSafe(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
+}
+
+let walletState = loadJsonSafe(WALLET_FILE, {});
+let galleryState = loadJsonSafe(GALLERY_FILE, {});
+
+function ensureWallet(key) {
+  if (!walletState[key]) {
+    walletState[key] = { balance: 240, unlocks: {}, history: [] };
+    saveJsonSafe(WALLET_FILE, walletState);
+  }
+  return walletState[key];
 }
 
 function subRequired(req, res, next) {
@@ -799,6 +829,63 @@ app.post("/api/chat/:slug/reset", requireLogin, (req, res) => {
 
 app.post("/api/media/:id/unlock", requireLogin, (req, res) => {
   res.json({ ok: true, unlocked: true, id: req.params.id });
+});
+
+app.get("/api/wallet", requireLogin, (req, res) => {
+  const wallet = ensureWallet(userKey(req));
+  res.json({ ok: true, wallet });
+});
+
+app.post("/api/wallet/add", requireLogin, (req, res) => {
+  const amount = Math.max(0, Number(req.body?.amount || 0));
+  if (!amount) return res.status(400).json({ ok: false, error: "invalid_amount" });
+  const wallet = ensureWallet(userKey(req));
+  wallet.balance += amount;
+  wallet.history.unshift({ amount: `+${amount} CR`, text: req.body?.text || "Pachet credits", type: "good", date: new Date().toLocaleString("ro-RO") });
+  wallet.history = wallet.history.slice(0, 100);
+  saveJsonSafe(WALLET_FILE, walletState);
+  res.json({ ok: true, wallet });
+});
+
+app.post("/api/premium/unlock", requireLogin, (req, res) => {
+  const type = String(req.body?.type || "").trim();
+  const cost = Math.max(0, Number(req.body?.cost || 0));
+  if (!type || !cost) return res.status(400).json({ ok: false, error: "invalid_payload" });
+  const wallet = ensureWallet(userKey(req));
+  if (wallet.unlocks[type]) return res.json({ ok: true, alreadyUnlocked: true, wallet, unlocked: wallet.unlocks });
+  if (wallet.balance < cost) return res.status(400).json({ ok: false, error: "insufficient_credits", wallet });
+  wallet.balance -= cost;
+  wallet.unlocks[type] = { unlocked: true, unlockedAt: new Date().toISOString(), cost };
+  wallet.history.unshift({ amount: `-${cost} CR`, text: type.replaceAll("_", " "), type: "bad", date: new Date().toLocaleString("ro-RO") });
+  wallet.history = wallet.history.slice(0, 100);
+  saveJsonSafe(WALLET_FILE, walletState);
+  res.json({ ok: true, unlocked: wallet.unlocks[type], wallet, unlockedMap: wallet.unlocks });
+});
+
+app.get("/api/gallery", requireLogin, (req, res) => {
+  const key = userKey(req);
+  res.json({ ok: true, items: galleryState[key] || [] });
+});
+
+app.post("/api/gallery/save", requireLogin, (req, res) => {
+  const key = userKey(req);
+  const imageUrl = String(req.body?.url || "").trim();
+  if (!imageUrl) return res.status(400).json({ ok: false, error: "missing_url" });
+  if (!galleryState[key]) galleryState[key] = [];
+  const image = {
+    image_id: "img_" + Date.now() + "_" + Math.floor(Math.random() * 10000),
+    owner: key,
+    prompt: String(req.body?.prompt || ""),
+    negative: String(req.body?.negative || ""),
+    quality: String(req.body?.quality || "1024"),
+    url: imageUrl,
+    unlocked: !!req.body?.unlocked,
+    created_at: new Date().toISOString()
+  };
+  galleryState[key].unshift(image);
+  galleryState[key] = galleryState[key].slice(0, 200);
+  saveJsonSafe(GALLERY_FILE, galleryState);
+  res.json({ ok: true, image, items: galleryState[key] });
 });
 
 // ================== REAL IMAGE GENERATION ==================

@@ -208,26 +208,19 @@ function byId(id){
   return document.getElementById(id);
 }
 
-function spendFromProfile(amount, labelKey, params, label, icon, unlockKey){
+async function spendFromProfile(type, amount, unlockKey){
   if(!window.TFP_WALLET){
     alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
     return;
   }
 
-  const ok = TFP_WALLET.spendAndUnlock({
-    amount,
-    labelKey,
-    params,
-    label,
-    icon,
-    unlockKey
-  });
-
-  if(!ok){
+  const response = await TFP_WALLET.unlockPremium(type, amount);
+  if(!response.ok){
+    alert(response.error === "insufficient_credits" ? "Nu ai suficiente credits." : "Unlock eșuat.");
     return;
   }
-
   renderUnlockStates(getSlug());
+  alert(response.alreadyUnlocked ? "Deja deblocat." : "Deblocare reușită.");
 }
 
 
@@ -253,7 +246,7 @@ function renderUnlockCard(key, cardId, titleId, buttonId, unlockedTitle){
   }
 
   if(button){
-    button.textContent = "Deblocat";
+    button.textContent = "Accesează";
     button.classList.remove("unlock");
     button.classList.add("done");
     button.disabled = true;
@@ -334,38 +327,11 @@ function applyProfile(){
   imageBtnEl.href = "/gen-image.html";
   galleryImageEl.href = "/gen-image.html";
 
-  unlockImageBtn.onclick = function(){
-    spendFromProfile(
-      20,
-      "premium_image_unlock",
-      {name: p.name},
-      "Imagine premium " + p.name + " deblocată",
-      "🖼",
-      "profile_image_" + companionSlug
-    );
-  };
+  unlockImageBtn.onclick = async function(){ unlockImageBtn.disabled = true; unlockImageBtn.textContent = "Se procesează..."; await spendFromProfile("private_cinematic_image",20,"profile_image_" + companionSlug); unlockImageBtn.disabled=false; renderUnlockStates(companionSlug); };
 
-  unlockStoryBtn.onclick = function(){
-    spendFromProfile(
-      300,
-      "premium_story_unlock",
-      {name: p.name},
-      "Story arc " + p.name + " deblocat",
-      "🔓",
-      "profile_story_" + companionSlug
-    );
-  };
+  unlockStoryBtn.onclick = async function(){ unlockStoryBtn.disabled = true; unlockStoryBtn.textContent = "Se procesează..."; await spendFromProfile("special_story",300,"profile_story_" + companionSlug); unlockStoryBtn.disabled=false; renderUnlockStates(companionSlug); };
 
-  unlockVideoBtn.onclick = function(){
-    spendFromProfile(
-      90,
-      "premium_video_unlock",
-      {name: p.name},
-      "Video teaser " + p.name + " deblocat",
-      "🎬",
-      "profile_video_" + companionSlug
-    );
-  };
+  unlockVideoBtn.onclick = async function(){ unlockVideoBtn.disabled = true; unlockVideoBtn.textContent = "Se procesează..."; await spendFromProfile("video_teaser",90,"profile_video_" + companionSlug); unlockVideoBtn.disabled=false; renderUnlockStates(companionSlug); };
 
   tagRowEl.innerHTML = "";
 
@@ -389,7 +355,7 @@ function applyProfile(){
 }
 
 
-window.addEventListener("DOMContentLoaded", applyProfile);
+window.addEventListener("DOMContentLoaded", async function(){ if(window.TFP_WALLET){ await TFP_WALLET.sync(); } applyProfile(); });
 </script>
 
 </body>
