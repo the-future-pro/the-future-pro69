@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
+  <script src="/wallet.js" defer></script>
 
   <style>
     .studio{max-width:1180px;margin:0 auto;padding:18px}
@@ -361,6 +362,12 @@ $('#go').onclick = async ()=>{
   const prompt = $('#prompt').value.trim();
   const negative = $('#neg').value.trim();
   const quality = $('#quality').value;
+
+  if(!TFP_WALLET.isPremiumUnlocked('private_cinematic_image')){
+    alert('Acest conținut este premium. Deblochează-l cu credite pentru a continua.');
+    location.href = TFP_WALLET.getBalance() < 20 ? '/credits.html' : '/profile.html?slug=ava-noir';
+    return;
+  }
 
   if(!prompt){
     return alert('Scrie un prompt.');

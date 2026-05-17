@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
+  <script src="/wallet.js" defer></script>
 
   <style>
     .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
@@ -199,7 +200,7 @@
           <span>Preview premium pentru companionul selectat.</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockImage" class="small-btn unlock" href="/credits.html?spend=20&label=Imagine%20premium%20deblocata&icon=🖼">-20 cr</a>
+          <a id="unlockImage" class="small-btn unlock" href="#">-20 cr</a>
           <a class="small-btn" id="galleryImage" href="/gen-image.html">Generează vibe</a>
         </div>
       </div>
@@ -210,7 +211,7 @@
           <span>Arc privat, mood personalizat și relație progresivă.</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockStory" class="small-btn unlock" href="/credits.html?spend=300&label=Story%20arc%20premium%20deblocat&icon=🔓">-300 cr</a>
+          <a id="unlockStory" class="small-btn unlock" href="#">-300 cr</a>
           <a class="small-btn" id="galleryChat" href="/chat.html?slug=ava-noir">Continuă chat</a>
         </div>
       </div>
@@ -221,7 +222,7 @@
           <span>Scenă scurtă cinematică, folosită ca unlock premium.</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockVideo" class="small-btn unlock" href="/credits.html?spend=90&label=Video%20teaser%20premium%20deblocat&icon=🎬">-90 cr</a>
+          <a id="unlockVideo" class="small-btn unlock" href="#">-90 cr</a>
           <a class="small-btn" href="/gen-video.html">Video Studio</a>
         </div>
       </div>
@@ -351,9 +352,7 @@ function applyProfile(){
   imageBtn.href = "/gen-image.html";
   galleryImage.href = "/gen-image.html";
 
-  unlockImage.href = "/credits.html?spend=20&label=" + encodeURIComponent("Imagine premium " + p.name + " deblocată") + "&icon=" + encodeURIComponent("🖼");
-  unlockStory.href = "/credits.html?spend=300&label=" + encodeURIComponent("Story arc " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🔓");
-  unlockVideo.href = "/credits.html?spend=90&label=" + encodeURIComponent("Video teaser " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🎬");
+  refreshPremiumButtons(p.name);
 
   tagRow.innerHTML = "";
   p.tags.forEach(function(tag){
@@ -372,7 +371,53 @@ function applyProfile(){
   });
 }
 
+
+
+const premiumItems = {
+  private_cinematic_image: { amount:20, labelPrefix:"Imagine premium", icon:"🖼", btn:unlockImage },
+  special_story: { amount:300, labelPrefix:"Story arc", icon:"🔓", btn:unlockStory },
+  premium_video_teaser: { amount:90, labelPrefix:"Video teaser", icon:"🎬", btn:unlockVideo }
+};
+
+function refreshPremiumButtons(name){
+  Object.entries(premiumItems).forEach(function([key, cfg]){
+    const unlocked = TFP_WALLET.isPremiumUnlocked(key);
+    cfg.btn.textContent = unlocked ? "Deblocat" : ("-" + cfg.amount + " cr");
+    cfg.btn.className = unlocked ? "small-btn" : "small-btn unlock";
+  });
+}
+
+function attemptUnlockPremium(key, companionName){
+  const cfg = premiumItems[key];
+  if(!cfg) return;
+
+  const result = TFP_WALLET.spendAndUnlockPremium(
+    key,
+    cfg.amount,
+    cfg.labelPrefix + " " + companionName + " deblocat",
+    cfg.icon
+  );
+
+  if(!result.ok){
+    alert("Nu ai suficiente credits. Mergi în pagina Credits pentru top-up.");
+    location.href = "/credits.html";
+    return;
+  }
+
+  if(!result.alreadyUnlocked){
+    alert("Deblocat cu succes.");
+  }
+
+  refreshPremiumButtons(companionName);
+}
+
+
 applyProfile();
+
+unlockImage.addEventListener("click", function(e){ e.preventDefault(); attemptUnlockPremium("private_cinematic_image", profileName.textContent || "companion"); });
+unlockStory.addEventListener("click", function(e){ e.preventDefault(); attemptUnlockPremium("special_story", profileName.textContent || "companion"); });
+unlockVideo.addEventListener("click", function(e){ e.preventDefault(); attemptUnlockPremium("premium_video_teaser", profileName.textContent || "companion"); });
+window.addEventListener("tfp:premium-updated", function(){ refreshPremiumButtons(profileName.textContent || "companion"); });
 </script>
 
 </body>

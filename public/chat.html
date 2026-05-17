@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="/style.css" />
   <script src="/i18n.js" defer></script>
+  <script src="/wallet.js" defer></script>
 
   <style>
     .chat-shell{max-width:980px;margin:0 auto;padding:18px}
@@ -390,7 +391,25 @@ async function send(){
   }
 }
 
+async function ensurePremiumAccess(premiumKey){
+  if(TFP_WALLET.isPremiumUnlocked(premiumKey)) return true;
+
+  alert("Acest conținut este premium. Deblochează-l cu credite pentru a continua.");
+
+  if(TFP_WALLET.getBalance() < 300){
+    location.href = "/credits.html";
+  }else{
+    location.href = "/profile.html?slug=" + encodeURIComponent(slug);
+  }
+
+  return false;
+}
+
 async function offer(){
+  if(!ensurePremiumAccess("special_story")){
+    return;
+  }
+
   const kind = document.getElementById("kind").value;
 
   const body = {
