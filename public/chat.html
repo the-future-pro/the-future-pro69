@@ -85,7 +85,7 @@
 
       <div class="nav-actions">
         <a class="ghost-btn" href="/feed.html">Feed</a>
-        <a class="ghost-btn" href="/credits.html">Credits</a>
+        <a class="ghost-btn" href="/credits.html" data-wallet-balance-link>Credits: 0 CR</a>
         <a class="ghost-btn" id="backProfile" href="/profile.html?slug=ava-noir">Profil</a>
         <a class="main-btn" href="/gen-image.html">Creează</a>
       </div>
@@ -473,6 +473,29 @@ function escapeHtml(str){
 
   await load();
 })();
+</script>
+
+
+<script>
+function getCreditsHeaderLabel(){
+  const lang = typeof window.getLangCode === "function"
+    ? window.getLangCode()
+    : (localStorage.getItem("site_lang") || "ro");
+
+  const labels = { ro: "Credite", en: "Credits", ru: "Кредиты" };
+  return labels[lang] || labels.ro;
+}
+
+function refreshHeaderCredits(){
+  if(!window.TFP_WALLET) return;
+  const text = getCreditsHeaderLabel() + ": " + TFP_WALLET.getBalance() + " CR";
+  document.querySelectorAll("[data-wallet-balance-link]").forEach(function(el){
+    el.textContent = text;
+  });
+}
+
+window.addEventListener("DOMContentLoaded", refreshHeaderCredits);
+window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);
 </script>
 
 </body>
