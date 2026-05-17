@@ -118,7 +118,7 @@
         <a class="ghost-btn" href="/discover.html">Discover</a>
         <a class="ghost-btn" href="/credits.html" data-wallet-balance-link>Credits: 0 CR</a>
         <a class="ghost-btn" href="/premium.html">Premium</a>
-        <a class="main-btn" href="/gen-video.html">Video</a>
+        <a id="topbarVideoLink" class="main-btn" href="/gen-video.html">Video</a>
       </div>
     </nav>
 
@@ -136,7 +136,7 @@
       <span id="me" class="pill">user: -</span>
       <span id="sub" class="pill">abonament: -</span>
       <a class="pill" href="/credits.html">Credits Wallet</a>
-      <a class="pill" href="/profile.html?slug=ava-noir">Profil Ava</a>
+      <a id="statusProfileLink" class="pill" href="/profile.html?slug=ava-noir">Profil Ava</a>
       <a class="pill" href="/api/logout">Logout</a>
     </div>
     <section class="companion-context">
@@ -243,10 +243,19 @@ function renderCompanionContext(){
   const nameEl = $('#companionContextName');
   const vibeEl = $('#companionContextVibe');
   const backEl = $('#backToProfileLink');
+  const topbarVideoEl = $('#topbarVideoLink');
+  const statusProfileEl = $('#statusProfileLink');
+  const chatLinks = document.querySelectorAll('a[href^="/chat.html"]');
+  const slugQuery = `slug=${encodeURIComponent(currentSlug)}`;
 
   if(nameEl) nameEl.textContent = active.name || "Companion selectat";
   if(vibeEl) vibeEl.textContent = active.vibe || fallback.vibe;
+  if(topbarVideoEl) topbarVideoEl.href = `/gen-video.html?${slugQuery}`;
+  if(statusProfileEl) statusProfileEl.href = `/profile.html?${slugQuery}`;
   if(backEl) backEl.href = `/profile.html?slug=${encodeURIComponent(currentSlug)}`;
+  for(const link of chatLinks){
+    link.href = `/chat.html?${slugQuery}`;
+  }
 }
 
 let user = null;

@@ -135,8 +135,8 @@
       <div class="nav-actions">
         <a class="ghost-btn" href="/discover.html">Discover</a>
         <a class="ghost-btn" href="/credits.html" data-wallet-balance-link>Credits: 0 CR</a>
-        <a class="ghost-btn" href="/gen-image.html">Image</a>
-        <a class="main-btn" href="/chat.html?slug=ava-noir">Chat</a>
+        <a id="topbarImageLink" class="ghost-btn" href="/gen-image.html">Image</a>
+        <a id="topbarChatLink" class="main-btn" href="/chat.html?slug=ava-noir">Chat</a>
       </div>
     </nav>
 
@@ -308,10 +308,19 @@ function renderCompanionContext(){
   const nameEl = $("companionContextName");
   const vibeEl = $("companionContextVibe");
   const backEl = $("backToProfileLink");
+  const topbarImageEl = $("topbarImageLink");
+  const topbarChatEl = $("topbarChatLink");
+  const chatLinks = document.querySelectorAll('a[href^="/chat.html"]');
+  const slugQuery = `slug=${encodeURIComponent(currentSlug)}`;
 
   if(nameEl) nameEl.textContent = active.name || "Companion selectat";
   if(vibeEl) vibeEl.textContent = active.vibe || fallback.vibe;
+  if(topbarImageEl) topbarImageEl.href = `/gen-image.html?${slugQuery}`;
+  if(topbarChatEl) topbarChatEl.href = `/chat.html?${slugQuery}`;
   if(backEl) backEl.href = `/profile.html?slug=${encodeURIComponent(currentSlug)}`;
+  for(const link of chatLinks){
+    link.href = `/chat.html?${slugQuery}`;
+  }
 }
 
 function escapeHtml(str){
