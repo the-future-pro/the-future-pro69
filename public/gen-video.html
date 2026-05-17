@@ -400,28 +400,29 @@ function setMockVideo(){
 }
 
 function setSoftErrorBox(data){
-  const errorText = typeof data === "string" ? data : JSON.stringify(data,null,2);
+  const active = companionContext[currentSlug] || companionContext["ava-noir"] || { name:"Companion" };
+  const profileLabel = active?.name ? `Profil <span data-no-translate data-character-name>${escapeHtml(active.name)}</span>` : "Profil companion";
+  const profileHref = `/profile.html?slug=${encodeURIComponent(currentSlug)}`;
+
+  show(data);
 
   $("preview").innerHTML = `
     <div class="soft-box">
       <div class="eyebrow">MOCK FALLBACK</div>
 
       <h2 style="margin:12px 0">
-        Generarea video reală este momentan pe pauză
+        Generarea reală este momentan pe pauză.
       </h2>
 
       <p style="color:var(--muted);line-height:1.7">
-        Backend-ul răspunde, dar Replicate nu are credit sau generarea reală nu este activă.
-        Continuăm cu preview mock până când decidem să folosim costuri reale.
+        Poți folosi preview mock până activăm generarea reală.
       </p>
 
       <div class="action-row">
         <button class="main-btn" onclick="setMockVideo()" style="border:0">Afișează preview mock</button>
         <a class="ghost-btn" href="/credits.html">Vezi Credits</a>
-        <a class="ghost-btn" href="/profile.html?slug=ava-noir">Profil Ava</a>
+        <a class="ghost-btn" href="${profileHref}">${profileLabel}</a>
       </div>
-
-      <pre>${escapeHtml(errorText)}</pre>
     </div>
   `;
 }
