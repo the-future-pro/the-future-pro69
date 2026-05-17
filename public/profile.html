@@ -354,10 +354,10 @@ function applyProfile(){
 
   chatBtn.href = chatUrl;
   navChat.href = chatUrl;
-  galleryChat.href = chatUrl;
+  if(galleryChatEl) galleryChatEl.href = chatUrl;
 
   imageBtn.href = "/gen-image.html";
-  galleryImage.href = "/gen-image.html";
+  if(galleryImageEl) galleryImageEl.href = "/gen-image.html";
 
   refreshPremiumButtons(p.name);
 
@@ -380,20 +380,35 @@ function applyProfile(){
 
 
 
+const unlockImageEl = document.getElementById("unlockImage");
+const unlockStoryEl = document.getElementById("unlockStory");
+const unlockVideoEl = document.getElementById("unlockVideo");
+const galleryImageEl = document.getElementById("galleryImage");
+const galleryChatEl = document.getElementById("galleryChat");
+const galleryVideoEl = document.getElementById("galleryVideo");
+const unlockStatusImageEl = document.getElementById("unlockStatusImage");
+const unlockStatusStoryEl = document.getElementById("unlockStatusStory");
+const unlockStatusVideoEl = document.getElementById("unlockStatusVideo");
+
 const premiumItems = {
-  private_cinematic_image: { amount:20, historyLabel:"Imagine cinematică privată", icon:"🖼", priceEl:unlockImage, actionEl:galleryImage, unlockedLabel:"Accesează" },
-  special_story: { amount:300, historyLabel:"Story special", icon:"🔓", priceEl:unlockStory, actionEl:galleryChat, unlockedLabel:"Continuă chat" },
-  premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", priceEl:unlockVideo, actionEl:galleryVideo, unlockedLabel:"Video Studio" }
+  private_cinematic_image: { amount:20, historyLabel:"Imagine cinematică privată", icon:"🖼", priceEl:unlockImageEl, actionEl:galleryImageEl, statusEl:unlockStatusImageEl, unlockedLabel:"Accesează" },
+  special_story: { amount:300, historyLabel:"Story special", icon:"🔓", priceEl:unlockStoryEl, actionEl:galleryChatEl, statusEl:unlockStatusStoryEl, unlockedLabel:"Continuă chat" },
+  premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", priceEl:unlockVideoEl, actionEl:galleryVideoEl, statusEl:unlockStatusVideoEl, unlockedLabel:"Video Studio" }
 };
 
 function refreshPremiumButtons(){
   Object.entries(premiumItems).forEach(function([key, cfg]){
     const unlocked = TFP_WALLET.isPremiumUnlocked(key);
-    cfg.priceEl.textContent = "-" + cfg.amount + " cr";
-    cfg.priceEl.className = unlocked ? "small-btn" : "small-btn unlock";
-    cfg.status = key === "private_cinematic_image" ? unlockStatusImage : key === "special_story" ? unlockStatusStory : unlockStatusVideo;
-    cfg.status.style.display = unlocked ? "block" : "none";
-    cfg.actionEl.textContent = unlocked ? cfg.unlockedLabel : cfg.actionEl.textContent;
+    if(cfg.priceEl){
+      cfg.priceEl.textContent = "-" + cfg.amount + " cr";
+      cfg.priceEl.className = unlocked ? "small-btn" : "small-btn unlock";
+    }
+    if(cfg.statusEl){
+      cfg.statusEl.style.display = unlocked ? "block" : "none";
+    }
+    if(cfg.actionEl && unlocked){
+      cfg.actionEl.textContent = cfg.unlockedLabel;
+    }
   });
 }
 
@@ -420,6 +435,7 @@ function ensurePremiumUnlocked(key){
 }
 
 function bindPremiumUnlock(el, key){
+  if(!el) return;
   el.addEventListener("click", function(e){
     e.preventDefault();
     ensurePremiumUnlocked(key);
@@ -427,6 +443,7 @@ function bindPremiumUnlock(el, key){
 }
 
 function bindPremiumAction(el, key){
+  if(!el) return;
   el.addEventListener("click", function(e){
     if(TFP_WALLET.isPremiumUnlocked(key)) return;
 
@@ -441,13 +458,13 @@ function bindPremiumAction(el, key){
 
 applyProfile();
 
-bindPremiumUnlock(unlockImage, "private_cinematic_image");
-bindPremiumUnlock(unlockStory, "special_story");
-bindPremiumUnlock(unlockVideo, "premium_video_teaser");
+bindPremiumUnlock(unlockImageEl, "private_cinematic_image");
+bindPremiumUnlock(unlockStoryEl, "special_story");
+bindPremiumUnlock(unlockVideoEl, "premium_video_teaser");
 
-bindPremiumAction(galleryImage, "private_cinematic_image");
-bindPremiumAction(galleryChat, "special_story");
-bindPremiumAction(galleryVideo, "premium_video_teaser");
+bindPremiumAction(galleryImageEl, "private_cinematic_image");
+bindPremiumAction(galleryChatEl, "special_story");
+bindPremiumAction(galleryVideoEl, "premium_video_teaser");
 window.addEventListener("tfp:premium-updated", refreshPremiumButtons);
 </script>
 
