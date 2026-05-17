@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
-  <script src="/companions.js" defer></script>
+  <script src="/companions.js"></script>
 
   <style>
     .studio{max-width:1180px;margin:0 auto;padding:18px}
@@ -285,7 +285,11 @@ const slugParams = new URLSearchParams(location.search);
 const currentSlug = slugParams.get("slug") || "ava-noir";
 
 function getActiveCompanionContext(){
-  return TFP_COMPANIONS.getCompanionContext(currentSlug);
+  if(!window.TFP_COMPANIONS){
+    console.error("TFP_COMPANIONS nu este disponibil pe /gen-video.html.");
+    return null;
+  }
+  return window.TFP_COMPANIONS.getCompanionContext(currentSlug);
 }
 
 function getCompanionPromptStyle(){
@@ -320,8 +324,12 @@ function addPrompt(text){
 }
 
 function renderCompanionContext(){
-  const fallback = TFP_COMPANIONS.getCompanionContext("ava-noir");
-  const active = getActiveCompanionContext() || fallback;
+  const fallback = window.TFP_COMPANIONS ? window.TFP_COMPANIONS.getCompanionContext("ava-noir") : null;
+  const active = getActiveCompanionContext();
+  if(!active){
+    console.error("Companion context indisponibil pentru slug:", currentSlug);
+    return;
+  }
   const nameEl = $("companionContextName");
   const vibeEl = $("companionContextVibe");
   const backEl = $("backToProfileLink");
@@ -331,7 +339,7 @@ function renderCompanionContext(){
   const slugQuery = `slug=${encodeURIComponent(currentSlug)}`;
 
   if(nameEl) nameEl.textContent = active.name || "Companion selectat";
-  if(vibeEl) vibeEl.textContent = active.vibe || fallback.vibe;
+  if(vibeEl) vibeEl.textContent = active.vibe || "";
   if(topbarImageEl) topbarImageEl.href = `/gen-image.html?${slugQuery}`;
   if(topbarChatEl) topbarChatEl.href = `/chat.html?${slugQuery}`;
   if(backEl) backEl.href = `/profile.html?slug=${encodeURIComponent(currentSlug)}`;
@@ -392,8 +400,12 @@ function setMockVideo(){
   const prompt = $("storyboard").value.trim() || "fictional AI companion cinematic video teaser";
   const seconds = $("seconds").value;
   const quality = $("quality").value;
-  const fallback = TFP_COMPANIONS.getCompanionContext("ava-noir");
-  const active = getActiveCompanionContext() || fallback;
+  const fallback = window.TFP_COMPANIONS ? window.TFP_COMPANIONS.getCompanionContext("ava-noir") : null;
+  const active = getActiveCompanionContext();
+  if(!active){
+    console.error("Companion context indisponibil pentru slug:", currentSlug);
+    return;
+  }
 
   $("preview").innerHTML = `
     <div class="mock-video">
