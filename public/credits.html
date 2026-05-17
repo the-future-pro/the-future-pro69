@@ -284,7 +284,7 @@
     <div class="eyebrow">ISTORIC MOCK</div>
     <h2>Activitate recentă</h2>
 
-    <div id="history" class="history-list" data-no-translate></div>
+    <div id="history" class="history-list"></div>
   </section>
 
   <footer class="home-footer">
@@ -325,10 +325,68 @@ function spendCredits(amount, label, icon){
   return ok;
 }
 
+function getLang(){
+  if(typeof window.getLangCode === "function") return window.getLangCode();
+  return localStorage.getItem("site_lang") || "ro";
+}
+
+function getCreditsLabel(){
+  const lang = getLang();
+  const labels = {
+    ro: "Credite",
+    en: "Credits",
+    ru: "Кредиты"
+  };
+
+  return labels[lang] || labels.ro;
+}
+
+function localizeHistoryLabel(rawText){
+  const text = String(rawText || "").trim();
+  const lang = getLang();
+
+  const known = {
+    "Imagine cinematică privată": {
+      ro: "Imagine cinematică privată",
+      en: "Private cinematic image",
+      ru: "Приватное кинематографичное изображение"
+    },
+    "Story special": {
+      ro: "Story special",
+      en: "Special story",
+      ru: "Особая история"
+    },
+    "Video teaser premium": {
+      ro: "Video teaser premium",
+      en: "Premium video teaser",
+      ru: "Премиум видео тизер"
+    },
+    "Pachet credits mock adăugat": {
+      ro: "Pachet credits mock adăugat",
+      en: "Mock credits package added",
+      ru: "Добавлен тестовый пакет кредитов"
+    },
+    "Imagine premium deblocată": {
+      ro: "Imagine premium deblocată",
+      en: "Premium image unlocked",
+      ru: "Премиум-изображение разблокировано"
+    },
+    "Unlock premium mock": {
+      ro: "Unlock premium mock",
+      en: "Mock premium unlock",
+      ru: "Тестовая премиум-разблокировка"
+    }
+  };
+
+  const entry = known[text];
+  if(!entry) return text;
+  return entry[lang] || entry.ro || text;
+}
+
 function refreshHeaderCredits(){
   const el = document.getElementById("headerCreditsBalance");
   if(!el || !window.TFP_WALLET) return;
-  el.textContent = "Credits: " + TFP_WALLET.getBalance() + " CR";
+  el.textContent = getCreditsLabel() + ": " + TFP_WALLET.getBalance() + " CR";
 }
 
 function renderWallet(){
@@ -366,7 +424,7 @@ function renderWallet(){
       <div class="history-left">
         <div class="history-icon">${escapeHtml(item.icon || (type === "good" ? "💳" : "🔓"))}</div>
         <div>
-          <div class="history-title" data-no-translate>${escapeHtml(item.text)}</div>
+          <div class="history-title">${escapeHtml(localizeHistoryLabel(item.text))}</div>
           <small class="history-date" data-no-translate>${escapeHtml(item.date)}</small>
         </div>
       </div>
