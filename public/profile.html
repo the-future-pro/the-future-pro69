@@ -204,6 +204,10 @@ function getSlug(){
   return params.get("slug") || "ava-noir";
 }
 
+function byId(id){
+  return document.getElementById(id);
+}
+
 function spendFromProfile(amount, labelKey, params, label, icon, unlockKey){
   if(!window.TFP_WALLET){
     alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
@@ -289,27 +293,47 @@ function applyProfile(){
 
   document.title = p.name + " — The Future PRO";
 
-  profileName.textContent = p.name;
-  profileKicker.textContent = p.kicker;
-  profileBio.textContent = p.bio;
-  loreText.textContent = p.lore;
-  moodText.textContent = p.mood;
-  experienceText.textContent = p.experience;
-  relationMeter.style.width = p.meter;
+  const profileNameEl = byId("profileName");
+  const profileKickerEl = byId("profileKicker");
+  const profileBioEl = byId("profileBio");
+  const loreTextEl = byId("loreText");
+  const moodTextEl = byId("moodText");
+  const experienceTextEl = byId("experienceText");
+  const relationMeterEl = byId("relationMeter");
+  const heroBgEl = byId("heroBg");
+  const avatarArtEl = byId("avatarArt");
+  const chatBtnEl = byId("chatBtn");
+  const navChatEl = byId("navChat");
+  const galleryChatEl = byId("galleryChat");
+  const imageBtnEl = byId("imageBtn");
+  const galleryImageEl = byId("galleryImage");
+  const unlockImageBtn = byId("unlockImage");
+  const unlockStoryBtn = byId("unlockStory");
+  const unlockVideoBtn = byId("unlockVideo");
+  const tagRowEl = byId("tagRow");
+  const personalityListEl = byId("personalityList");
 
-  heroBg.className = "profile-bg " + p.theme;
-  avatarArt.className = "ai-portrait " + p.theme;
+  profileNameEl.textContent = p.name;
+  profileKickerEl.textContent = p.kicker;
+  profileBioEl.textContent = p.bio;
+  loreTextEl.textContent = p.lore;
+  moodTextEl.textContent = p.mood;
+  experienceTextEl.textContent = p.experience;
+  relationMeterEl.style.width = p.meter;
+
+  heroBgEl.className = "profile-bg " + p.theme;
+  avatarArtEl.className = "ai-portrait " + p.theme;
 
   const chatUrl = "/chat.html?slug=" + encodeURIComponent(slug);
 
-  chatBtn.href = chatUrl;
-  navChat.href = chatUrl;
-  galleryChat.href = chatUrl;
+  chatBtnEl.href = chatUrl;
+  navChatEl.href = chatUrl;
+  galleryChatEl.href = chatUrl;
 
-  imageBtn.href = "/gen-image.html";
-  galleryImage.href = "/gen-image.html";
+  imageBtnEl.href = "/gen-image.html";
+  galleryImageEl.href = "/gen-image.html";
 
-  unlockImage.onclick = function(){
+  unlockImageBtn.onclick = function(){
     spendFromProfile(
       20,
       "premium_image_unlock",
@@ -320,7 +344,7 @@ function applyProfile(){
     );
   };
 
-  unlockStory.onclick = function(){
+  unlockStoryBtn.onclick = function(){
     spendFromProfile(
       300,
       "premium_story_unlock",
@@ -331,7 +355,7 @@ function applyProfile(){
     );
   };
 
-  unlockVideo.onclick = function(){
+  unlockVideoBtn.onclick = function(){
     spendFromProfile(
       90,
       "premium_video_unlock",
@@ -342,22 +366,22 @@ function applyProfile(){
     );
   };
 
-  tagRow.innerHTML = "";
+  tagRowEl.innerHTML = "";
 
   p.tags.forEach(function(tag){
     const span = document.createElement("span");
     span.className = "tag";
     span.textContent = tag;
-    tagRow.appendChild(span);
+    tagRowEl.appendChild(span);
   });
 
-  personalityList.innerHTML = "";
+  personalityListEl.innerHTML = "";
 
   p.personality.forEach(function(item){
     const div = document.createElement("div");
     div.className = "mini-item";
     div.textContent = item;
-    personalityList.appendChild(div);
+    personalityListEl.appendChild(div);
   });
 
   renderUnlockStates();
