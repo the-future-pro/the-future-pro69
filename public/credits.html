@@ -166,7 +166,7 @@
 
       <div class="quick-links">
         <button class="main-btn" onclick="addCredits(100)" style="border:0">+100 credits test</button>
-        <button class="ghost-btn danger-btn" onclick="spendCredits(20,'Imagine premium deblocată','🖼')">Unlock 20 cr</button>
+        <button class="ghost-btn danger-btn" onclick="unlockPremiumType('private_cinematic_image')">Unlock 20 cr</button>
       </div>
     </div>
 
@@ -177,22 +177,22 @@
       <div class="unlock-grid">
         <div class="unlock-item">
           <span>Imagine privată</span>
-          <button class="ghost-btn danger-btn" onclick="spendCredits(20,'Imagine premium deblocată','🖼')">-20 cr</button>
+          <button class="ghost-btn danger-btn" onclick="unlockPremiumType('private_cinematic_image')">-20 cr</button>
         </div>
 
         <div class="unlock-item">
           <span>Video teaser 10s</span>
-          <button class="ghost-btn danger-btn" onclick="spendCredits(90,'Video teaser 10s deblocat','🎬')">-90 cr</button>
+          <button class="ghost-btn danger-btn" onclick="unlockPremiumType('premium_video_teaser')">-90 cr</button>
         </div>
 
         <div class="unlock-item">
           <span>Video teaser 20s</span>
-          <button class="ghost-btn danger-btn" onclick="spendCredits(150,'Video teaser 20s deblocat','🎞')">-150 cr</button>
+          <button class="ghost-btn danger-btn" onclick="unlockPremiumType('premium_video_teaser')">-150 cr</button>
         </div>
 
         <div class="unlock-item">
           <span>Story arc premium</span>
-          <button class="ghost-btn danger-btn" onclick="spendCredits(300,'Story arc premium deblocat','🔓')">-300 cr</button>
+          <button class="ghost-btn danger-btn" onclick="unlockPremiumType('special_story')">-300 cr</button>
         </div>
       </div>
     </div>
@@ -275,15 +275,11 @@ async function addCredits(amount){
   await renderWallet();
 }
 
-async function spendCredits(amount, label, icon){
-  const ok = await TFP_WALLET.spend(
-    amount,
-    label,
-    icon
-  );
-
+async function unlockPremiumType(type){
+  const data = await TFP_WALLET.unlockPremium(type);
+  if(!data.ok && data.error === "INSUFFICIENT_CREDITS") alert("Nu ai suficiente credite.");
   await renderWallet();
-  return ok;
+  return !!data.ok;
 }
 
 async function renderWallet(){
