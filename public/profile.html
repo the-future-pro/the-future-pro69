@@ -456,16 +456,27 @@ function bindPremiumAction(el, key){
   });
 }
 
-applyProfile();
+function initProfilePremiumFlow(){
+  applyProfile();
 
-bindPremiumUnlock(unlockImageEl, "private_cinematic_image");
-bindPremiumUnlock(unlockStoryEl, "special_story");
-bindPremiumUnlock(unlockVideoEl, "premium_video_teaser");
+  bindPremiumUnlock(unlockImageEl, "private_cinematic_image");
+  bindPremiumUnlock(unlockStoryEl, "special_story");
+  bindPremiumUnlock(unlockVideoEl, "premium_video_teaser");
 
-bindPremiumAction(galleryImageEl, "private_cinematic_image");
-bindPremiumAction(galleryChatEl, "special_story");
-bindPremiumAction(galleryVideoEl, "premium_video_teaser");
-window.addEventListener("tfp:premium-updated", refreshPremiumButtons);
+  bindPremiumAction(galleryImageEl, "private_cinematic_image");
+  bindPremiumAction(galleryChatEl, "special_story");
+  bindPremiumAction(galleryVideoEl, "premium_video_teaser");
+  window.addEventListener("tfp:premium-updated", refreshPremiumButtons);
+}
+
+window.addEventListener("DOMContentLoaded", function(){
+  if(!window.TFP_WALLET){
+    console.error("TFP_WALLET nu este disponibil. Fluxul premium nu poate fi inițializat.");
+    return;
+  }
+
+  initProfilePremiumFlow();
+});
 </script>
 
 </body>
