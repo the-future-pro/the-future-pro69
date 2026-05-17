@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
+  <script src="/companions.js" defer></script>
 
   <style>
     .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
@@ -253,100 +254,6 @@
 </main>
 
 <script>
-const profiles = {
-  "ava-noir": {
-    name: "Ava Noir",
-    theme: "ava-theme",
-    kicker: "COMPANION DARK LUXURY",
-    bio: "Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.",
-    lore: "Ava Noir este construită ca o prezență elegantă, intensă și misterioasă. Stilul ei vizual combină luxul întunecat, luminile neon și conversațiile lente, private, cu atmosferă premium.",
-    tags: ["Lux întunecat", "Misterioasă", "Cinematic", "Elegantă"],
-    personality: ["Misterioasă și calmă", "Elegantă, dar greu de citit", "Atmosferă intensă și premium"],
-    mood: "Misterios, calm, magnetic",
-    experience: "Chat privat + imagini cinematice",
-    meter: "72%"
-  },
-  "mira-vale": {
-    name: "Mira Vale",
-    theme: "mira-theme",
-    kicker: "COMPANION SOFT ROMANCE",
-    bio: "Companion AI fictiv cu energie caldă, apropiată și emoțională.",
-    lore: "Mira Vale este construită pentru conversații blânde, apropiere emoțională și o atmosferă sigură. Stilul ei este romantic, cald și sincer.",
-    tags: ["Romance soft", "Cald", "Emoțional", "Confort"],
-    personality: ["Caldă și empatică", "Apropiată și liniștitoare", "Romantică și sinceră"],
-    mood: "Cald, blând, protector emoțional",
-    experience: "Chat emoțional + stories soft",
-    meter: "64%"
-  },
-  "kira-voss": {
-    name: "Kira Voss",
-    theme: "kira-theme",
-    kicker: "MUZĂ CYBERPUNK",
-    bio: "Companion AI fictiv cu vibe futurist, neon și energie magnetică.",
-    lore: "Kira Voss trăiește într-o atmosferă rece, electrică și futuristă. Este încrezătoare, directă și magnetică, cu un stil vizual cyberpunk.",
-    tags: ["Cyberpunk", "Neon", "Magnetic", "Futurist"],
-    personality: ["Încrezătoare și directă", "Rece, dar fascinantă", "Futuristă și intensă"],
-    mood: "Electric, rece, magnetic",
-    experience: "Chat futurist + scene neon",
-    meter: "76%"
-  },
-  "luna-sable": {
-    name: "Luna Sable",
-    theme: "luna-theme",
-    kicker: "COMPANION GOTH ROMANTIC",
-    bio: "Companion AI fictiv cu personalitate poetică, intensă și dark romance.",
-    lore: "Luna Sable este construită pentru povești lente, poetice și intense. Stilul ei combină romantismul întunecat, misterul și energia gotică.",
-    tags: ["Goth", "Poetic", "Dark Romance", "Intens"],
-    personality: ["Poetică și intensă", "Romantică în stil întunecat", "Misterioasă și emoțională"],
-    mood: "Poetic, intens, nocturn",
-    experience: "Chat dark romance + unlock gallery",
-    meter: "69%"
-  },
-  "dante-vale": {
-    name: "Dante Vale",
-    theme: "dante-theme",
-    kicker: "COMPANION LUXURY MASCULIN",
-    bio: "Companion AI fictiv masculin cu energie calmă, protectivă și periculoasă.",
-    lore: "Dante Vale este construit ca o prezență masculină elegantă, controlată și protectivă. Stilul lui combină luxul, calmul și tensiunea de tip mafia romance.",
-    tags: ["Masculin", "Luxury", "Protectiv", "Vibe Mafia"],
-    personality: ["Calm și controlat", "Protectiv și dominant", "Elegant, dar periculos"],
-    mood: "Calm, intens, protectiv",
-    experience: "Chat premium + roleplay cinematic",
-    meter: "74%"
-  },
-  "noah-sterling": {
-    name: "Noah Sterling",
-    theme: "noah-theme",
-    kicker: "COMPANION CEO ELEGANT",
-    bio: "Companion AI fictiv masculin cu stil elegant, inteligent și premium.",
-    lore: "Noah Sterling este construit ca un companion masculin sofisticat, inteligent și atent la detalii. Energia lui este rece, elegantă și precisă.",
-    tags: ["CEO", "Elegant", "Inteligent", "Premium"],
-    personality: ["Inteligent și calculat", "Elegant și sofisticat", "Rece, dar atent"],
-    mood: "Elegant, precis, controlat",
-    experience: "Chat premium + business romance vibe",
-    meter: "66%"
-  }
-};
-const customCompanionsKey = "tfp_custom_companions";
-
-function getCustomCompanions(){
-  try{
-    const raw = localStorage.getItem(customCompanionsKey);
-    const parsed = JSON.parse(raw || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  }catch(e){
-    return [];
-  }
-}
-
-function getCustomCompanionBySlug(slug){
-  if(!slug) return null;
-  const list = getCustomCompanions();
-  return list.find(function(item){
-    return item && item.slug === slug;
-  }) || null;
-}
-
 function getSlug(){
   const params = new URLSearchParams(location.search);
   return params.get("slug") || "ava-noir";
@@ -354,8 +261,7 @@ function getSlug(){
 
 function applyProfile(){
   const slug = getSlug();
-  const customCompanion = getCustomCompanionBySlug(slug);
-  const p = profiles[slug] || customCompanion || profiles["ava-noir"];
+  const p = TFP_COMPANIONS.getCompanionBySlug(slug);
 
   document.title = p.name + " — The Future PRO";
 
@@ -367,10 +273,10 @@ function applyProfile(){
   loreText.textContent = p.lore || "";
   moodText.textContent = p.mood || "";
   experienceText.textContent = p.experience || "";
-  relationMeter.style.width = p.meter;
+  relationMeter.style.width = p.meter || "50%";
 
-  heroBg.className = "profile-bg " + p.theme;
-  avatarArt.className = "ai-portrait " + p.theme;
+  heroBg.className = "profile-bg " + (p.theme || "ava-theme");
+  avatarArt.className = "ai-portrait " + (p.theme || "ava-theme");
 
   const chatUrl = "/chat.html?slug=" + encodeURIComponent(slug);
 

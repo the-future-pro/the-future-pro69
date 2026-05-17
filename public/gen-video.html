@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
+  <script src="/companions.js" defer></script>
 
   <style>
     .studio{max-width:1180px;margin:0 auto;padding:18px}
@@ -280,47 +281,16 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const creationHistoryKey = "tfp_creation_history";
-const customCompanionsKey = "tfp_custom_companions";
-
 const slugParams = new URLSearchParams(location.search);
 const currentSlug = slugParams.get("slug") || "ava-noir";
-const companionContext = {
-  "ava-noir": { name:"Ava Noir", vibe:"dark luxury • cinematic • mysterious", promptStyle:"dark luxury, mysterious, elegant, cinematic premium atmosphere" },
-  "mira-vale": { name:"Mira Vale", vibe:"soft romance • warm • emotional", promptStyle:"soft romance, warm emotional atmosphere, gentle intimate cinematic mood" },
-  "kira-voss": { name:"Kira Voss", vibe:"cyberpunk • neon • magnetic", promptStyle:"cyberpunk, neon, magnetic energy, futuristic cold electric atmosphere" },
-  "luna-sable": { name:"Luna Sable", vibe:"goth romance • poetic • intense", promptStyle:"goth romance, poetic, dark romantic atmosphere, intense nocturnal cinematic mood" },
-  "dante-vale": { name:"Dante Vale", vibe:"masculine luxury • protective • intense", promptStyle:"masculine luxury, protective, intense, controlled danger, mafia romance atmosphere" },
-  "noah-sterling": { name:"Noah Sterling", vibe:"elegant CEO • premium • intelligent", promptStyle:"elegant CEO, premium, intelligent, refined luxury, controlled sophisticated mood" }
-};
-
-const genericCompanionPromptStyle = "premium cinematic fictional AI companion atmosphere";
-
-function getCustomCompanionBySlug(slug){
-  try{
-    const parsed = JSON.parse(localStorage.getItem(customCompanionsKey) || "[]");
-    const list = Array.isArray(parsed) ? parsed : [];
-    return list.find(item => item && item.slug === slug) || null;
-  }catch(e){
-    return null;
-  }
-}
 
 function getActiveCompanionContext(){
-  if(companionContext[currentSlug]) return companionContext[currentSlug];
-  const custom = getCustomCompanionBySlug(currentSlug);
-  if(custom){
-    return {
-      name: custom.name || "Companion selectat",
-      vibe: custom.vibe || "premium • cinematic • companion",
-      promptStyle: custom.promptStyle || genericCompanionPromptStyle
-    };
-  }
-  return companionContext["ava-noir"];
+  return TFP_COMPANIONS.getCompanionContext(currentSlug);
 }
 
 function getCompanionPromptStyle(){
   const active = getActiveCompanionContext();
-  return (active && active.promptStyle) || genericCompanionPromptStyle;
+  return (active && active.promptStyle) || "premium cinematic fictional AI companion atmosphere";
 }
 
 function isPremiumUnlockedForSlug(baseKey){
@@ -350,7 +320,7 @@ function addPrompt(text){
 }
 
 function renderCompanionContext(){
-  const fallback = companionContext["ava-noir"] || { name:"Companion selectat", vibe:"premium • cinematic • companion" };
+  const fallback = TFP_COMPANIONS.getCompanionContext("ava-noir");
   const active = getActiveCompanionContext() || fallback;
   const nameEl = $("companionContextName");
   const vibeEl = $("companionContextVibe");
@@ -422,7 +392,7 @@ function setMockVideo(){
   const prompt = $("storyboard").value.trim() || "fictional AI companion cinematic video teaser";
   const seconds = $("seconds").value;
   const quality = $("quality").value;
-  const fallback = companionContext["ava-noir"] || { name:"Companion selectat", vibe:"premium • cinematic • companion" };
+  const fallback = TFP_COMPANIONS.getCompanionContext("ava-noir");
   const active = getActiveCompanionContext() || fallback;
 
   $("preview").innerHTML = `

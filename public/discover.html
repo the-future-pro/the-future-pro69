@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/style.css"/>
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
+  <script src="/companions.js" defer></script>
 
   <style>
     .discover{max-width:1240px;margin:0 auto;padding:18px}
@@ -409,7 +410,6 @@
   </main>
 
 <script>
-const customCompanionsKey = "tfp_custom_companions";
 
 function getCreditsHeaderLabel(){
   const lang = typeof window.getLangCode === "function"
@@ -428,16 +428,6 @@ function refreshHeaderCredits(){
   });
 }
 
-function getCustomCompanions(){
-  try{
-    const raw = localStorage.getItem(customCompanionsKey);
-    const parsed = JSON.parse(raw || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  }catch(e){
-    return [];
-  }
-}
-
 function escapeHtml(str){
   return String(str || "")
     .replaceAll("&","&amp;")
@@ -450,7 +440,7 @@ function escapeHtml(str){
 function renderCustomCompanions(){
   const gridEl = document.getElementById("customCompanionGrid");
   if(!gridEl) return;
-  const companions = getCustomCompanions();
+  const companions = TFP_COMPANIONS.getCustomCompanions();
   if(!companions.length){
     gridEl.innerHTML = `
       <article class="mini-card" style="grid-column:1/-1">

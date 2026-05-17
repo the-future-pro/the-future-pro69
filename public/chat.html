@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/style.css" />
   <script src="/i18n.js" defer></script>
   <script src="/wallet.js" defer></script>
+  <script src="/companions.js" defer></script>
 
   <style>
     .chat-shell{max-width:980px;margin:0 auto;padding:18px}
@@ -163,49 +164,17 @@
 </main>
 
 <script>
-const profiles = {
-  "ava-noir": {
-    name:"Ava Noir",
-    face:"ava-face",
-    vibe:"Dark luxury companion"
-  },
-  "mira-vale": {
-    name:"Mira Vale",
-    face:"mira-face",
-    vibe:"Soft romance companion"
-  },
-  "kira-voss": {
-    name:"Kira Voss",
-    face:"kira-face",
-    vibe:"Cyberpunk muse"
-  },
-  "luna-sable": {
-    name:"Luna Sable",
-    face:"luna-face",
-    vibe:"Goth romantic companion"
-  },
-  "dante-vale": {
-    name:"Dante Vale",
-    face:"dante-face",
-    vibe:"Masculine luxury companion"
-  },
-  "noah-sterling": {
-    name:"Noah Sterling",
-    face:"noah-face",
-    vibe:"Elegant CEO companion"
-  }
-};
-
 const qs = new URLSearchParams(location.search);
 const slug = qs.get("slug") || "ava-noir";
-const profile = profiles[slug] || profiles["ava-noir"];
+const profile = TFP_COMPANIONS.getCompanionBySlug(slug);
+const safeFace = profile.face || "ava-face";
 
 document.title = profile.name + " Chat — The Future PRO";
 document.getElementById("title").textContent = profile.name;
 document.getElementById("title").setAttribute("data-no-translate", "");
 document.getElementById("title").setAttribute("data-character-name", "");
-document.getElementById("vibeText").textContent = profile.vibe;
-document.getElementById("avatarArt").className = "ai-face " + profile.face;
+document.getElementById("vibeText").textContent = profile.vibe || "premium companion";
+document.getElementById("avatarArt").className = "ai-face " + safeFace;
 document.getElementById("profileLink").href = "/profile.html?slug=" + encodeURIComponent(slug);
 document.getElementById("backProfile").href = "/profile.html?slug=" + encodeURIComponent(slug);
 
