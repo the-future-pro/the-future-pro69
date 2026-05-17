@@ -476,6 +476,7 @@ function renderCustomCompanions(){
           </div>
           <div class="card-actions">
             <span class="mini-link">Vezi profil</span>
+            <button type="button" class="mini-link js-edit-custom-companion" data-slug="${escapeHtml(item.slug)}">Editează</button>
             <button type="button" class="mini-link js-delete-custom-companion" data-slug="${escapeHtml(item.slug)}">Șterge</button>
           </div>
         </div>
@@ -489,6 +490,16 @@ window.addEventListener("DOMContentLoaded", function(){
   if(!gridEl) return;
 
   gridEl.addEventListener("click", function(event){
+    const editBtn = event.target.closest(".js-edit-custom-companion");
+    if(editBtn){
+      event.preventDefault();
+      event.stopPropagation();
+      const slug = editBtn.getAttribute("data-slug");
+      if(!slug) return;
+      window.location.href = "/create-companion.html?edit=" + encodeURIComponent(slug);
+      return;
+    }
+
     const deleteBtn = event.target.closest(".js-delete-custom-companion");
     if(!deleteBtn) return;
 

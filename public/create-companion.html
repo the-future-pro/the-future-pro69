@@ -22,8 +22,8 @@
       <div class="nav-actions"><a class="ghost-btn" href="/discover.html">Descoperă</a></div>
     </nav>
     <section class="panel" style="margin-top:16px">
-      <h1>Creează companion AI</h1>
-      <p class="muted">Creează doar personaje fictive adulte. Nu folosi persoane reale, minori sau identități fără consimțământ.</p>
+      <h1 id="pageTitle">Creează companion AI</h1>
+      <p id="pageHelper" class="muted">Creează doar personaje fictive adulte. Nu folosi persoane reale, minori sau identități fără consimțământ.</p>
       <div class="field"><label>Nume companion</label><input id="name" placeholder="Raven Lux"></div>
       <div class="field"><label>Bio scurt</label><input id="bio" placeholder="Companion AI fictiv cu atmosferă elegantă și misterioasă."></div>
       <div class="field"><label>Vibe / stil</label><input id="vibe" placeholder="dark luxury • cinematic • intense"></div>
@@ -36,11 +36,34 @@
   </main>
 <script>
 function parseCommaList(value){ return String(value||"").split(",").map(s=>s.trim()).filter(Boolean); }
-function makeCompanionFromForm(){
+function getQueryEditSlug(){
+  try{
+    const params = new URLSearchParams(window.location.search || "");
+    return (params.get("edit") || "").trim();
+  }catch(e){
+    return "";
+  }
+}
+function findCustomCompanionBySlug(slug){
+  if(!slug) return null;
+  const list = TFP_COMPANIONS.getCustomCompanions();
+  return list.find(function(item){ return item && item.slug === slug; }) || null;
+}
+function fillFormFromCompanion(item){
+  if(!item) return;
+  document.getElementById("name").value = item.name || "";
+  document.getElementById("bio").value = item.bio || "";
+  document.getElementById("vibe").value = item.vibe || "";
+  document.getElementById("personality").value = Array.isArray(item.personality) ? item.personality.join(", ") : "";
+  document.getElementById("tags").value = Array.isArray(item.tags) ? item.tags.join(", ") : "";
+  document.getElementById("promptStyle").value = item.promptStyle || "";
+  document.getElementById("theme").value = item.theme || "ava-theme";
+}
+function makeCompanionFromForm(editingCompanion){
   const name = document.getElementById("name").value.trim();
   if(!name){ alert("Completează numele companionului."); return null; }
-  return TFP_COMPANIONS.createCompanionFromData({
-    slug: TFP_COMPANIONS.slugifyName(name),
+  const base = TFP_COMPANIONS.createCompanionFromData({
+    slug: editingCompanion ? editingCompanion.slug : TFP_COMPANIONS.slugifyName(name),
     name,
     bio: document.getElementById("bio").value.trim(),
     vibe: document.getElementById("vibe").value.trim(),
@@ -49,18 +72,67 @@ function makeCompanionFromForm(){
     promptStyle: document.getElementById("promptStyle").value.trim(),
     theme: document.getElementById("theme").value,
     kicker: "COMPANION CUSTOM",
-    experience: "Chat + image + video"
+    experience: "Chat + image + video",
+    lore: document.getElementById("bio").value.trim(),
+    mood: document.getElementById("vibe").value.trim()
   });
+
+  if(editingCompanion){
+    return {
+      ...editingCompanion,
+      slug: editingCompanion.slug,
+      createdAt: editingCompanion.createdAt,
+      updatedAt: new Date().toISOString(),
+      name: base.name,
+      bio: base.bio,
+      vibe: base.vibe,
+      personality: base.personality,
+      tags: base.tags,
+      promptStyle: base.promptStyle,
+      theme: base.theme,
+      lore: base.lore,
+      mood: base.mood
+    };
+  }
+
+  return {
+    ...base,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
 }
+
+const editSlug = getQueryEditSlug();
+const editingCompanion = findCustomCompanionBySlug(editSlug);
+const isEditMode = Boolean(editingCompanion);
+
+if(isEditMode){
+  document.getElementById("pageTitle").textContent = "Editează companion AI";
+  document.getElementById("pageHelper").textContent = "Editează companionul tău local. Modificările sunt salvate în browser și păstrează același slug.";
+  document.getElementById("saveBtn").textContent = "Salvează modificările";
+  fillFormFromCompanion(editingCompanion);
+}
+
 document.getElementById("saveBtn").addEventListener("click", function(){
-  const item = makeCompanionFromForm();
+  const item = makeCompanionFromForm(editingCompanion);
   if(!item) return;
   const list = TFP_COMPANIONS.getCustomCompanions();
-  list.unshift(item);
+
+  if(isEditMode){
+    const index = list.findIndex(function(entry){ return entry && entry.slug === editingCompanion.slug; });
+    if(index === -1){
+      alert("Companionul nu mai există local. Reîncarcă pagina.");
+      return;
+    }
+    list[index] = item;
+  }else{
+    list.unshift(item);
+  }
+
   TFP_COMPANIONS.saveCustomCompanions(list);
   document.getElementById("viewBtn").href = "/profile.html?slug=" + encodeURIComponent(item.slug);
   document.getElementById("viewBtn").textContent = "Deschide companionul";
-  alert("Companion salvat local.");
+  alert(isEditMode ? "Modificări salvate local." : "Companion salvat local.");
 });
 </script>
 </body>
