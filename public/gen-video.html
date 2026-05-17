@@ -401,7 +401,7 @@ function setMockVideo(){
 
 function setSoftErrorBox(data){
   const active = companionContext[currentSlug] || companionContext["ava-noir"] || { name:"Companion" };
-  const profileLabel = active?.name ? `Profil <span data-no-translate data-character-name>${escapeHtml(active.name)}</span>` : "Profil companion";
+  const profileLabel = "Profil companion";
   const profileHref = `/profile.html?slug=${encodeURIComponent(currentSlug)}`;
 
   show(data);
