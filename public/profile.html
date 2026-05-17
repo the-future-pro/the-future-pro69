@@ -327,6 +327,25 @@ const profiles = {
     meter: "66%"
   }
 };
+const customCompanionsKey = "tfp_custom_companions";
+
+function getCustomCompanions(){
+  try{
+    const raw = localStorage.getItem(customCompanionsKey);
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function getCustomCompanionBySlug(slug){
+  if(!slug) return null;
+  const list = getCustomCompanions();
+  return list.find(function(item){
+    return item && item.slug === slug;
+  }) || null;
+}
 
 function getSlug(){
   const params = new URLSearchParams(location.search);
@@ -335,7 +354,8 @@ function getSlug(){
 
 function applyProfile(){
   const slug = getSlug();
-  const p = profiles[slug] || profiles["ava-noir"];
+  const customCompanion = getCustomCompanionBySlug(slug);
+  const p = profiles[slug] || customCompanion || profiles["ava-noir"];
 
   document.title = p.name + " — The Future PRO";
 
