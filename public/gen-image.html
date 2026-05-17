@@ -238,7 +238,29 @@ function getActiveCompanionContext(){
     console.error("TFP_COMPANIONS nu este disponibil pe /gen-image.html.");
     return null;
   }
-  return window.TFP_COMPANIONS.getCompanionContext(currentSlug);
+
+  if(typeof window.TFP_COMPANIONS.getCompanionBySlug === "function"){
+    const companion = window.TFP_COMPANIONS.getCompanionBySlug(currentSlug);
+    if(companion && companion.slug === currentSlug){
+      return {
+        slug: companion.slug,
+        name: companion.name,
+        vibe: companion.vibe,
+        promptStyle: companion.promptStyle,
+        theme: companion.theme,
+        face: companion.face
+      };
+    }
+  }
+
+  if(typeof window.TFP_COMPANIONS.getCompanionContext === "function"){
+    const context = window.TFP_COMPANIONS.getCompanionContext(currentSlug);
+    if(context && context.slug === currentSlug){
+      return context;
+    }
+  }
+
+  return null;
 }
 
 function getCompanionPromptStyle(){
@@ -259,7 +281,6 @@ function showDebug(x){
 }
 
 function renderCompanionContext(){
-  const fallback = window.TFP_COMPANIONS ? window.TFP_COMPANIONS.getCompanionContext("ava-noir") : null;
   const active = getActiveCompanionContext();
   if(!active){
     console.error("Companion context indisponibil pentru slug:", currentSlug);
@@ -614,6 +635,12 @@ boot();
 window.addEventListener("tfp:companions-updated", function(){
   renderCompanionContext();
 });
+
+if(window.TFP_COMPANIONS && window.TFP_COMPANIONS.readyPromise && typeof window.TFP_COMPANIONS.readyPromise.then === "function"){
+  window.TFP_COMPANIONS.readyPromise.then(function(){
+    renderCompanionContext();
+  });
+}
 </script>
 
 <script>
