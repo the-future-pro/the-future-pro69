@@ -92,7 +92,7 @@ const TFP_WALLET = {
 
     this.addHistory(
       label || "Pachet credits mock adăugat",
-      "+" + value + " cr",
+      "+" + value + " CR",
       "good",
       icon || "💳"
     );
@@ -113,7 +113,7 @@ const TFP_WALLET = {
 
     this.addHistory(
       label || "Unlock premium mock",
-      "-" + value + " cr",
+      "-" + value + " CR",
       "bad",
       icon || "🔓"
     );
