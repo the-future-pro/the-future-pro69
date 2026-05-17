@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Creează companion AI</title>
+  <link rel="stylesheet" href="/style.css"/>
+  <script src="/i18n.js" defer></script>
+  <style>
+    .wrap{max-width:900px;margin:0 auto;padding:18px}
+    .panel{border:1px solid var(--line);border-radius:24px;padding:20px;background:rgba(255,255,255,.04)}
+    .field{margin:12px 0}.field label{display:block;margin-bottom:8px;color:var(--muted);font-size:13px}
+    input,textarea,select{width:100%;border:1px solid var(--line);background:#0d0d14;color:var(--ink);border-radius:14px;padding:12px;font:inherit}
+    textarea{min-height:100px;resize:vertical}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  </style>
+</head>
+<body class="home-page">
+  <main class="wrap">
+    <nav class="topbar">
+      <a class="brand" href="/" data-no-translate><div class="brand-mark">AI</div><div><strong>The Future</strong><span>Companion Builder</span></div></a>
+      <div class="nav-actions"><a class="ghost-btn" href="/discover.html">Discover</a></div>
+    </nav>
+    <section class="panel" style="margin-top:16px">
+      <h1>Creează companion AI</h1>
+      <p class="muted">Creează doar personaje fictive adulte. Nu folosi persoane reale, minori sau identități fără consimțământ.</p>
+      <div class="field"><label>Companion name</label><input id="name"></div>
+      <div class="field"><label>Short bio</label><input id="bio"></div>
+      <div class="field"><label>Vibe / style</label><input id="vibe"></div>
+      <div class="field"><label>Personality traits, comma separated</label><input id="personality"></div>
+      <div class="field"><label>Tags, comma separated</label><input id="tags"></div>
+      <div class="field"><label>Prompt style for image/video generation</label><textarea id="promptStyle"></textarea></div>
+      <div class="field"><label>Theme</label><select id="theme"><option value="dark luxury">dark luxury</option><option value="soft romance">soft romance</option><option value="cyberpunk">cyberpunk</option><option value="goth romance">goth romance</option><option value="masculine luxury">masculine luxury</option><option value="elegant premium">elegant premium</option></select></div>
+      <div class="actions"><button id="saveBtn" class="main-btn" type="button">Salvează companion</button><a id="viewBtn" class="ghost-btn" href="/discover.html">Vezi companionul</a></div>
+    </section>
+  </main>
+<script>
+const storageKey = "tfp_custom_companions";
+function getCustomCompanions(){ try{ const p=JSON.parse(localStorage.getItem(storageKey)||"[]"); return Array.isArray(p)?p:[]; }catch(e){ return []; } }
+function saveCustomCompanions(items){ localStorage.setItem(storageKey, JSON.stringify(Array.isArray(items)?items:[])); }
+function slugifyName(name){ return String(name||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-").replace(/-+/g,"-"); }
+function parseCommaList(value){ return String(value||"").split(",").map(s=>s.trim()).filter(Boolean); }
+function makeCompanionFromForm(){
+  const name = document.getElementById("name").value.trim();
+  if(!name){ alert("Completează numele companionului."); return null; }
+  const slugBase = slugifyName(name) || "companion";
+  const list = getCustomCompanions();
+  let slug = slugBase;
+  if(list.some(item => item && item.slug === slug)){ slug = slugBase + "-" + Date.now(); }
+  const bio = document.getElementById("bio").value.trim();
+  const vibe = document.getElementById("vibe").value.trim();
+  const personality = parseCommaList(document.getElementById("personality").value);
+  const tags = parseCommaList(document.getElementById("tags").value);
+  const promptStyle = document.getElementById("promptStyle").value.trim();
+  const theme = document.getElementById("theme").value;
+  return { slug, name, kicker: "COMPANION CUSTOM", bio, lore: bio, mood: vibe || "custom vibe", experience: "Chat + image + video", tags, personality, vibe, promptStyle, theme, createdAt: new Date().toISOString() };
+}
+document.getElementById("saveBtn").addEventListener("click", function(){
+  const item = makeCompanionFromForm();
+  if(!item) return;
+  const list = getCustomCompanions();
+  list.unshift(item);
+  saveCustomCompanions(list);
+  document.getElementById("viewBtn").href = "/profile.html?slug=" + encodeURIComponent(item.slug);
+  alert("Companion salvat local.");
+});
+</script>
+</body>
+</html>

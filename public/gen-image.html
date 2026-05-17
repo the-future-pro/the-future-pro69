@@ -229,6 +229,7 @@ const $ = (s)=>document.querySelector(s);
 const out = $('#out');
 const result = $('#result');
 const creationHistoryKey = "tfp_creation_history";
+const customCompanionsKey = "tfp_custom_companions";
 
 const slugParams = new URLSearchParams(location.search);
 const currentSlug = slugParams.get("slug") || "ava-noir";
@@ -243,8 +244,31 @@ const companionContext = {
 
 const genericCompanionPromptStyle = "premium cinematic fictional AI companion atmosphere";
 
+function getCustomCompanionBySlug(slug){
+  try{
+    const parsed = JSON.parse(localStorage.getItem(customCompanionsKey) || "[]");
+    const list = Array.isArray(parsed) ? parsed : [];
+    return list.find(item => item && item.slug === slug) || null;
+  }catch(e){
+    return null;
+  }
+}
+
+function getActiveCompanionContext(){
+  if(companionContext[currentSlug]) return companionContext[currentSlug];
+  const custom = getCustomCompanionBySlug(currentSlug);
+  if(custom){
+    return {
+      name: custom.name || "Companion selectat",
+      vibe: custom.vibe || "premium • cinematic • companion",
+      promptStyle: custom.promptStyle || genericCompanionPromptStyle
+    };
+  }
+  return companionContext["ava-noir"];
+}
+
 function getCompanionPromptStyle(){
-  const active = companionContext[currentSlug] || companionContext["ava-noir"];
+  const active = getActiveCompanionContext();
   return (active && active.promptStyle) || genericCompanionPromptStyle;
 }
 
@@ -262,7 +286,7 @@ function showDebug(x){
 
 function renderCompanionContext(){
   const fallback = companionContext["ava-noir"] || { name:"Companion selectat", vibe:"premium • cinematic • companion" };
-  const active = companionContext[currentSlug] || fallback;
+  const active = getActiveCompanionContext() || fallback;
   const nameEl = $('#companionContextName');
   const vibeEl = $('#companionContextVibe');
   const backEl = $('#backToProfileLink');
@@ -345,7 +369,7 @@ function isInsufficientCredit(data){
 }
 
 function setSoftErrorBox(data){
-  const active = companionContext[currentSlug] || companionContext["ava-noir"] || { name:"Companion" };
+  const active = getActiveCompanionContext() || { name:"Companion" };
   const profileLabel = "Profil companion";
   const profileHref = `/profile.html?slug=${encodeURIComponent(currentSlug)}`;
 
@@ -372,7 +396,7 @@ function setMockPreview(){
   const prompt = $('#prompt').value.trim() || 'fictional AI companion, premium cinematic portrait';
   const quality = $('#quality').value;
   const fallback = companionContext["ava-noir"] || { name:"Companion selectat", vibe:"premium • cinematic • companion" };
-  const active = companionContext[currentSlug] || fallback;
+  const active = getActiveCompanionContext() || fallback;
 
   result.innerHTML = `
     <div class="mock-preview">
@@ -557,7 +581,7 @@ $('#go').onclick = async ()=>{
 
     if(data.url){
       result.innerHTML = `<img src="${data.url}" alt="generated image">`;
-      const active = companionContext[currentSlug] || companionContext["ava-noir"] || { name:"Companion selectat" };
+      const active = getActiveCompanionContext() || { name:"Companion selectat" };
       addCreationHistory({
         type:"image_real",
         url:data.url,

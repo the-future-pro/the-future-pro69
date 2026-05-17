@@ -310,6 +310,18 @@
     <section>
       <div class="section-title">
         <div>
+          <div class="eyebrow">CUSTOM COMPANIONS</div>
+          <h2>Companionii tăi</h2>
+          <p>Companioni creați local de tine și salvați în browser.</p>
+        </div>
+        <a class="main-btn" href="/create-companion.html">Creează companion</a>
+      </div>
+      <div id="customCompanionGrid" class="character-grid"></div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <div>
           <div class="eyebrow">CATEGORIES</div>
           <h2>Alege după vibe</h2>
           <p>Utilizatorul nu caută doar un personaj. Caută o stare.</p>
@@ -397,6 +409,8 @@
   </main>
 
 <script>
+const customCompanionsKey = "tfp_custom_companions";
+
 function getCreditsHeaderLabel(){
   const lang = typeof window.getLangCode === "function"
     ? window.getLangCode()
@@ -414,7 +428,64 @@ function refreshHeaderCredits(){
   });
 }
 
+function getCustomCompanions(){
+  try{
+    const raw = localStorage.getItem(customCompanionsKey);
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function escapeHtml(str){
+  return String(str || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function renderCustomCompanions(){
+  const gridEl = document.getElementById("customCompanionGrid");
+  if(!gridEl) return;
+  const companions = getCustomCompanions();
+  if(!companions.length){
+    gridEl.innerHTML = `
+      <article class="mini-card" style="grid-column:1/-1">
+        <h3>Nu ai creat încă niciun companion.</h3>
+        <p>Poți crea acum un companion fictional AI local, direct în browser.</p>
+        <a class="main-btn" href="/create-companion.html">Creează companion</a>
+      </article>
+    `;
+    return;
+  }
+
+  gridEl.innerHTML = companions.map(function(item){
+    const bio = item.bio || item.vibe || "Companion personalizat";
+    const tags = Array.isArray(item.tags) ? item.tags.slice(0,3) : [];
+    return `
+      <a class="character-card" href="/profile.html?slug=${encodeURIComponent(item.slug)}">
+        <div class="character-art portrait-a"></div>
+        <div class="character-info">
+          <span class="live"><i></i> companion custom</span>
+          <h3 data-no-translate data-character-name>${escapeHtml(item.name || "Companion")}</h3>
+          <p>${escapeHtml(bio)}</p>
+          <div class="tags">
+            ${tags.map(tag=>`<span class="tag">${escapeHtml(tag)}</span>`).join("")}
+          </div>
+          <div class="card-actions">
+            <span class="mini-link">Vezi profil</span>
+          </div>
+        </div>
+      </a>
+    `;
+  }).join("");
+}
+
 window.addEventListener("DOMContentLoaded", refreshHeaderCredits);
+window.addEventListener("DOMContentLoaded", renderCustomCompanions);
 window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);
 </script>
 
