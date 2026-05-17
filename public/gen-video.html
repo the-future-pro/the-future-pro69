@@ -111,9 +111,6 @@
       .mini-grid{grid-template-columns:1fr}
     }
   </style>
-  <script src="/wallet.js" defer></script>
-  <script src="/app-state.js" defer></script>
-  <script src="/global-header.js" defer></script>
 </head>
 
 <body class="home-page">
@@ -391,8 +388,7 @@ async function runGenerate(){
     prompt: ($("storyboard").value || "").trim(),
     negativeExtra: ($("negative").value || "").trim(),
     seconds: Number($("seconds").value),
-    quality: $("quality").value,
-    unlockType: "premium_video_teaser"
+    quality: $("quality").value
   };
 
   if(!payload.prompt){
@@ -429,7 +425,6 @@ async function runGenerate(){
     show(data);
 
     if(!r.ok || !data.ok){
-      if(data && data.error === "PREMIUM_LOCKED"){ alert(data.message || "Acest conținut este premium. Deblochează-l cu credite pentru a continua."); return; }
       setSoftErrorBox(data);
       return;
     }

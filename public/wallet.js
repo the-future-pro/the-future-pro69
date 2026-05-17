@@ -1,48 +1,110 @@
-(function(){
-  const TFP_WALLET = {
-    cache: { balance: 240, unlocks: {}, history: [] },
+// wallet.js — The Future PRO global mock credits system
 
-    async sync(){
-      const [w,u,t] = await Promise.all([
-        fetch('/api/wallet',{credentials:'include'}),
-        fetch('/api/premium/unlocks',{credentials:'include'}),
-        fetch('/api/wallet/transactions',{credentials:'include'})
-      ]);
-      const [wj,uj,tj] = await Promise.all([w.json(),u.json(),t.json()]);
-      if(wj.ok) this.cache.balance = Number(wj.balance || 0);
-      if(uj.ok) this.cache.unlocks = Object.fromEntries((uj.unlocks || []).map((x)=>[x.type,x]));
-      if(tj.ok) this.cache.history = tj.transactions || [];
-      window.dispatchEvent(new CustomEvent('tfp:wallet-updated',{detail:{balance:this.cache.balance}}));
-      return this.cache;
-    },
+const TFP_WALLET = {
+  balanceKey: "tfp_mock_credits_balance",
+  historyKey: "tfp_mock_credits_history",
+  defaultBalance: 240,
 
-    getBalance(){ return Number(this.cache.balance || 0); },
-    getHistory(){ return Array.isArray(this.cache.history) ? this.cache.history : []; },
-    isUnlocked(key){ return !!(this.cache.unlocks && this.cache.unlocks[key]); },
+  getBalance(){
+    return Number(localStorage.getItem(this.balanceKey) || this.defaultBalance);
+  },
 
-    async add(amount,labelOrConfig){
-      const cfg = labelOrConfig && typeof labelOrConfig === 'object' ? labelOrConfig : {text:labelOrConfig};
-      const r = await fetch('/api/wallet/add',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,text:cfg.text})});
-      const j = await r.json();
-      if(j.ok){ await this.sync(); return true; }
+  setBalance(value){
+    const safeValue = Math.max(0, Number(value || 0));
+    localStorage.setItem(this.balanceKey, String(safeValue));
+    window.dispatchEvent(new CustomEvent("tfp:wallet-updated", {
+      detail: { balance: safeValue }
+    }));
+    return safeValue;
+  },
+
+  getHistory(){
+    try{
+      return JSON.parse(localStorage.getItem(this.historyKey) || "[]");
+    }catch(e){
+      return [];
+    }
+  },
+
+  saveHistory(items){
+    localStorage.setItem(this.historyKey, JSON.stringify(items.slice(0, 30)));
+  },
+
+  addHistory(text, amount, type, icon){
+    const items = this.getHistory();
+
+    items.unshift({
+      text: text || "Activitate credits",
+      amount: amount,
+      type: type || "bad",
+      icon: icon || "🔓",
+      date: new Date().toLocaleString("ro-RO")
+    });
+
+    this.saveHistory(items);
+  },
+
+  add(amount, label, icon){
+    const value = Number(amount || 0);
+    const current = this.getBalance();
+
+    this.setBalance(current + value);
+
+    this.addHistory(
+      label || "Pachet credits mock adăugat",
+      "+" + value + " cr",
+      "good",
+      icon || "💳"
+    );
+
+    return true;
+  },
+
+  spend(amount, label, icon){
+    const value = Number(amount || 0);
+    const current = this.getBalance();
+
+    if(current < value){
+      alert("Nu ai suficiente credits.");
       return false;
-    },
+    }
 
-    async spend(amount,labelOrConfig){
-      const cfg = labelOrConfig && typeof labelOrConfig === 'object' ? labelOrConfig : {};
-      const type = cfg.unlockType || 'private_cinematic_image';
-      const r = await this.unlockPremium(type);
-      return !!r.ok;
-    },
+    this.setBalance(current - value);
 
-    async unlockPremium(type){
-      const r = await fetch('/api/premium/unlock',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})});
-      const j = await r.json();
-      await this.sync();
-      return j;
-    },
+    this.addHistory(
+      label || "Unlock premium mock",
+      "-" + value + " cr",
+      "bad",
+      icon || "🔓"
+    );
 
-    handleUrlSpend(){}
-  };
-  window.TFP_WALLET = TFP_WALLET;
-})();
+    return true;
+  },
+
+  handleUrlSpend(){
+    const params = new URLSearchParams(location.search);
+
+    const spend = Number(params.get("spend") || 0);
+    const label = params.get("label") || "Unlock premium mock";
+    const icon = params.get("icon") || "🔓";
+
+    if(!spend) return false;
+
+    const key = "tfp_url_spend_handled_" + location.search;
+
+    if(sessionStorage.getItem(key)){
+      history.replaceState({}, "", location.pathname);
+      return false;
+    }
+
+    sessionStorage.setItem(key, "1");
+
+    const ok = this.spend(spend, label, icon);
+
+    history.replaceState({}, "", location.pathname);
+
+    return ok;
+  }
+};
+
+window.TFP_WALLET = TFP_WALLET;

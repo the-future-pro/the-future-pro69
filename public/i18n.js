@@ -26,34 +26,6 @@
     ["ru", "🇷🇺 RU"]
   ];
 
-
-  const HISTORY_LABELS = {
-    ro: {
-      premium_image_unlock: "Imagine premium {name} deblocată",
-      premium_story_unlock: "Story arc {name} deblocat",
-      premium_video_unlock: "Video teaser {name} deblocat",
-      premium_post_unlock: "Postare premium {name} deblocată",
-      credits_purchase: "Pachet credits mock adăugat",
-      premium_unlock: "Unlock premium mock"
-    },
-    en: {
-      premium_image_unlock: "Premium image unlocked for {name}",
-      premium_story_unlock: "Premium story unlocked for {name}",
-      premium_video_unlock: "Premium teaser video unlocked for {name}",
-      premium_post_unlock: "Premium post unlocked: {name}",
-      credits_purchase: "Mock credits package added",
-      premium_unlock: "Premium unlock"
-    },
-    ru: {
-      premium_image_unlock: "Премиум-изображение {name} разблокировано",
-      premium_story_unlock: "Премиум-история {name} разблокирована",
-      premium_video_unlock: "Премиум тизер-видео {name} разблокировано",
-      premium_post_unlock: "Премиум-пост разблокирован: {name}",
-      credits_purchase: "Добавлен тестовый пакет кредитов",
-      premium_unlock: "Премиум-разблокировка"
-    }
-  };
-
   let isTranslating = false;
   let observerStarted = false;
 
@@ -437,32 +409,6 @@
     injectPromptHints();
     await window.autoTranslatePage();
     observeDynamicText();
-  };
-
-
-
-  function interpolateTemplate(template, params) {
-    return String(template || "").replace(/\{(\w+)\}/g, function (_, key) {
-      return params && params[key] != null ? String(params[key]) : "";
-    });
-  }
-
-  window.translateHistoryLabel = function (labelKey, params, fallbackText) {
-    if (!labelKey) return fallbackText || "";
-
-    const lang = window.getLangCode();
-    const dictionary =
-      HISTORY_LABELS[lang] ||
-      HISTORY_LABELS[SOURCE_LANG] ||
-      {};
-
-    const template = dictionary[labelKey];
-
-    if (!template) {
-      return fallbackText || labelKey;
-    }
-
-    return interpolateTemplate(template, params || {});
   };
 
   document.addEventListener("DOMContentLoaded", function () {

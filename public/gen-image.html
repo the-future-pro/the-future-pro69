@@ -93,9 +93,6 @@
       .result,.mock-preview{min-height:430px}
     }
   </style>
-  <script src="/wallet.js" defer></script>
-  <script src="/app-state.js" defer></script>
-  <script src="/global-header.js" defer></script>
 </head>
 
 <body class="home-page">
@@ -286,7 +283,7 @@ function setSoftErrorBox(data){
         Continuăm cu preview mock, fără costuri, până când decidem să activăm generarea reală.
       </p>
 
-      <div class="action-row" id="galleryActions">
+      <div class="action-row">
         <button class="main-btn" onclick="setMockPreview()" style="border:0">Afișează preview mock</button>
         <a class="ghost-btn" href="/credits.html">Vezi Credits</a>
         <a class="ghost-btn" href="/profile.html?slug=ava-noir">Profil Ava</a>
@@ -388,8 +385,7 @@ $('#go').onclick = async ()=>{
       body:JSON.stringify({
         prompt,
         negative,
-        quality,
-        unlockType:"private_cinematic_image"
+        quality
       })
     });
 
@@ -398,7 +394,6 @@ $('#go').onclick = async ()=>{
     showDebug(data);
 
     if(!r.ok || !data.ok){
-      if(data && data.error === "PREMIUM_LOCKED"){ alert(data.message || "Acest conținut este premium. Deblochează-l cu credite pentru a continua."); return; }
       setSoftErrorBox(data);
       return;
     }
@@ -409,8 +404,7 @@ $('#go').onclick = async ()=>{
     }
 
     if(data.url){
-      await fetch('/api/gallery/save',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:data.url,prompt,negative,quality,unlocked:true})});
-      result.innerHTML = `<img src="${data.url}" alt="generated image"><div style="margin-top:12px;display:flex;gap:10px;justify-content:center"><button class="ghost-btn" onclick="window.open('${data.url}','_blank')">Vezi imaginea</button><button class="ghost-btn" onclick="document.getElementById('go').click()">Regenerează</button><button class="main-btn" onclick="window.open('${data.url}','_blank')">Salvează</button></div>`;
+      result.innerHTML = `<img src="${data.url}" alt="generated image">`;
       return;
     }
 
