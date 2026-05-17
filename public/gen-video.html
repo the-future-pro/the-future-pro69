@@ -130,7 +130,7 @@
 
       <div class="nav-actions">
         <a class="ghost-btn" href="/discover.html">Discover</a>
-        <a class="ghost-btn" href="/credits.html">Credits</a>
+        <a class="ghost-btn" href="/credits.html" data-wallet-balance-link>Credits: 0 CR</a>
         <a class="ghost-btn" href="/gen-image.html">Image</a>
         <a class="main-btn" href="/chat.html?slug=ava-noir">Chat</a>
       </div>
@@ -484,6 +484,29 @@ $("btnGenerateOpen").onclick = runGenerate;
 $("btnMock").onclick = setMockVideo;
 
 refreshStatus();
+</script>
+
+
+<script>
+function getCreditsHeaderLabel(){
+  const lang = typeof window.getLangCode === "function"
+    ? window.getLangCode()
+    : (localStorage.getItem("site_lang") || "ro");
+
+  const labels = { ro: "Credite", en: "Credits", ru: "Кредиты" };
+  return labels[lang] || labels.ro;
+}
+
+function refreshHeaderCredits(){
+  if(!window.TFP_WALLET) return;
+  const text = getCreditsHeaderLabel() + ": " + TFP_WALLET.getBalance() + " CR";
+  document.querySelectorAll("[data-wallet-balance-link]").forEach(function(el){
+    el.textContent = text;
+  });
+}
+
+window.addEventListener("DOMContentLoaded", refreshHeaderCredits);
+window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);
 </script>
 
 </body>
