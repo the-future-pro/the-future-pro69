@@ -311,6 +311,8 @@ function unlockPostWithCredits(key,name,amount){
 
   const ok = TFP_WALLET.spendAndUnlock({
     amount: amount,
+    labelKey: "premium_post_unlock",
+    params: { name: name },
     label: "Postare premium " + name + " deblocată",
     icon: "🔒",
     unlockKey: "feed_" + key

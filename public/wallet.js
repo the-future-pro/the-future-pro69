@@ -59,28 +59,83 @@
 
       localStorage.setItem(
         this.historyKey,
-        JSON.stringify(items.slice(0,50))
+        JSON.stringify((items || []).slice(0,50))
       );
 
     },
 
-    addHistory(text,amount,type,icon){
+    addHistory(entryOrText,amount,type,icon){
 
       const items = this.getHistory();
 
+      const isObjectEntry =
+        entryOrText &&
+        typeof entryOrText === "object" &&
+        !Array.isArray(entryOrText);
+
+      const entry = isObjectEntry
+        ? entryOrText
+        : {
+            text: entryOrText,
+            amount: amount,
+            type: type,
+            icon: icon
+          };
+
+      const readString = (value) => {
+        if(typeof value === "string"){
+          return value.trim() || "";
+        }
+
+        if(!value || typeof value !== "object"){
+          return "";
+        }
+
+        if(typeof value.text === "string" && value.text.trim()){
+          return value.text.trim();
+        }
+
+        if(typeof value.label === "string" && value.label.trim()){
+          return value.label.trim();
+        }
+
+        if(typeof value.title === "string" && value.title.trim()){
+          return value.title.trim();
+        }
+
+        return "";
+      };
+
+      const safeText =
+        readString(entry.text) ||
+        readString(entry.label) ||
+        "Activity";
+
+      const safeLabelKey =
+        typeof entry.labelKey === "string"
+          ? entry.labelKey.trim()
+          : "";
+
+      const safeParams =
+        entry.params && typeof entry.params === "object" && !Array.isArray(entry.params)
+          ? entry.params
+          : {};
+
       items.unshift({
-        text:text || "Activitate credits",
-        amount:amount || "0 cr",
-        type:type || "bad",
-        icon:icon || "🔓",
-        date:new Date().toLocaleString("ro-RO")
+        text: safeText,
+        labelKey: safeLabelKey,
+        params: safeParams,
+        amount: typeof entry.amount === "string" ? entry.amount : (amount || "0 cr"),
+        type: entry.type || type || "bad",
+        icon: entry.icon || icon || "🔓",
+        date: entry.date || new Date().toLocaleString("ro-RO")
       });
 
       this.saveHistory(items);
 
     },
 
-    add(amount,label,icon){
+    add(amount,labelOrConfig,icon){
 
       const value = Number(amount || 0);
 
@@ -92,17 +147,24 @@
 
       this.setBalance(current + value);
 
-      this.addHistory(
-        label || "Pachet credits mock adăugat",
-        "+" + value + " cr",
-        "good",
-        icon || "💳"
-      );
+      const config =
+        labelOrConfig && typeof labelOrConfig === "object"
+          ? labelOrConfig
+          : { text: labelOrConfig, icon: icon };
+
+      this.addHistory({
+        text: config.text || "Pachet credits mock adăugat",
+        labelKey: config.labelKey || "credits_purchase",
+        params: config.params || {},
+        amount: "+" + value + " cr",
+        type: "good",
+        icon: config.icon || "💳"
+      });
 
       return true;
     },
 
-    spend(amount,label,icon){
+    spend(amount,labelOrConfig,icon){
 
       const value = Number(amount || 0);
 
@@ -123,12 +185,19 @@
 
       this.setBalance(current - value);
 
-      this.addHistory(
-        label || "Unlock premium mock",
-        "-" + value + " cr",
-        "bad",
-        icon || "🔓"
-      );
+      const config =
+        labelOrConfig && typeof labelOrConfig === "object"
+          ? labelOrConfig
+          : { text: labelOrConfig, icon: icon };
+
+      this.addHistory({
+        text: config.text || "Unlock premium mock",
+        labelKey: config.labelKey || "premium_unlock",
+        params: config.params || {},
+        amount: "-" + value + " cr",
+        type: "bad",
+        icon: config.icon || "🔓"
+      });
 
       return true;
     },
@@ -176,16 +245,18 @@
     },
 
     spendAndUnlock(config){
-
       if(!config){
         return false;
       }
 
-      const ok = this.spend(
-        config.amount,
-        config.label,
-        config.icon
-      );
+      const spendConfig = {
+        text: config.label,
+        labelKey: config.labelKey,
+        params: config.params,
+        icon: config.icon
+      };
+
+      const ok = this.spend(config.amount, spendConfig);
 
       if(!ok){
         return false;
@@ -199,65 +270,49 @@
     },
 
     handleUrlSpend(){
+      const params = new URLSearchParams(location.search);
 
-      const params =
-        new URLSearchParams(location.search);
+      const spend = Number(params.get("spend") || 0);
 
-      const spend =
-        Number(params.get("spend") || 0);
+      const label = params.get("label") || "Unlock premium mock";
+      const labelKey = params.get("labelKey") || "premium_unlock";
 
-      const label =
-        params.get("label") ||
-        "Unlock premium mock";
+      let parsedParams = {};
 
-      const icon =
-        params.get("icon") ||
-        "🔓";
+      try{
+        parsedParams = JSON.parse(params.get("params") || "{}");
+      }catch(e){
+        parsedParams = {};
+      }
 
-      const unlockKey =
-        params.get("unlock") || "";
+      const icon = params.get("icon") || "🔓";
+      const unlockKey = params.get("unlock") || "";
 
       if(!spend){
         return false;
       }
 
-      const sessionKey =
-        "tfp_url_spend_" +
-        location.search;
+      const sessionKey = "tfp_url_spend_" + location.search;
 
-      if(
-        sessionStorage.getItem(sessionKey)
-      ){
-
-        history.replaceState(
-          {},
-          "",
-          location.pathname
-        );
-
+      if(sessionStorage.getItem(sessionKey)){
+        history.replaceState({}, "", location.pathname);
         return false;
       }
 
-      sessionStorage.setItem(
-        sessionKey,
-        "1"
-      );
+      sessionStorage.setItem(sessionKey, "1");
 
-      const ok = this.spend(
-        spend,
-        label,
-        icon
-      );
+      const ok = this.spend(spend, {
+        text: label,
+        labelKey: labelKey,
+        params: parsedParams,
+        icon: icon
+      });
 
       if(ok && unlockKey){
         this.unlock(unlockKey);
       }
 
-      history.replaceState(
-        {},
-        "",
-        location.pathname
-      );
+      history.replaceState({}, "", location.pathname);
 
       return ok;
     },

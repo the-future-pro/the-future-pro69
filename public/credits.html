@@ -266,11 +266,11 @@
 
 <script>
 function addCredits(amount){
-  TFP_WALLET.add(
-    amount,
-    "Pachet credits mock adăugat",
-    "💳"
-  );
+  TFP_WALLET.add(amount,{
+    labelKey: "credits_purchase",
+    text: "Pachet credits mock adăugat",
+    icon: "💳"
+  });
 
   renderWallet();
 }
@@ -321,7 +321,7 @@ function renderWallet(){
       <div class="history-left">
         <div class="history-icon">${escapeHtml(item.icon || (type === "good" ? "💳" : "🔓"))}</div>
         <div>
-          <div class="history-title">${escapeHtml(item.text)}</div>
+          <div class="history-title">${escapeHtml(resolveHistoryLabel(item))}</div>
           <small class="history-date">${escapeHtml(item.date)}</small>
         </div>
       </div>
@@ -333,6 +333,56 @@ function renderWallet(){
 
     el.appendChild(d);
   });
+}
+
+
+function pickStringLabel(value){
+  if(typeof value === "string"){
+    const clean = value.trim();
+    return clean || "";
+  }
+
+  if(!value || typeof value !== "object"){
+    return "";
+  }
+
+  if(typeof value.text === "string" && value.text.trim()){
+    return value.text.trim();
+  }
+
+  if(typeof value.label === "string" && value.label.trim()){
+    return value.label.trim();
+  }
+
+  if(typeof value.title === "string" && value.title.trim()){
+    return value.title.trim();
+  }
+
+  return "";
+}
+
+function resolveHistoryLabel(item){
+  const fallback =
+    pickStringLabel(item && item.text) ||
+    pickStringLabel(item && item.label) ||
+    "Activity";
+
+  const labelKey =
+    typeof (item && item.labelKey) === "string"
+      ? item.labelKey.trim()
+      : "";
+
+  if(window.translateHistoryLabel && labelKey){
+    const translated = window.translateHistoryLabel(
+      labelKey,
+      item && item.params && typeof item.params === "object" ? item.params : {},
+      fallback
+    );
+
+    return pickStringLabel(translated) || fallback;
+  }
+
+  return fallback;
 }
 
 function escapeHtml(str){
