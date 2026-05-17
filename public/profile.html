@@ -198,6 +198,7 @@
         <div>
           <strong>🔒 Imagine cinematică privată</strong>
           <span>Preview premium pentru companionul selectat.</span>
+          <span id="unlockStatusImage" style="display:none;margin-top:8px;color:#34d399;font-size:13px;font-weight:700">✅ Deblocat — poți folosi acum funcția premium</span>
         </div>
         <div class="locked-actions">
           <a id="unlockImage" class="small-btn unlock" href="#">-20 cr</a>
@@ -209,6 +210,7 @@
         <div>
           <strong>🔒 Story special</strong>
           <span>Arc privat, mood personalizat și relație progresivă.</span>
+          <span id="unlockStatusStory" style="display:none;margin-top:8px;color:#34d399;font-size:13px;font-weight:700">✅ Deblocat — poți folosi acum funcția premium</span>
         </div>
         <div class="locked-actions">
           <a id="unlockStory" class="small-btn unlock" href="#">-300 cr</a>
@@ -220,6 +222,7 @@
         <div>
           <strong>🔒 Video teaser premium</strong>
           <span>Scenă scurtă cinematică, folosită ca unlock premium.</span>
+          <span id="unlockStatusVideo" style="display:none;margin-top:8px;color:#34d399;font-size:13px;font-weight:700">✅ Deblocat — poți folosi acum funcția premium</span>
         </div>
         <div class="locked-actions">
           <a id="unlockVideo" class="small-btn unlock" href="#">-90 cr</a>
@@ -374,9 +377,9 @@ function applyProfile(){
 
 
 const premiumItems = {
-  private_cinematic_image: { amount:20, historyLabel:"Imagine cinematică privată", icon:"🖼", btn:unlockImage },
-  special_story: { amount:300, historyLabel:"Story special", icon:"🔓", btn:unlockStory },
-  premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", btn:unlockVideo }
+  private_cinematic_image: { amount:20, historyLabel:"Imagine cinematică privată", icon:"🖼", btn:unlockImage, status:unlockStatusImage },
+  special_story: { amount:300, historyLabel:"Story special", icon:"🔓", btn:unlockStory, status:unlockStatusStory },
+  premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", btn:unlockVideo, status:unlockStatusVideo }
 };
 
 function refreshPremiumButtons(name){
@@ -384,6 +387,7 @@ function refreshPremiumButtons(name){
     const unlocked = TFP_WALLET.isPremiumUnlocked(key);
     cfg.btn.textContent = unlocked ? "Deblocat" : ("-" + cfg.amount + " cr");
     cfg.btn.className = unlocked ? "small-btn" : "small-btn unlock";
+    cfg.status.style.display = unlocked ? "block" : "none";
   });
 }
 
