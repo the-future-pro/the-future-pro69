@@ -181,6 +181,39 @@
     return false;
   }
 
+  function shouldSkipUiLabelElement(el) {
+    if (!el) return true;
+    if (el.closest("[data-no-translate]")) return true;
+    if (el.closest("[data-character-name]")) return true;
+
+    const tag = el.tagName;
+    if (["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE", "JSON-VIEWER"].includes(tag)) {
+      return true;
+    }
+
+    const cls = (el.className || "").toString().toLowerCase();
+    const id = (el.id || "").toString().toLowerCase();
+
+    if (
+      cls.includes("json") ||
+      cls.includes("debug") ||
+      cls.includes("console") ||
+      cls.includes("code") ||
+      cls.includes("api") ||
+      cls.includes("response") ||
+      id.includes("json") ||
+      id.includes("debug") ||
+      id.includes("console") ||
+      id.includes("code") ||
+      id.includes("api") ||
+      id.includes("response")
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   function isTranslatableText(text) {
     if (!text) return false;
 
@@ -236,6 +269,42 @@
     }
 
     return nodes;
+  }
+
+  function collectAttributeTargets() {
+    const targets = [];
+    const attrNames = ["placeholder", "title", "aria-label"];
+    const elements = document.querySelectorAll("input, textarea, button, a, select, option, [placeholder], [title], [aria-label]");
+
+    elements.forEach(function (el) {
+      if (!el || shouldSkipUiLabelElement(el)) return;
+
+      attrNames.forEach(function (attr) {
+        if (!el.hasAttribute(attr)) return;
+        const val = String(el.getAttribute(attr) || "").trim();
+        if (!isTranslatableText(val)) return;
+        targets.push({ el: el, attr: attr, original: val });
+      });
+    });
+
+    return targets;
+  }
+
+  function collectOptionTargets() {
+    const options = Array.from(document.querySelectorAll("option"));
+    const targets = [];
+
+    options.forEach(function (opt) {
+      if (!opt) return;
+      if (shouldSkipUiLabelElement(opt)) return;
+
+      const text = String(opt.textContent || "").trim();
+      if (!isTranslatableText(text)) return;
+
+      targets.push({ el: opt, original: text });
+    });
+
+    return targets;
   }
 
   function getCacheKey(lang, text) {
@@ -301,6 +370,78 @@
     });
   }
 
+  function getOriginalAttributeValue(el, attr, currentValue) {
+    const key = "i18nOriginal" + attr.replace(/-([a-z])/g, function (_, ch) {
+      return ch.toUpperCase();
+    }).replace(/^([a-z])/, function (_, ch) {
+      return ch.toUpperCase();
+    });
+
+    if (!el.dataset[key]) {
+      el.dataset[key] = String(currentValue || "");
+    }
+
+    return String(el.dataset[key] || "");
+  }
+
+  function getOriginalOptionText(opt) {
+    if (!opt.dataset.i18nOriginalText) {
+      opt.dataset.i18nOriginalText = String(opt.textContent || "");
+    }
+    return String(opt.dataset.i18nOriginalText || "");
+  }
+
+  function applyCachedAttributeTranslations(attrTargets, lang) {
+    attrTargets.forEach(function (target) {
+      const original = getOriginalAttributeValue(target.el, target.attr, target.original).trim();
+      if (!isTranslatableText(original)) return;
+      const cacheKey = getCacheKey(lang, original);
+      if (LOCAL_CACHE[cacheKey]) {
+        target.el.setAttribute(target.attr, LOCAL_CACHE[cacheKey]);
+      }
+    });
+  }
+
+  function applyCachedOptionTranslations(optionTargets, lang) {
+    optionTargets.forEach(function (target) {
+      const original = getOriginalOptionText(target.el).trim();
+      if (!isTranslatableText(original)) return;
+      const cacheKey = getCacheKey(lang, original);
+      if (LOCAL_CACHE[cacheKey]) {
+        target.el.textContent = LOCAL_CACHE[cacheKey];
+      }
+    });
+  }
+
+  function restoreOriginalUiAttributesAndOptions() {
+    const attrNames = ["placeholder", "title", "aria-label"];
+    const elements = document.querySelectorAll("input, textarea, button, a, select, option, [placeholder], [title], [aria-label]");
+
+    elements.forEach(function (el) {
+      if (!el || shouldSkipUiLabelElement(el)) return;
+
+      attrNames.forEach(function (attr) {
+        if (!el.hasAttribute(attr)) return;
+        const key = "i18nOriginal" + attr.replace(/-([a-z])/g, function (_, ch) {
+          return ch.toUpperCase();
+        }).replace(/^([a-z])/, function (_, ch) {
+          return ch.toUpperCase();
+        });
+        if (el.dataset[key]) {
+          el.setAttribute(attr, el.dataset[key]);
+        }
+      });
+    });
+
+    const options = document.querySelectorAll("option");
+    options.forEach(function (opt) {
+      if (!opt || shouldSkipUiLabelElement(opt)) return;
+      if (opt.dataset.i18nOriginalText) {
+        opt.textContent = opt.dataset.i18nOriginalText;
+      }
+    });
+  }
+
   window.autoTranslatePage = async function () {
     if (isTranslating) return;
 
@@ -311,6 +452,7 @@
     document.documentElement.lang = lang;
 
     if (lang === SOURCE_LANG) {
+      restoreOriginalUiAttributesAndOptions();
       console.log("[i18n] Romanian selected. Translation skipped.");
       return;
     }
@@ -319,6 +461,8 @@
 
     try {
       const textNodes = collectTextNodes();
+      const attrTargets = collectAttributeTargets();
+      const optionTargets = collectOptionTargets();
 
       textNodes.forEach(function (node) {
         if (!node.__originalText) {
@@ -327,6 +471,8 @@
       });
 
       applyCachedTranslations(textNodes, lang);
+      applyCachedAttributeTranslations(attrTargets, lang);
+      applyCachedOptionTranslations(optionTargets, lang);
 
       const uniqueTexts = [];
 
@@ -342,6 +488,22 @@
         if (!uniqueTexts.includes(original)) {
           uniqueTexts.push(original);
         }
+      });
+
+      attrTargets.forEach(function (target) {
+        const original = getOriginalAttributeValue(target.el, target.attr, target.original).trim();
+        if (!isTranslatableText(original)) return;
+        const cacheKey = getCacheKey(lang, original);
+        if (LOCAL_CACHE[cacheKey]) return;
+        if (!uniqueTexts.includes(original)) uniqueTexts.push(original);
+      });
+
+      optionTargets.forEach(function (target) {
+        const original = getOriginalOptionText(target.el).trim();
+        if (!isTranslatableText(original)) return;
+        const cacheKey = getCacheKey(lang, original);
+        if (LOCAL_CACHE[cacheKey]) return;
+        if (!uniqueTexts.includes(original)) uniqueTexts.push(original);
       });
 
       const limitedTexts = uniqueTexts.slice(0, MAX_TOTAL_TEXTS);
@@ -373,6 +535,8 @@
 
         saveLocalCache(LOCAL_CACHE);
         applyCachedTranslations(textNodes, lang);
+        applyCachedAttributeTranslations(attrTargets, lang);
+        applyCachedOptionTranslations(optionTargets, lang);
 
         await new Promise(function (resolve) {
           setTimeout(resolve, 180);
