@@ -382,13 +382,19 @@ function setMockVideo(){
   const prompt = $("storyboard").value.trim() || "fictional AI companion cinematic video teaser";
   const seconds = $("seconds").value;
   const quality = $("quality").value;
+  const fallback = companionContext["ava-noir"] || { name:"Companion selectat", vibe:"premium • cinematic • companion" };
+  const active = companionContext[currentSlug] || fallback;
 
   $("preview").innerHTML = `
     <div class="mock-video">
       <div class="mock-label">
         <div class="eyebrow">MOCK VIDEO PREVIEW</div>
-        <strong>Teaser cinematic generat mock</strong>
+        <strong>
+          Teaser video mock pentru
+          <span data-no-translate data-character-name>${escapeHtml(active.name)}</span>
+        </strong>
         <span>
+          Vibe: ${escapeHtml(active.vibe)}<br>
           Storyboard: ${escapeHtml(prompt)}<br>
           Durată selectată: ${escapeHtml(seconds)}s<br>
           Calitate selectată: ${escapeHtml(quality)}<br>
