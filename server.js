@@ -33,8 +33,6 @@ const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
 const IMG_DIR = path.join(PUBLIC_DIR, IMAGES_DIR_NAME);
 const SESS_DIR = path.join(__dirname, "db");
 const CHAT_FILE = path.join(SESS_DIR, "chat-history.json");
-const WALLET_FILE = path.join(SESS_DIR, "wallet-state.json");
-const GALLERY_FILE = path.join(SESS_DIR, "image-gallery.json");
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -76,69 +74,6 @@ function requireLogin(req, res, next) {
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
   next();
-}
-
-function userKey(req) {
-  return String(req.session?.user?.email || req.session?.user?.id || "guest");
-}
-
-function loadJsonSafe(file, fallback) {
-  try {
-    if (!fs.existsSync(file)) return fallback;
-    return JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch {
-    return fallback;
-  }
-}
-
-function saveJsonSafe(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
-}
-
-let walletState = loadJsonSafe(WALLET_FILE, {});
-let galleryState = loadJsonSafe(GALLERY_FILE, {});
-
-function ensureWallet(key) {
-  if (!walletState[key]) {
-    walletState[key] = { balance: 240, unlocks: {}, history: [] };
-    saveJsonSafe(WALLET_FILE, walletState);
-  }
-  return walletState[key];
-}
-
-
-const PREMIUM_CATALOG = {
-  private_cinematic_image: { cost: 20, label: "Imagine cinematică privată" },
-  special_story: { cost: 300, label: "Story special" },
-  premium_video_teaser: { cost: 90, label: "Video teaser premium" },
-};
-
-function getPremiumItem(type) {
-  return PREMIUM_CATALOG[String(type || "").trim()] || null;
-}
-
-function hasPremiumUnlock(req, type) {
-  const wallet = ensureWallet(userKey(req));
-  return !!wallet.unlocks?.[type];
-}
-
-function premiumLockedResponse(res, type) {
-  const item = getPremiumItem(type);
-  if (!item) return res.status(400).json({ ok: false, error: "invalid_premium_type" });
-  return res.status(403).json({
-    ok: false,
-    error: "PREMIUM_LOCKED",
-    message: `Deblochează ${item.label} cu ${item.cost} CR înainte de generare.`,
-  });
-}
-
-function requirePremiumUnlock(typeResolver) {
-  return (req, res, next) => {
-    const type = typeof typeResolver === "function" ? typeResolver(req) : typeResolver;
-    if (!type) return next();
-    if (hasPremiumUnlock(req, type)) return next();
-    return premiumLockedResponse(res, type);
-  };
 }
 
 function subRequired(req, res, next) {
@@ -780,7 +715,7 @@ app.get("/api/chat/:slug/history", async (req, res) => {
   });
 });
 
-app.post("/api/chat/:slug/send", requireLogin, requirePremiumUnlock("special_story"), (req, res) => {
+app.post("/api/chat/:slug/send", requireLogin, (req, res) => {
   const slug = req.params.slug;
   const history = ensureChat(slug);
 
@@ -866,109 +801,11 @@ app.post("/api/media/:id/unlock", requireLogin, (req, res) => {
   res.json({ ok: true, unlocked: true, id: req.params.id });
 });
 
-app.get("/api/wallet", requireLogin, (req, res) => {
-  const wallet = ensureWallet(userKey(req));
-  res.json({ ok: true, balance: wallet.balance });
-});
-
-app.get("/api/wallet/transactions", requireLogin, (req, res) => {
-  const wallet = ensureWallet(userKey(req));
-  res.json({ ok: true, transactions: wallet.history });
-});
-
-app.post("/api/wallet/add", requireLogin, (req, res) => {
-  const amount = Math.max(0, Number(req.body?.amount || 0));
-  if (!amount) return res.status(400).json({ ok: false, error: "invalid_amount" });
-  const wallet = ensureWallet(userKey(req));
-  wallet.balance += amount;
-  const transaction = {
-    id: "tx_" + Date.now() + "_" + Math.floor(Math.random() * 100000),
-    amount,
-    type: "topup",
-    label: String(req.body?.text || "Pachet credits"),
-    balanceAfter: wallet.balance,
-    status: "success",
-    createdAt: new Date().toISOString(),
-  };
-  wallet.history.unshift(transaction);
-  wallet.history = wallet.history.slice(0, 100);
-  saveJsonSafe(WALLET_FILE, walletState);
-  res.json({ ok: true, balance: wallet.balance, transaction });
-});
-
-app.get("/api/premium/unlocks", requireLogin, (req, res) => {
-  const wallet = ensureWallet(userKey(req));
-  const unlocks = Object.entries(wallet.unlocks || {}).map(([type, data]) => ({
-    type,
-    createdAt: data?.createdAt || data?.unlockedAt || new Date().toISOString(),
-  }));
-  res.json({ ok: true, unlocks });
-});
-
-app.post("/api/premium/unlock", requireLogin, (req, res) => {
-  const type = String(req.body?.type || "").trim();
-  const item = getPremiumItem(type);
-  if (!item) return res.status(400).json({ ok: false, error: "invalid_premium_type" });
-
-  const wallet = ensureWallet(userKey(req));
-  if (wallet.unlocks[type]) {
-    return res.json({ ok: true, type, unlocked: true, alreadyUnlocked: true, balance: wallet.balance });
-  }
-
-  if (wallet.balance < item.cost) {
-    return res.status(400).json({ ok: false, error: "INSUFFICIENT_CREDITS", message: "Nu ai suficiente credite." });
-  }
-
-  wallet.balance -= item.cost;
-  wallet.unlocks[type] = { unlocked: true, createdAt: new Date().toISOString(), cost: item.cost, label: item.label };
-  const transaction = {
-    id: "tx_" + Date.now() + "_" + Math.floor(Math.random() * 100000),
-    amount: -item.cost,
-    type: "premium_unlock",
-    label: item.label,
-    unlockType: type,
-    balanceAfter: wallet.balance,
-    status: "success",
-    createdAt: new Date().toISOString(),
-  };
-  wallet.history.unshift(transaction);
-  wallet.history = wallet.history.slice(0, 100);
-  saveJsonSafe(WALLET_FILE, walletState);
-
-  res.json({ ok: true, type, unlocked: true, alreadyUnlocked: false, balance: wallet.balance });
-});
-
-app.get("/api/gallery", requireLogin, (req, res) => {
-  const key = userKey(req);
-  res.json({ ok: true, items: galleryState[key] || [] });
-});
-
-app.post("/api/gallery/save", requireLogin, (req, res) => {
-  const key = userKey(req);
-  const imageUrl = String(req.body?.url || "").trim();
-  if (!imageUrl) return res.status(400).json({ ok: false, error: "missing_url" });
-  if (!galleryState[key]) galleryState[key] = [];
-  const image = {
-    image_id: "img_" + Date.now() + "_" + Math.floor(Math.random() * 10000),
-    owner: key,
-    prompt: String(req.body?.prompt || ""),
-    negative: String(req.body?.negative || ""),
-    quality: String(req.body?.quality || "1024"),
-    url: imageUrl,
-    unlocked: !!req.body?.unlocked,
-    created_at: new Date().toISOString()
-  };
-  galleryState[key].unshift(image);
-  galleryState[key] = galleryState[key].slice(0, 200);
-  saveJsonSafe(GALLERY_FILE, galleryState);
-  res.json({ ok: true, image, items: galleryState[key] });
-});
-
 // ================== REAL IMAGE GENERATION ==================
 
 app.use("/" + IMAGES_DIR_NAME, express.static(IMG_DIR, { maxAge: "1h" }));
 
-app.post("/api/image/open", requireLogin, requirePremiumUnlock("private_cinematic_image"), async (req, res) => {
+app.post("/api/image/open", async (req, res) => {
   try {
     const adminHeader = req.headers["x-admin-token"];
 
@@ -1050,9 +887,9 @@ app.post("/api/image/open", requireLogin, requirePremiumUnlock("private_cinemati
 
 app.use("/" + VIDEOS_DIR_NAME, express.static(OUT_DIR, { maxAge: "1h" }));
 
-app.post("/api/video", requireLogin, subRequired, requirePremiumUnlock("premium_video_teaser"), handlerGenerateVideo);
+app.post("/api/video", requireLogin, subRequired, handlerGenerateVideo);
 
-app.post("/api/video/open", requireLogin, requirePremiumUnlock("premium_video_teaser"), async (req, res, next) => {
+app.post("/api/video/open", async (req, res, next) => {
   const adminHeader = req.headers["x-admin-token"];
 
   if (!process.env.ADMIN_TOKEN || adminHeader !== process.env.ADMIN_TOKEN) {

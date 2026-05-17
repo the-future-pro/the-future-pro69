@@ -7,25 +7,40 @@
   <title>Profile — The Future PRO</title>
 
   <link rel="stylesheet" href="/style.css"/>
-
   <script src="/i18n.js" defer></script>
-  <script src="/wallet.js" defer></script>
-  <script src="/app-state.js" defer></script>
-  <script src="/global-header.js" defer></script>
-  <script src="/companions-data.js" defer></script>
 
   <style>
     .profile-shell{max-width:1240px;margin:0 auto;padding:18px}
-    .profile-hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:34px;min-height:420px;padding:28px;background:linear-gradient(135deg,#130617,#050509);box-shadow:0 28px 90px rgba(0,0,0,.42)}
+    .profile-hero{
+      position:relative;overflow:hidden;border:1px solid var(--line);
+      border-radius:34px;min-height:420px;padding:28px;
+      background:linear-gradient(135deg,#130617,#050509);
+      box-shadow:0 28px 90px rgba(0,0,0,.42)
+    }
     .profile-bg{position:absolute;inset:0;opacity:.95}
-    .profile-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35),rgba(0,0,0,.9))}
-    .profile-content{position:relative;z-index:2;display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:end;min-height:360px}
+    .profile-bg:after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35),rgba(0,0,0,.9))
+    }
+    .profile-content{
+      position:relative;z-index:2;display:grid;grid-template-columns:1fr 360px;
+      gap:24px;align-items:end;min-height:360px
+    }
     .profile-title h1{font-size:clamp(44px,7vw,92px);line-height:.95;margin:10px 0;letter-spacing:-3px}
     .profile-title p{max-width:720px;color:var(--muted);font-size:18px;line-height:1.6}
-    .avatar-large{width:250px;height:250px;border-radius:38px;border:1px solid rgba(255,255,255,.16);overflow:hidden;background:#111;margin-left:auto;box-shadow:0 20px 80px rgba(0,0,0,.45)}
+    .avatar-large{
+      width:250px;height:250px;border-radius:38px;border:1px solid rgba(255,255,255,.16);
+      overflow:hidden;background:#111;margin-left:auto;box-shadow:0 20px 80px rgba(0,0,0,.45)
+    }
     .ai-portrait{width:100%;height:100%;position:relative;overflow:hidden}
-    .ai-portrait:before{content:"";position:absolute;width:34%;height:42%;left:33%;top:16%;border-radius:48%;background:rgba(255,255,255,.75);filter:blur(11px);opacity:.42}
-    .ai-portrait:after{content:"";position:absolute;left:18%;right:18%;bottom:0;height:50%;border-radius:48% 48% 0 0;background:rgba(255,255,255,.16);filter:blur(14px)}
+    .ai-portrait:before{
+      content:"";position:absolute;width:34%;height:42%;left:33%;top:16%;
+      border-radius:48%;background:rgba(255,255,255,.75);filter:blur(11px);opacity:.42
+    }
+    .ai-portrait:after{
+      content:"";position:absolute;left:18%;right:18%;bottom:0;height:50%;
+      border-radius:48% 48% 0 0;background:rgba(255,255,255,.16);filter:blur(14px)
+    }
 
     .ava-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,46,136,.38),transparent),radial-gradient(520px 360px at 70% 20%,rgba(155,92,255,.22),transparent),linear-gradient(135deg,#210820,#050509)}
     .mira-theme{background:radial-gradient(650px 400px at 52% 30%,rgba(255,180,95,.34),transparent),radial-gradient(520px 360px at 70% 20%,rgba(255,225,180,.16),transparent),linear-gradient(135deg,#2a1509,#050509)}
@@ -36,7 +51,11 @@
 
     .profile-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
     .profile-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
-    .panel{border:1px solid var(--line);border-radius:28px;padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:0 20px 70px rgba(0,0,0,.28)}
+    .panel{
+      border:1px solid var(--line);border-radius:28px;padding:22px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      box-shadow:0 20px 70px rgba(0,0,0,.28)
+    }
     .panel h2,.panel h3{margin-top:0}
     .muted{color:var(--muted);line-height:1.6}
     .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -47,16 +66,37 @@
     .mini-item{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.04)}
     .mini-item strong{display:block;margin-bottom:5px}
     .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .locked{min-height:190px;border:1px solid var(--line);border-radius:22px;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));display:flex;flex-direction:column;justify-content:space-between;text-align:left;padding:16px;color:var(--muted)}
-    .locked.unlocked{border-color:rgba(52,211,153,.45);background:linear-gradient(135deg,rgba(52,211,153,.10),rgba(255,255,255,.03))}
+    .locked{
+      min-height:190px;border:1px solid var(--line);border-radius:22px;
+      background:
+        radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 20%),
+        linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+      display:flex;flex-direction:column;justify-content:space-between;
+      text-align:left;padding:16px;color:var(--muted)
+    }
     .locked strong{color:var(--ink);font-size:18px}
     .locked span{line-height:1.5}
     .locked-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-    .small-btn{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.06);color:white;text-decoration:none;font-size:13px;font-weight:800;cursor:pointer}
+    .small-btn{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 11px;
+      background:rgba(255,255,255,.06);
+      color:white;
+      text-decoration:none;
+      font-size:13px;
+      font-weight:800;
+    }
     .small-btn.unlock{border-color:rgba(251,113,133,.35);color:#fb7185;background:rgba(251,113,133,.1)}
-    .small-btn.done{border-color:rgba(52,211,153,.45);color:#34d399;background:rgba(52,211,153,.1)}
     .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px;box-shadow:0 0 14px #34d399}
-    @media(max-width:900px){.profile-shell{padding:12px}.profile-content,.profile-grid{grid-template-columns:1fr}.profile-hero{padding:22px;border-radius:28px}.profile-title h1{letter-spacing:-2px}.avatar-large{margin:0;width:100%;height:280px}.gallery{grid-template-columns:1fr}}
+    @media(max-width:900px){
+      .profile-shell{padding:12px}
+      .profile-content,.profile-grid{grid-template-columns:1fr}
+      .profile-hero{padding:22px;border-radius:28px}
+      .profile-title h1{letter-spacing:-2px}
+      .avatar-large{margin:0;width:100%;height:280px}
+      .gallery{grid-template-columns:1fr}
+    }
   </style>
 </head>
 
@@ -90,7 +130,9 @@
       <div class="profile-title">
         <div class="eyebrow" id="profileKicker">DARK LUXURY COMPANION</div>
         <h1 id="profileName" data-no-translate>Ava Noir</h1>
-        <p id="profileBio">Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.</p>
+        <p id="profileBio">
+          Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.
+        </p>
 
         <div class="tag-row" id="tagRow"></div>
 
@@ -108,9 +150,12 @@
   </section>
 
   <section class="profile-grid">
+
     <div class="panel">
       <h2>Identitate și poveste</h2>
-      <p class="muted" id="loreText">Ava Noir este construită ca o prezență elegantă, intensă și misterioasă.</p>
+      <p class="muted" id="loreText">
+        Ava Noir este construită ca o prezență elegantă, intensă și misterioasă.
+      </p>
 
       <h3>Personalitate</h3>
       <div class="mini-list" id="personalityList"></div>
@@ -138,42 +183,45 @@
         </div>
       </div>
     </aside>
+
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>Galerie premium</h2>
-    <p class="muted">Conținutul premium se poate debloca prin credits. Momentan folosim sistem mock local pentru test MVP.</p>
+    <h2>Galerie premium blocată</h2>
+    <p class="muted">
+      Conținutul premium se poate debloca prin credits. Momentan folosim sistem mock local pentru test MVP.
+    </p>
 
     <div class="gallery">
-      <div class="locked" id="cardImage">
+      <div class="locked">
         <div>
-          <strong id="titleImage">🔒 Imagine cinematică privată</strong>
+          <strong>🔒 Imagine cinematică privată</strong>
           <span>Preview premium pentru companionul selectat.</span>
         </div>
         <div class="locked-actions">
-          <button id="unlockImage" class="small-btn unlock" type="button">-20 cr</button>
+          <a id="unlockImage" class="small-btn unlock" href="/credits.html?spend=20&label=Imagine%20premium%20deblocata&icon=🖼">-20 cr</a>
           <a class="small-btn" id="galleryImage" href="/gen-image.html">Generează vibe</a>
         </div>
       </div>
 
-      <div class="locked" id="cardStory">
+      <div class="locked">
         <div>
-          <strong id="titleStory">🔒 Story special</strong>
+          <strong>🔒 Story special</strong>
           <span>Arc privat, mood personalizat și relație progresivă.</span>
         </div>
         <div class="locked-actions">
-          <button id="unlockStory" class="small-btn unlock" type="button">-300 cr</button>
+          <a id="unlockStory" class="small-btn unlock" href="/credits.html?spend=300&label=Story%20arc%20premium%20deblocat&icon=🔓">-300 cr</a>
           <a class="small-btn" id="galleryChat" href="/chat.html?slug=ava-noir">Continuă chat</a>
         </div>
       </div>
 
-      <div class="locked" id="cardVideo">
+      <div class="locked">
         <div>
-          <strong id="titleVideo">🔒 Video teaser premium</strong>
+          <strong>🔒 Video teaser premium</strong>
           <span>Scenă scurtă cinematică, folosită ca unlock premium.</span>
         </div>
         <div class="locked-actions">
-          <button id="unlockVideo" class="small-btn unlock" type="button">-90 cr</button>
+          <a id="unlockVideo" class="small-btn unlock" href="/credits.html?spend=90&label=Video%20teaser%20premium%20deblocat&icon=🎬">-90 cr</a>
           <a class="small-btn" href="/gen-video.html">Video Studio</a>
         </div>
       </div>
@@ -197,169 +245,134 @@
 </main>
 
 <script>
-const profiles = window.TFP_COMPANIONS || {};
+const profiles = {
+  "ava-noir": {
+    name: "Ava Noir",
+    theme: "ava-theme",
+    kicker: "DARK LUXURY COMPANION",
+    bio: "Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.",
+    lore: "Ava Noir este construită ca o prezență elegantă, intensă și misterioasă. Stilul ei vizual combină luxul întunecat, luminile neon și conversațiile lente, private, cu atmosferă premium.",
+    tags: ["Dark Luxury", "Mysterious", "Cinematic", "Elegant"],
+    personality: ["Misterioasă și calmă", "Elegantă, dar greu de citit", "Atmosferă intensă și premium"],
+    mood: "Misterios, calm, magnetic",
+    experience: "Chat privat + imagini cinematice",
+    meter: "72%"
+  },
+  "mira-vale": {
+    name: "Mira Vale",
+    theme: "mira-theme",
+    kicker: "SOFT ROMANCE COMPANION",
+    bio: "Companion AI fictiv cu energie caldă, apropiată și emoțională.",
+    lore: "Mira Vale este construită pentru conversații blânde, apropiere emoțională și o atmosferă sigură. Stilul ei este romantic, cald și sincer.",
+    tags: ["Soft Romance", "Warm", "Emotional", "Comfort"],
+    personality: ["Caldă și empatică", "Apropiată și liniștitoare", "Romantică și sinceră"],
+    mood: "Cald, blând, protector emoțional",
+    experience: "Chat emoțional + stories soft",
+    meter: "64%"
+  },
+  "kira-voss": {
+    name: "Kira Voss",
+    theme: "kira-theme",
+    kicker: "CYBERPUNK MUSE",
+    bio: "Companion AI fictiv cu vibe futurist, neon și energie magnetică.",
+    lore: "Kira Voss trăiește într-o atmosferă rece, electrică și futuristă. Este încrezătoare, directă și magnetică, cu un stil vizual cyberpunk.",
+    tags: ["Cyberpunk", "Neon", "Magnetic", "Futuristic"],
+    personality: ["Încrezătoare și directă", "Rece, dar fascinantă", "Futuristă și intensă"],
+    mood: "Electric, rece, magnetic",
+    experience: "Chat futurist + scene neon",
+    meter: "76%"
+  },
+  "luna-sable": {
+    name: "Luna Sable",
+    theme: "luna-theme",
+    kicker: "GOTH ROMANTIC COMPANION",
+    bio: "Companion AI fictiv cu personalitate poetică, intensă și dark romance.",
+    lore: "Luna Sable este construită pentru povești lente, poetice și intense. Stilul ei combină romantismul întunecat, misterul și energia gotică.",
+    tags: ["Goth", "Poetic", "Dark Romance", "Intense"],
+    personality: ["Poetică și intensă", "Romantică în stil întunecat", "Misterioasă și emoțională"],
+    mood: "Poetic, intens, nocturn",
+    experience: "Chat dark romance + unlock gallery",
+    meter: "69%"
+  },
+  "dante-vale": {
+    name: "Dante Vale",
+    theme: "dante-theme",
+    kicker: "MASCULINE LUXURY COMPANION",
+    bio: "Companion AI fictiv masculin cu energie calmă, protectivă și periculoasă.",
+    lore: "Dante Vale este construit ca o prezență masculină elegantă, controlată și protectivă. Stilul lui combină luxul, calmul și tensiunea de tip mafia romance.",
+    tags: ["Masculine", "Luxury", "Protective", "Mafia Vibe"],
+    personality: ["Calm și controlat", "Protectiv și dominant", "Elegant, dar periculos"],
+    mood: "Calm, intens, protectiv",
+    experience: "Chat premium + roleplay cinematic",
+    meter: "74%"
+  },
+  "noah-sterling": {
+    name: "Noah Sterling",
+    theme: "noah-theme",
+    kicker: "ELEGANT CEO COMPANION",
+    bio: "Companion AI fictiv masculin cu stil elegant, inteligent și premium.",
+    lore: "Noah Sterling este construit ca un companion masculin sofisticat, inteligent și atent la detalii. Energia lui este rece, elegantă și precisă.",
+    tags: ["CEO", "Elegant", "Intelligent", "Premium"],
+    personality: ["Inteligent și calculat", "Elegant și sofisticat", "Rece, dar atent"],
+    mood: "Elegant, precis, controlat",
+    experience: "Chat premium + business romance vibe",
+    meter: "66%"
+  }
+};
 
 function getSlug(){
   const params = new URLSearchParams(location.search);
   return params.get("slug") || "ava-noir";
 }
 
-function byId(id){
-  return document.getElementById(id);
-}
-
-async function spendFromProfile(type){
-  if(!window.TFP_WALLET){
-    alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
-    return;
-  }
-
-  const response = await TFP_WALLET.unlockPremium(type);
-  if(!response.ok){
-    if(response.error === "INSUFFICIENT_CREDITS"){
-      alert("Nu ai suficiente credits.");
-    } else {
-      alert(response.message || "Unlock eșuat.");
-    }
-    return;
-  }
-  renderUnlockStates(getSlug());
-  alert(response.alreadyUnlocked ? "Deja deblocat." : "Deblocare reușită.");
-}
-
-
-function renderUnlockCard(key, cardId, titleId, buttonId, unlockedTitle){
-  if(!window.TFP_WALLET){
-    return;
-  }
-
-  if(!TFP_WALLET.isUnlocked(key)){
-    return;
-  }
-
-  const card = document.getElementById(cardId);
-  const title = document.getElementById(titleId);
-  const button = document.getElementById(buttonId);
-
-  if(card){
-    card.classList.add("unlocked");
-  }
-
-  if(title){
-    title.textContent = "✅ " + unlockedTitle;
-  }
-
-  if(button){
-    button.textContent = "Accesează";
-    button.classList.remove("unlock");
-    button.classList.add("done");
-    button.disabled = true;
-  }
-}
-
-function renderUnlockStates(slug){
-
-  renderUnlockCard(
-    "private_cinematic_image",
-    "cardImage",
-    "titleImage",
-    "unlockImage",
-    "Imagine cinematică deblocată"
-  );
-
-  renderUnlockCard(
-    "special_story",
-    "cardStory",
-    "titleStory",
-    "unlockStory",
-    "Story special deblocat"
-  );
-
-  renderUnlockCard(
-    "premium_video_teaser",
-    "cardVideo",
-    "titleVideo",
-    "unlockVideo",
-    "Video teaser deblocat"
-  );
-}
-
 function applyProfile(){
   const slug = getSlug();
   const p = profiles[slug] || profiles["ava-noir"];
-  const companionSlug = p.slug || slug;
 
   document.title = p.name + " — The Future PRO";
 
-  const profileNameEl = byId("profileName");
-  const profileKickerEl = byId("profileKicker");
-  const profileBioEl = byId("profileBio");
-  const loreTextEl = byId("loreText");
-  const moodTextEl = byId("moodText");
-  const experienceTextEl = byId("experienceText");
-  const relationMeterEl = byId("relationMeter");
-  const heroBgEl = byId("heroBg");
-  const avatarArtEl = byId("avatarArt");
-  const chatBtnEl = byId("chatBtn");
-  const navChatEl = byId("navChat");
-  const galleryChatEl = byId("galleryChat");
-  const imageBtnEl = byId("imageBtn");
-  const galleryImageEl = byId("galleryImage");
-  const unlockImageBtn = byId("unlockImage");
-  const unlockStoryBtn = byId("unlockStory");
-  const unlockVideoBtn = byId("unlockVideo");
-  const tagRowEl = byId("tagRow");
-  const personalityListEl = byId("personalityList");
+  profileName.textContent = p.name;
+  profileKicker.textContent = p.kicker;
+  profileBio.textContent = p.bio;
+  loreText.textContent = p.lore;
+  moodText.textContent = p.mood;
+  experienceText.textContent = p.experience;
+  relationMeter.style.width = p.meter;
 
-  profileNameEl.textContent = p.name;
-  profileKickerEl.textContent = p.kicker;
-  profileBioEl.textContent = p.bio;
-  loreTextEl.textContent = p.lore;
-  moodTextEl.textContent = p.mood;
-  experienceTextEl.textContent = p.experience;
-  relationMeterEl.style.width = p.meter;
+  heroBg.className = "profile-bg " + p.theme;
+  avatarArt.className = "ai-portrait " + p.theme;
 
-  heroBgEl.className = "profile-bg " + p.theme;
-  avatarArtEl.className = "ai-portrait " + p.theme;
+  const chatUrl = "/chat.html?slug=" + encodeURIComponent(slug);
 
-  const chatUrl = "/chat.html?slug=" + encodeURIComponent(companionSlug);
+  chatBtn.href = chatUrl;
+  navChat.href = chatUrl;
+  galleryChat.href = chatUrl;
 
-  chatBtnEl.href = chatUrl;
-  navChatEl.href = chatUrl;
-  galleryChatEl.href = chatUrl;
+  imageBtn.href = "/gen-image.html";
+  galleryImage.href = "/gen-image.html";
 
-  imageBtnEl.href = "/gen-image.html";
-  galleryImageEl.href = "/gen-image.html";
+  unlockImage.href = "/credits.html?spend=20&label=" + encodeURIComponent("Imagine premium " + p.name + " deblocată") + "&icon=" + encodeURIComponent("🖼");
+  unlockStory.href = "/credits.html?spend=300&label=" + encodeURIComponent("Story arc " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🔓");
+  unlockVideo.href = "/credits.html?spend=90&label=" + encodeURIComponent("Video teaser " + p.name + " deblocat") + "&icon=" + encodeURIComponent("🎬");
 
-  unlockImageBtn.onclick = async function(){ unlockImageBtn.disabled = true; unlockImageBtn.textContent = "Se procesează..."; await spendFromProfile("private_cinematic_image"); unlockImageBtn.disabled=false; renderUnlockStates(companionSlug); };
-
-  unlockStoryBtn.onclick = async function(){ unlockStoryBtn.disabled = true; unlockStoryBtn.textContent = "Se procesează..."; await spendFromProfile("special_story"); unlockStoryBtn.disabled=false; renderUnlockStates(companionSlug); };
-
-  unlockVideoBtn.onclick = async function(){ unlockVideoBtn.disabled = true; unlockVideoBtn.textContent = "Se procesează..."; await spendFromProfile("premium_video_teaser"); unlockVideoBtn.disabled=false; renderUnlockStates(companionSlug); };
-
-  tagRowEl.innerHTML = "";
-
+  tagRow.innerHTML = "";
   p.tags.forEach(function(tag){
     const span = document.createElement("span");
     span.className = "tag";
     span.textContent = tag;
-    tagRowEl.appendChild(span);
+    tagRow.appendChild(span);
   });
 
-  personalityListEl.innerHTML = "";
-
+  personalityList.innerHTML = "";
   p.personality.forEach(function(item){
     const div = document.createElement("div");
     div.className = "mini-item";
     div.textContent = item;
-    personalityListEl.appendChild(div);
+    personalityList.appendChild(div);
   });
-
-  renderUnlockStates(companionSlug);
 }
 
-
-window.addEventListener("DOMContentLoaded", async function(){ if(window.TFP_WALLET){ await TFP_WALLET.sync(); } applyProfile(); });
+applyProfile();
 </script>
 
 </body>

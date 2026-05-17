@@ -137,11 +137,6 @@
       .section-title h2{font-size:28px}
     }
   </style>
-  <script src="/wallet.js" defer></script>
-  <script src="/app-state.js" defer></script>
-  <script src="/global-header.js" defer></script>
-  <script src="/companions-data.js" defer></script>
-  <script src="/global-render.js" defer></script>
 </head>
 
 <body class="home-page">
@@ -198,7 +193,7 @@
         </div>
       </div>
 
-      <div class="character-grid" id="characterGrid">
+      <div class="character-grid">
 
         <a class="character-card" href="/profile.html?slug=ava-noir">
           <div class="character-art portrait-a"></div>
@@ -399,13 +394,5 @@
     <div class="footer-space"></div>
 
   </main>
-
-<script>
-window.addEventListener("DOMContentLoaded", function(){
-  if(!window.TFP_RENDER) return;
-  const order = ["ava-noir","mira-vale","kira-voss","luna-sable","dante-vale","noah-sterling"];
-  TFP_RENDER.renderCompanionCards("#characterGrid", order);
-});
-</script>
 </body>
                                     </html>
