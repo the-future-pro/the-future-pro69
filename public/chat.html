@@ -391,8 +391,10 @@ async function send(){
   }
 }
 
-function ensurePremiumAccess(premiumKey){
-  if(TFP_WALLET.isPremiumUnlocked(premiumKey)) return true;
+function ensurePremiumAccess(baseKey){
+  const scopedKey = baseKey + ":" + slug;
+
+  if(TFP_WALLET.isPremiumUnlocked(scopedKey)) return true;
 
   alert("Acest conținut este premium. Deblochează-l cu credite pentru a continua.");
 

@@ -356,8 +356,12 @@ function applyProfile(){
   navChat.href = chatUrl;
   if(galleryChatEl) galleryChatEl.href = chatUrl;
 
-  imageBtn.href = "/gen-image.html";
-  if(galleryImageEl) galleryImageEl.href = "/gen-image.html";
+  const imageUrl = "/gen-image.html?slug=" + encodeURIComponent(slug);
+  const videoUrl = "/gen-video.html?slug=" + encodeURIComponent(slug);
+
+  imageBtn.href = imageUrl;
+  if(galleryImageEl) galleryImageEl.href = imageUrl;
+  if(galleryVideoEl) galleryVideoEl.href = videoUrl;
 
   refreshPremiumButtons(p.name);
 
@@ -396,9 +400,21 @@ const premiumItems = {
   premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", priceEl:unlockVideoEl, actionEl:galleryVideoEl, statusEl:unlockStatusVideoEl, unlockedLabel:"Video Studio" }
 };
 
+function premiumKey(baseKey){
+  return baseKey + ":" + getSlug();
+}
+
+function isPremiumUnlockedForCurrentSlug(baseKey){
+  const scoped = premiumKey(baseKey);
+
+  if(TFP_WALLET.isPremiumUnlocked(scoped)) return true;
+
+  return TFP_WALLET.isPremiumUnlocked(scoped);
+}
+
 function refreshPremiumButtons(){
   Object.entries(premiumItems).forEach(function([key, cfg]){
-    const unlocked = TFP_WALLET.isPremiumUnlocked(key);
+    const unlocked = isPremiumUnlockedForCurrentSlug(key);
     if(cfg.priceEl){
       cfg.priceEl.textContent = "-" + cfg.amount + " cr";
       cfg.priceEl.className = unlocked ? "small-btn" : "small-btn unlock";
@@ -416,9 +432,9 @@ function ensurePremiumUnlocked(key){
   const cfg = premiumItems[key];
   if(!cfg) return false;
 
-  if(TFP_WALLET.isPremiumUnlocked(key)) return true;
+  if(isPremiumUnlockedForCurrentSlug(key)) return true;
 
-  const result = TFP_WALLET.spendAndUnlockPremium(key,cfg.amount,cfg.historyLabel,cfg.icon);
+  const result = TFP_WALLET.spendAndUnlockPremium(premiumKey(key),cfg.amount,cfg.historyLabel,cfg.icon);
 
   if(!result.ok){
     alert("Nu ai suficiente credits. Mergi în pagina Credits pentru top-up.");
@@ -445,7 +461,7 @@ function bindPremiumUnlock(el, key){
 function bindPremiumAction(el, key){
   if(!el) return;
   el.addEventListener("click", function(e){
-    if(TFP_WALLET.isPremiumUnlocked(key)) return;
+    if(isPremiumUnlockedForCurrentSlug(key)) return;
 
     e.preventDefault();
     const unlocked = ensurePremiumUnlocked(key);

@@ -256,6 +256,17 @@
 <script>
 const $ = (id) => document.getElementById(id);
 
+const slugParams = new URLSearchParams(location.search);
+const currentSlug = slugParams.get("slug") || "ava-noir";
+
+function isPremiumUnlockedForSlug(baseKey){
+  const scopedKey = baseKey + ":" + currentSlug;
+
+  if(TFP_WALLET.isPremiumUnlocked(scopedKey)) return true;
+
+  return TFP_WALLET.isPremiumUnlocked(scopedKey);
+}
+
 function show(x){
   $("out").textContent =
     typeof x === "string"
@@ -383,9 +394,9 @@ function setLoading(){
 }
 
 async function runGenerate(){
-  if(!TFP_WALLET.isPremiumUnlocked("premium_video_teaser")){
+  if(!isPremiumUnlockedForSlug("premium_video_teaser")){
     alert("Acest conținut este premium. Deblochează-l cu credite pentru a continua.");
-    location.href = TFP_WALLET.getBalance() < 90 ? "/credits.html" : "/profile.html?slug=ava-noir";
+    location.href = TFP_WALLET.getBalance() < 90 ? "/credits.html" : "/profile.html?slug=" + encodeURIComponent(currentSlug);
     return;
   }
 
