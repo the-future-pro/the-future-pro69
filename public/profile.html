@@ -276,7 +276,7 @@ function getSlug(){
   return params.get("slug") || "ava-noir";
 }
 
-function spendFromProfile(amount, label, icon, unlockKey){
+function spendFromProfile(amount, labelKey, params, label, icon, unlockKey){
   if(!window.TFP_WALLET){
     alert("Wallet-ul nu este încărcat. Verifică /wallet.js.");
     return;
@@ -284,6 +284,8 @@ function spendFromProfile(amount, label, icon, unlockKey){
 
   const ok = TFP_WALLET.spendAndUnlock({
     amount,
+    labelKey,
+    params,
     label,
     icon,
     unlockKey
@@ -382,6 +384,8 @@ function applyProfile(){
   unlockImage.onclick = function(){
     spendFromProfile(
       20,
+      "premium_image_unlock",
+      {name: p.name},
       "Imagine premium " + p.name + " deblocată",
       "🖼",
       "profile_image_" + slug
@@ -391,6 +395,8 @@ function applyProfile(){
   unlockStory.onclick = function(){
     spendFromProfile(
       300,
+      "premium_story_unlock",
+      {name: p.name},
       "Story arc " + p.name + " deblocat",
       "🔓",
       "profile_story_" + slug
@@ -400,6 +406,8 @@ function applyProfile(){
   unlockVideo.onclick = function(){
     spendFromProfile(
       90,
+      "premium_video_unlock",
+      {name: p.name},
       "Video teaser " + p.name + " deblocat",
       "🎬",
       "profile_video_" + slug

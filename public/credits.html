@@ -266,11 +266,11 @@
 
 <script>
 function addCredits(amount){
-  TFP_WALLET.add(
-    amount,
-    "Pachet credits mock adăugat",
-    "💳"
-  );
+  TFP_WALLET.add(amount,{
+    labelKey: "credits_purchase",
+    text: "Pachet credits mock adăugat",
+    icon: "💳"
+  });
 
   renderWallet();
 }
@@ -321,7 +321,7 @@ function renderWallet(){
       <div class="history-left">
         <div class="history-icon">${escapeHtml(item.icon || (type === "good" ? "💳" : "🔓"))}</div>
         <div>
-          <div class="history-title">${escapeHtml(item.text)}</div>
+          <div class="history-title">${escapeHtml(resolveHistoryLabel(item))}</div>
           <small class="history-date">${escapeHtml(item.date)}</small>
         </div>
       </div>
@@ -333,6 +333,19 @@ function renderWallet(){
 
     el.appendChild(d);
   });
+}
+
+
+function resolveHistoryLabel(item){
+  if(window.translateHistoryLabel && item && item.labelKey){
+    return window.translateHistoryLabel(
+      item.labelKey,
+      item.params || {},
+      item.text || item.label || ""
+    );
+  }
+
+  return (item && (item.text || item.label)) || "Activitate credits";
 }
 
 function escapeHtml(str){
