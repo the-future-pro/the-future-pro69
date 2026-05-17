@@ -315,7 +315,12 @@
           <h2>Companionii tăi</h2>
           <p>Companioni creați local de tine și salvați în browser.</p>
         </div>
-        <a class="main-btn" href="/create-companion.html">Creează companion</a>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button id="exportCustomCompanionsBtn" class="ghost-btn" type="button">Exportă companionii</button>
+          <button id="importCustomCompanionsBtn" class="ghost-btn" type="button">Importă companionii</button>
+          <input id="importCustomCompanionsInput" type="file" accept=".json,application/json" style="display:none"/>
+          <a class="main-btn" href="/create-companion.html">Creează companion</a>
+        </div>
       </div>
       <div id="customCompanionGrid" class="character-grid"></div>
     </section>
@@ -437,6 +442,65 @@ function escapeHtml(str){
     .replaceAll("'","&#039;");
 }
 
+
+function exportCustomCompanions(){
+  const companions = TFP_COMPANIONS.getCustomCompanions();
+  const payload = JSON.stringify(companions, null, 2);
+  const blob = new Blob([payload], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "tfp-custom-companions-export.json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importCustomCompanionsFromText(fileText){
+  let parsed;
+  try{
+    parsed = JSON.parse(String(fileText || ""));
+  }catch(e){
+    alert("Fișier JSON invalid.");
+    return;
+  }
+
+  if(!Array.isArray(parsed)){
+    alert("Import invalid: fișierul trebuie să conțină un array de companioni.");
+    return;
+  }
+
+  const existing = TFP_COMPANIONS.getCustomCompanions();
+  const merged = existing.slice();
+  const knownSlugs = new Set(existing.map(function(item){ return item && item.slug; }).filter(Boolean));
+  const reservedSlugs = new Set(["ava-noir","mira-vale","kira-voss","luna-sable","dante-vale","noah-sterling"]);
+  let importedCount = 0;
+  let duplicatesCount = 0;
+  let reservedCount = 0;
+
+  parsed.forEach(function(item){
+    if(!item || typeof item !== "object" || Array.isArray(item)) return;
+    const normalized = TFP_COMPANIONS.createCompanionFromData(item);
+    if(!normalized || !normalized.slug) return;
+    if(reservedSlugs.has(normalized.slug)){
+      reservedCount += 1;
+      return;
+    }
+    if(knownSlugs.has(normalized.slug)){
+      duplicatesCount += 1;
+      return;
+    }
+    knownSlugs.add(normalized.slug);
+    merged.push(normalized);
+    importedCount += 1;
+  });
+
+  TFP_COMPANIONS.saveCustomCompanions(merged);
+  renderCustomCompanions();
+  alert("Import finalizat. Companionii noi importați: " + importedCount + ". Dubluri ignorate: " + duplicatesCount + ". Slug-uri rezervate ignorate: " + reservedCount + ".");
+}
+
 function deleteCustomCompanionBySlug(slug){
   const companions = TFP_COMPANIONS.getCustomCompanions();
   const filtered = companions.filter(function(item){
@@ -488,6 +552,33 @@ function renderCustomCompanions(){
 window.addEventListener("DOMContentLoaded", function(){
   const gridEl = document.getElementById("customCompanionGrid");
   if(!gridEl) return;
+
+  const exportBtn = document.getElementById("exportCustomCompanionsBtn");
+  if(exportBtn){
+    exportBtn.addEventListener("click", exportCustomCompanions);
+  }
+
+  const importBtn = document.getElementById("importCustomCompanionsBtn");
+  const importInput = document.getElementById("importCustomCompanionsInput");
+  if(importBtn && importInput){
+    importBtn.addEventListener("click", function(){
+      importInput.value = "";
+      importInput.click();
+    });
+
+    importInput.addEventListener("change", function(event){
+      const file = event.target.files && event.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(){
+        importCustomCompanionsFromText(reader.result);
+      };
+      reader.onerror = function(){
+        alert("Nu am putut citi fișierul selectat.");
+      };
+      reader.readAsText(file);
+    });
+  }
 
   gridEl.addEventListener("click", function(event){
     const editBtn = event.target.closest(".js-edit-custom-companion");
