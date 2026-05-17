@@ -391,7 +391,8 @@ async function runGenerate(){
     prompt: ($("storyboard").value || "").trim(),
     negativeExtra: ($("negative").value || "").trim(),
     seconds: Number($("seconds").value),
-    quality: $("quality").value
+    quality: $("quality").value,
+    unlockType: "premium_video_teaser"
   };
 
   if(!payload.prompt){
@@ -428,6 +429,7 @@ async function runGenerate(){
     show(data);
 
     if(!r.ok || !data.ok){
+      if(data && data.error === "PREMIUM_LOCKED"){ alert("Acest conținut este premium. Deblochează-l cu credite pentru a continua."); return; }
       setSoftErrorBox(data);
       return;
     }

@@ -216,7 +216,7 @@ async function spendFromProfile(type, amount, unlockKey){
 
   const response = await TFP_WALLET.unlockPremium(type, amount);
   if(!response.ok){
-    alert(response.error === "insufficient_credits" ? "Nu ai suficiente credits." : "Unlock eșuat.");
+    alert(response.error === "INSUFFICIENT_CREDITS" ? "Nu ai suficiente credits." : "Unlock eșuat.");
     return;
   }
   renderUnlockStates(getSlug());
@@ -256,7 +256,7 @@ function renderUnlockCard(key, cardId, titleId, buttonId, unlockedTitle){
 function renderUnlockStates(slug){
 
   renderUnlockCard(
-    "profile_image_" + slug,
+    "private_cinematic_image",
     "cardImage",
     "titleImage",
     "unlockImage",
@@ -264,7 +264,7 @@ function renderUnlockStates(slug){
   );
 
   renderUnlockCard(
-    "profile_story_" + slug,
+    "special_story",
     "cardStory",
     "titleStory",
     "unlockStory",
@@ -272,7 +272,7 @@ function renderUnlockStates(slug){
   );
 
   renderUnlockCard(
-    "profile_video_" + slug,
+    "premium_video_teaser",
     "cardVideo",
     "titleVideo",
     "unlockVideo",
@@ -331,7 +331,7 @@ function applyProfile(){
 
   unlockStoryBtn.onclick = async function(){ unlockStoryBtn.disabled = true; unlockStoryBtn.textContent = "Se procesează..."; await spendFromProfile("special_story",300,"profile_story_" + companionSlug); unlockStoryBtn.disabled=false; renderUnlockStates(companionSlug); };
 
-  unlockVideoBtn.onclick = async function(){ unlockVideoBtn.disabled = true; unlockVideoBtn.textContent = "Se procesează..."; await spendFromProfile("video_teaser",90,"profile_video_" + companionSlug); unlockVideoBtn.disabled=false; renderUnlockStates(companionSlug); };
+  unlockVideoBtn.onclick = async function(){ unlockVideoBtn.disabled = true; unlockVideoBtn.textContent = "Se procesează..."; await spendFromProfile("premium_video_teaser",90,"profile_video_" + companionSlug); unlockVideoBtn.disabled=false; renderUnlockStates(companionSlug); };
 
   tagRowEl.innerHTML = "";
 
