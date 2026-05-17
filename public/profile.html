@@ -237,6 +237,17 @@
     </div>
   </section>
 
+  <section class="panel" style="margin-top:18px">
+    <h2>
+      Creațiile tale cu
+      <span id="companionCreationTitleName" data-no-translate data-character-name>Ava Noir</span>
+    </h2>
+    <div class="locked-actions" style="margin-top:10px;margin-bottom:12px">
+      <a id="companionCreateImageLink" class="small-btn" href="/gen-image.html?slug=ava-noir">Creează imagine</a>
+      <a id="companionCreateVideoLink" class="small-btn" href="/gen-video.html?slug=ava-noir">Creează video</a>
+    </div>
+    <div id="companionCreationHistoryList" class="mini-list"></div>
+  </section>
   <footer class="home-footer">
     <span data-no-translate>© The Future — PRO</span>
 
@@ -257,6 +268,75 @@
 function getSlug(){
   const params = new URLSearchParams(location.search);
   return params.get("slug") || "ava-noir";
+}
+
+
+function escapeHtml(str){
+  return String(str || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function getCreationHistoryReadOnly(){
+  try{
+    const raw = localStorage.getItem("tfp_creation_history");
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function getCreationTypeLabel(type){
+  if(type === "image_demo" || type === "image_real") return "Imagine";
+  if(type === "video_demo" || type === "video_real") return "Video";
+  return "Creație";
+}
+
+function renderCompanionCreationHistory(slug, companionName){
+  const listEl = document.getElementById("companionCreationHistoryList");
+  const titleNameEl = document.getElementById("companionCreationTitleName");
+  const imageLinkEl = document.getElementById("companionCreateImageLink");
+  const videoLinkEl = document.getElementById("companionCreateVideoLink");
+
+  if(titleNameEl) titleNameEl.textContent = companionName || "Companion";
+  if(imageLinkEl) imageLinkEl.href = "/gen-image.html?slug=" + encodeURIComponent(slug);
+  if(videoLinkEl) videoLinkEl.href = "/gen-video.html?slug=" + encodeURIComponent(slug);
+
+  if(!listEl) return;
+
+  const items = getCreationHistoryReadOnly()
+    .filter(function(item){
+      return item && typeof item === "object" && item.companionSlug === slug;
+    })
+    .slice(0,5);
+
+  if(!items.length){
+    listEl.innerHTML = '<div class="mini-item muted">Nu ai creații pentru acest companion încă.</div>';
+    return;
+  }
+
+  listEl.innerHTML = items.map(function(item){
+    const typeLabel = getCreationTypeLabel(item.type);
+    const modeLabel = item.mode ? String(item.mode) : "-";
+    const rawText = item.prompt || item.storyboard || item.enrichedPrompt || item.enrichedStoryboard || "-";
+    const shortText = String(rawText).slice(0,120);
+    const safeDate = new Date(item.date || Date.now());
+    const dateText = Number.isNaN(safeDate.getTime())
+      ? "-"
+      : safeDate.toLocaleString("ro-RO");
+
+    return `
+      <div class="mini-item">
+        <strong>${escapeHtml(typeLabel)} • ${escapeHtml(modeLabel)}</strong>
+        <div class="muted" style="font-size:13px">${escapeHtml(shortText)}</div>
+        <div class="muted" style="font-size:12px;margin-top:6px">${escapeHtml(dateText)}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 function applyProfile(){
@@ -291,6 +371,7 @@ function applyProfile(){
   if(galleryImageEl) galleryImageEl.href = imageUrl;
   if(galleryVideoEl) galleryVideoEl.href = videoUrl;
 
+  renderCompanionCreationHistory(slug, p.name);
   refreshPremiumButtons(p.name);
 
   tagRow.innerHTML = "";
