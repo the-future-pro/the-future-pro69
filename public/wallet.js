@@ -46,9 +46,15 @@
     getHistory(){
 
       try{
-        return JSON.parse(
+        const raw = JSON.parse(
           localStorage.getItem(this.historyKey) || "[]"
         );
+
+        if(!Array.isArray(raw)){
+          return [];
+        }
+
+        return raw.map((item) => this.normalizeHistoryEntry(item));
       }catch(e){
         return [];
       }
@@ -61,6 +67,45 @@
         this.historyKey,
         JSON.stringify(items.slice(0,50))
       );
+
+    },
+
+
+    normalizeHistoryEntry(raw){
+
+      const item = raw && typeof raw === "object" ? raw : {};
+
+      const normalizeText = (value, fallback) => {
+        if(typeof value === "string"){
+          return value;
+        }
+
+        if(value && typeof value === "object"){
+          if(typeof value.text === "string"){
+            return value.text;
+          }
+          if(typeof value.label === "string"){
+            return value.label;
+          }
+        }
+
+        return fallback;
+      };
+
+      const normalizeParams =
+        item.params && typeof item.params === "object"
+          ? item.params
+          : {};
+
+      return {
+        text: normalizeText(item.text || item.label, "Activitate credits"),
+        labelKey: typeof item.labelKey === "string" ? item.labelKey : "",
+        params: normalizeParams,
+        amount: normalizeText(item.amount, "0 cr"),
+        type: item.type === "bad" ? "bad" : "good",
+        icon: normalizeText(item.icon, "🔓"),
+        date: normalizeText(item.date, new Date().toLocaleString("ro-RO"))
+      };
 
     },
 
@@ -82,15 +127,18 @@
             icon: icon || "🔓"
           };
 
-      items.unshift({
-        text: entry.text || "Activitate credits",
-        labelKey: entry.labelKey || "",
-        params: entry.params && typeof entry.params === "object" ? entry.params : {},
-        amount: entry.amount || "0 cr",
-        type: entry.type || "bad",
-        icon: entry.icon || "🔓",
-        date: entry.date || new Date().toLocaleString("ro-RO")
-      });
+      items.unshift(
+        this.normalizeHistoryEntry({
+          text: entry.text,
+          label: entry.label,
+          labelKey: entry.labelKey,
+          params: entry.params,
+          amount: entry.amount,
+          type: entry.type || "bad",
+          icon: entry.icon,
+          date: entry.date
+        })
+      );
 
       this.saveHistory(items);
 
