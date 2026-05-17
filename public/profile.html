@@ -201,7 +201,7 @@
           <span id="unlockStatusImage" style="display:none;margin-top:8px;color:#34d399;font-size:13px;font-weight:700">✅ Deblocat — poți folosi acum funcția premium</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockImage" class="small-btn unlock" href="#">-20 cr</a>
+          <span id="unlockImage" class="small-btn unlock" role="status" aria-label="Cost unlock imagine cinematică privată">-20 cr</span>
           <a class="small-btn" id="galleryImage" href="/gen-image.html">Generează vibe</a>
         </div>
       </div>
@@ -213,7 +213,7 @@
           <span id="unlockStatusStory" style="display:none;margin-top:8px;color:#34d399;font-size:13px;font-weight:700">✅ Deblocat — poți folosi acum funcția premium</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockStory" class="small-btn unlock" href="#">-300 cr</a>
+          <span id="unlockStory" class="small-btn unlock" role="status" aria-label="Cost unlock story special">-300 cr</span>
           <a class="small-btn" id="galleryChat" href="/chat.html?slug=ava-noir">Continuă chat</a>
         </div>
       </div>
@@ -225,8 +225,8 @@
           <span id="unlockStatusVideo" style="display:none;margin-top:8px;color:#34d399;font-size:13px;font-weight:700">✅ Deblocat — poți folosi acum funcția premium</span>
         </div>
         <div class="locked-actions">
-          <a id="unlockVideo" class="small-btn unlock" href="#">-90 cr</a>
-          <a class="small-btn" href="/gen-video.html">Video Studio</a>
+          <span id="unlockVideo" class="small-btn unlock" role="status" aria-label="Cost unlock video teaser premium">-90 cr</span>
+          <a class="small-btn" id="galleryVideo" href="/gen-video.html">Video Studio</a>
         </div>
       </div>
     </div>
@@ -377,51 +377,58 @@ function applyProfile(){
 
 
 const premiumItems = {
-  private_cinematic_image: { amount:20, historyLabel:"Imagine cinematică privată", icon:"🖼", btn:unlockImage, status:unlockStatusImage },
-  special_story: { amount:300, historyLabel:"Story special", icon:"🔓", btn:unlockStory, status:unlockStatusStory },
-  premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", btn:unlockVideo, status:unlockStatusVideo }
+  private_cinematic_image: { amount:20, historyLabel:"Imagine cinematică privată", icon:"🖼", priceEl:unlockImage, actionEl:galleryImage, unlockedLabel:"Accesează" },
+  special_story: { amount:300, historyLabel:"Story special", icon:"🔓", priceEl:unlockStory, actionEl:galleryChat, unlockedLabel:"Continuă chat" },
+  premium_video_teaser: { amount:90, historyLabel:"Video teaser premium", icon:"🎬", priceEl:unlockVideo, actionEl:galleryVideo, unlockedLabel:"Video Studio" }
 };
 
-function refreshPremiumButtons(name){
+function refreshPremiumButtons(){
   Object.entries(premiumItems).forEach(function([key, cfg]){
     const unlocked = TFP_WALLET.isPremiumUnlocked(key);
-    cfg.btn.textContent = unlocked ? "Deblocat" : ("-" + cfg.amount + " cr");
-    cfg.btn.className = unlocked ? "small-btn" : "small-btn unlock";
+    cfg.priceEl.textContent = "-" + cfg.amount + " cr";
+    cfg.priceEl.className = unlocked ? "small-btn" : "small-btn unlock";
+    cfg.status = key === "private_cinematic_image" ? unlockStatusImage : key === "special_story" ? unlockStatusStory : unlockStatusVideo;
     cfg.status.style.display = unlocked ? "block" : "none";
+    cfg.actionEl.textContent = unlocked ? cfg.unlockedLabel : cfg.actionEl.textContent;
   });
 }
 
-function attemptUnlockPremium(key, companionName){
+function ensurePremiumUnlocked(key){
   const cfg = premiumItems[key];
-  if(!cfg) return;
+  if(!cfg) return false;
 
-  const result = TFP_WALLET.spendAndUnlockPremium(
-    key,
-    cfg.amount,
-    cfg.historyLabel,
-    cfg.icon
-  );
+  if(TFP_WALLET.isPremiumUnlocked(key)) return true;
+
+  const result = TFP_WALLET.spendAndUnlockPremium(key,cfg.amount,cfg.historyLabel,cfg.icon);
 
   if(!result.ok){
     alert("Nu ai suficiente credits. Mergi în pagina Credits pentru top-up.");
     location.href = "/credits.html";
-    return;
+    return false;
   }
 
   if(!result.alreadyUnlocked){
     alert("Deblocat cu succes.");
   }
 
-  refreshPremiumButtons(companionName);
+  refreshPremiumButtons();
+  return true;
 }
 
+function bindPremiumAction(el, key){
+  el.addEventListener("click", function(e){
+    if(TFP_WALLET.isPremiumUnlocked(key)) return;
+    e.preventDefault();
+    ensurePremiumUnlocked(key);
+  });
+}
 
 applyProfile();
 
-unlockImage.addEventListener("click", function(e){ e.preventDefault(); attemptUnlockPremium("private_cinematic_image", profileName.textContent || "companion"); });
-unlockStory.addEventListener("click", function(e){ e.preventDefault(); attemptUnlockPremium("special_story", profileName.textContent || "companion"); });
-unlockVideo.addEventListener("click", function(e){ e.preventDefault(); attemptUnlockPremium("premium_video_teaser", profileName.textContent || "companion"); });
-window.addEventListener("tfp:premium-updated", function(){ refreshPremiumButtons(profileName.textContent || "companion"); });
+bindPremiumAction(galleryImage, "private_cinematic_image");
+bindPremiumAction(galleryChat, "special_story");
+bindPremiumAction(galleryVideo, "premium_video_teaser");
+window.addEventListener("tfp:premium-updated", refreshPremiumButtons);
 </script>
 
 </body>

@@ -391,7 +391,7 @@ async function send(){
   }
 }
 
-async function ensurePremiumAccess(premiumKey){
+function ensurePremiumAccess(premiumKey){
   if(TFP_WALLET.isPremiumUnlocked(premiumKey)) return true;
 
   alert("Acest conținut este premium. Deblochează-l cu credite pentru a continua.");
