@@ -5,6 +5,46 @@ const TFP_WALLET = {
   historyKey: "tfp_mock_credits_history",
   defaultBalance: 240,
 
+  premiumKey: "tfp_premium_unlocks",
+
+  getPremiumUnlocks(){
+    try{
+      const data = JSON.parse(localStorage.getItem(this.premiumKey) || "{}");
+      return data && typeof data === "object" ? data : {};
+    }catch(e){
+      return {};
+    }
+  },
+
+  isPremiumUnlocked(key){
+    return this.getPremiumUnlocks()[key] === true;
+  },
+
+  unlockPremium(key){
+    if(!key) return false;
+
+    const all = this.getPremiumUnlocks();
+    all[key] = true;
+    localStorage.setItem(this.premiumKey, JSON.stringify(all));
+    window.dispatchEvent(new CustomEvent("tfp:premium-updated", { detail: { key } }));
+    return true;
+  },
+
+  spendAndUnlockPremium(key, amount, label, icon){
+    if(this.isPremiumUnlocked(key)){
+      return { ok:true, alreadyUnlocked:true };
+    }
+
+    const ok = this.spend(amount, label, icon);
+    if(!ok){
+      return { ok:false, insufficient:true };
+    }
+
+    this.unlockPremium(key);
+    return { ok:true, unlockedNow:true };
+  },
+
+
   getBalance(){
     return Number(localStorage.getItem(this.balanceKey) || this.defaultBalance);
   },
