@@ -176,14 +176,24 @@ if(!profile){
 }
 const safeFace = (profile && profile.face) || "ava-face";
 
-document.title = (profile ? profile.name : "Companion") + " Chat — The Future PRO";
-document.getElementById("title").textContent = profile ? profile.name : "Companion";
-document.getElementById("title").setAttribute("data-no-translate", "");
-document.getElementById("title").setAttribute("data-character-name", "");
-document.getElementById("vibeText").textContent = (profile && profile.vibe) || "premium companion";
-document.getElementById("avatarArt").className = "ai-face " + safeFace;
-document.getElementById("profileLink").href = "/profile.html?slug=" + encodeURIComponent(slug);
-document.getElementById("backProfile").href = "/profile.html?slug=" + encodeURIComponent(slug);
+function applyCompanionHeader(companion){
+  const active = companion || (companionsApi ? companionsApi.getCompanionBySlug(slug) : null);
+  const activeFace = (active && active.face) || "ava-face";
+
+  document.title = (active ? active.name : "Companion") + " Chat — The Future PRO";
+  document.getElementById("title").textContent = active ? active.name : "Companion";
+  document.getElementById("title").setAttribute("data-no-translate", "");
+  document.getElementById("title").setAttribute("data-character-name", "");
+  document.getElementById("vibeText").textContent = (active && active.vibe) || "premium companion";
+  document.getElementById("avatarArt").className = "ai-face " + activeFace;
+  document.getElementById("profileLink").href = "/profile.html?slug=" + encodeURIComponent(slug);
+  document.getElementById("backProfile").href = "/profile.html?slug=" + encodeURIComponent(slug);
+}
+
+applyCompanionHeader(profile);
+window.addEventListener("tfp:companions-updated", function(){
+  applyCompanionHeader();
+});
 
 const j = (u,o)=>fetch(u,{
   method:o?.method || "GET",

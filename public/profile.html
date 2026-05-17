@@ -545,6 +545,9 @@ function initProfilePremiumFlow(){
 
   window.addEventListener("tfp:premium-updated", refreshPremiumButtons);
   window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);
+  window.addEventListener("tfp:companions-updated", function(){
+    applyProfile();
+  });
   refreshHeaderCredits();
 }
 
