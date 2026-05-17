@@ -882,6 +882,7 @@ app.post("/api/wallet/add", requireLogin, (req, res) => {
   const wallet = ensureWallet(userKey(req));
   wallet.balance += amount;
   const transaction = {
+    id: "tx_" + Date.now() + "_" + Math.floor(Math.random() * 100000),
     amount,
     type: "topup",
     label: String(req.body?.text || "Pachet credits"),
@@ -921,6 +922,7 @@ app.post("/api/premium/unlock", requireLogin, (req, res) => {
   wallet.balance -= item.cost;
   wallet.unlocks[type] = { unlocked: true, createdAt: new Date().toISOString(), cost: item.cost, label: item.label };
   const transaction = {
+    id: "tx_" + Date.now() + "_" + Math.floor(Math.random() * 100000),
     amount: -item.cost,
     type: "premium_unlock",
     label: item.label,

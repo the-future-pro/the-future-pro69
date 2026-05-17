@@ -7,7 +7,54 @@
   <title>Premium — The Future PRO</title>
 
   <link rel="stylesheet" href="/style.css" />
-  <script src="/i18n.js" defer></script>
+  <script src="/i18n.js" defer>
+
+
+const PREMIUM_CARDS = [
+  { type: 'private_cinematic_image', title: 'Imagine cinematică privată', cost: 20, cta: 'Generează vibe', href: '/gen-image.html' },
+  { type: 'special_story', title: 'Story special', cost: 300, cta: 'Continuă chat', href: '/chat.html?slug=ava-noir' },
+  { type: 'premium_video_teaser', title: 'Video teaser premium', cost: 90, cta: 'Video Studio', href: '/gen-video.html' }
+];
+
+function renderPremiumCards(){
+  const host = document.getElementById('premiumCards');
+  host.innerHTML = '';
+  PREMIUM_CARDS.forEach((item)=>{
+    const unlocked = TFP_WALLET.isUnlocked(item.type);
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (unlocked ? ' pro' : '');
+    card.innerHTML = `
+      <span class="plan-badge">${unlocked ? 'DEBLOCAT' : 'LOCKED'}</span>
+      <h3>${item.title}</h3>
+      <div class="price">${item.cost} CR</div>
+      <button class="${unlocked ? 'ghost-btn' : 'main-btn'}" style="width:100%;border:${unlocked ? '1px solid var(--line)' : '0'}">${unlocked ? 'Accesează' : '🔒 ' + item.cta}</button>
+    `;
+    card.querySelector('button').onclick = async ()=>{
+      if(unlocked){ window.location.href = item.href; return; }
+      const resp = await TFP_WALLET.unlockPremium(item.type);
+      if(!resp.ok){ alert(resp.message || resp.error || 'Unlock eșuat'); return; }
+      if(resp.alreadyUnlocked){ window.location.href = item.href; return; }
+      alert('Deblocat cu succes!');
+      await TFP_WALLET.sync();
+      updatePremiumWallet();
+      renderPremiumCards();
+    };
+    host.appendChild(card);
+  });
+}
+
+function updatePremiumWallet(){
+  document.getElementById('walletBalancePremium').textContent = `Balance: ${TFP_WALLET.getBalance()} CR`;
+}
+
+async function bootPremiumGallery(){
+  await TFP_WALLET.sync();
+  updatePremiumWallet();
+  renderPremiumCards();
+}
+bootPremiumGallery();
+
+</script>
 
   <style>
     .premium-shell{max-width:1240px;margin:0 auto;padding:18px}
@@ -91,9 +138,150 @@
       .premium-hero h1{letter-spacing:-2px}
     }
   </style>
-  <script src="/wallet.js" defer></script>
-  <script src="/app-state.js" defer></script>
-  <script src="/global-header.js" defer></script>
+  <script src="/wallet.js" defer>
+
+
+const PREMIUM_CARDS = [
+  { type: 'private_cinematic_image', title: 'Imagine cinematică privată', cost: 20, cta: 'Generează vibe', href: '/gen-image.html' },
+  { type: 'special_story', title: 'Story special', cost: 300, cta: 'Continuă chat', href: '/chat.html?slug=ava-noir' },
+  { type: 'premium_video_teaser', title: 'Video teaser premium', cost: 90, cta: 'Video Studio', href: '/gen-video.html' }
+];
+
+function renderPremiumCards(){
+  const host = document.getElementById('premiumCards');
+  host.innerHTML = '';
+  PREMIUM_CARDS.forEach((item)=>{
+    const unlocked = TFP_WALLET.isUnlocked(item.type);
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (unlocked ? ' pro' : '');
+    card.innerHTML = `
+      <span class="plan-badge">${unlocked ? 'DEBLOCAT' : 'LOCKED'}</span>
+      <h3>${item.title}</h3>
+      <div class="price">${item.cost} CR</div>
+      <button class="${unlocked ? 'ghost-btn' : 'main-btn'}" style="width:100%;border:${unlocked ? '1px solid var(--line)' : '0'}">${unlocked ? 'Accesează' : '🔒 ' + item.cta}</button>
+    `;
+    card.querySelector('button').onclick = async ()=>{
+      if(unlocked){ window.location.href = item.href; return; }
+      const resp = await TFP_WALLET.unlockPremium(item.type);
+      if(!resp.ok){ alert(resp.message || resp.error || 'Unlock eșuat'); return; }
+      if(resp.alreadyUnlocked){ window.location.href = item.href; return; }
+      alert('Deblocat cu succes!');
+      await TFP_WALLET.sync();
+      updatePremiumWallet();
+      renderPremiumCards();
+    };
+    host.appendChild(card);
+  });
+}
+
+function updatePremiumWallet(){
+  document.getElementById('walletBalancePremium').textContent = `Balance: ${TFP_WALLET.getBalance()} CR`;
+}
+
+async function bootPremiumGallery(){
+  await TFP_WALLET.sync();
+  updatePremiumWallet();
+  renderPremiumCards();
+}
+bootPremiumGallery();
+
+</script>
+  <script src="/app-state.js" defer>
+
+
+const PREMIUM_CARDS = [
+  { type: 'private_cinematic_image', title: 'Imagine cinematică privată', cost: 20, cta: 'Generează vibe', href: '/gen-image.html' },
+  { type: 'special_story', title: 'Story special', cost: 300, cta: 'Continuă chat', href: '/chat.html?slug=ava-noir' },
+  { type: 'premium_video_teaser', title: 'Video teaser premium', cost: 90, cta: 'Video Studio', href: '/gen-video.html' }
+];
+
+function renderPremiumCards(){
+  const host = document.getElementById('premiumCards');
+  host.innerHTML = '';
+  PREMIUM_CARDS.forEach((item)=>{
+    const unlocked = TFP_WALLET.isUnlocked(item.type);
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (unlocked ? ' pro' : '');
+    card.innerHTML = `
+      <span class="plan-badge">${unlocked ? 'DEBLOCAT' : 'LOCKED'}</span>
+      <h3>${item.title}</h3>
+      <div class="price">${item.cost} CR</div>
+      <button class="${unlocked ? 'ghost-btn' : 'main-btn'}" style="width:100%;border:${unlocked ? '1px solid var(--line)' : '0'}">${unlocked ? 'Accesează' : '🔒 ' + item.cta}</button>
+    `;
+    card.querySelector('button').onclick = async ()=>{
+      if(unlocked){ window.location.href = item.href; return; }
+      const resp = await TFP_WALLET.unlockPremium(item.type);
+      if(!resp.ok){ alert(resp.message || resp.error || 'Unlock eșuat'); return; }
+      if(resp.alreadyUnlocked){ window.location.href = item.href; return; }
+      alert('Deblocat cu succes!');
+      await TFP_WALLET.sync();
+      updatePremiumWallet();
+      renderPremiumCards();
+    };
+    host.appendChild(card);
+  });
+}
+
+function updatePremiumWallet(){
+  document.getElementById('walletBalancePremium').textContent = `Balance: ${TFP_WALLET.getBalance()} CR`;
+}
+
+async function bootPremiumGallery(){
+  await TFP_WALLET.sync();
+  updatePremiumWallet();
+  renderPremiumCards();
+}
+bootPremiumGallery();
+
+</script>
+  <script src="/global-header.js" defer>
+
+
+const PREMIUM_CARDS = [
+  { type: 'private_cinematic_image', title: 'Imagine cinematică privată', cost: 20, cta: 'Generează vibe', href: '/gen-image.html' },
+  { type: 'special_story', title: 'Story special', cost: 300, cta: 'Continuă chat', href: '/chat.html?slug=ava-noir' },
+  { type: 'premium_video_teaser', title: 'Video teaser premium', cost: 90, cta: 'Video Studio', href: '/gen-video.html' }
+];
+
+function renderPremiumCards(){
+  const host = document.getElementById('premiumCards');
+  host.innerHTML = '';
+  PREMIUM_CARDS.forEach((item)=>{
+    const unlocked = TFP_WALLET.isUnlocked(item.type);
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (unlocked ? ' pro' : '');
+    card.innerHTML = `
+      <span class="plan-badge">${unlocked ? 'DEBLOCAT' : 'LOCKED'}</span>
+      <h3>${item.title}</h3>
+      <div class="price">${item.cost} CR</div>
+      <button class="${unlocked ? 'ghost-btn' : 'main-btn'}" style="width:100%;border:${unlocked ? '1px solid var(--line)' : '0'}">${unlocked ? 'Accesează' : '🔒 ' + item.cta}</button>
+    `;
+    card.querySelector('button').onclick = async ()=>{
+      if(unlocked){ window.location.href = item.href; return; }
+      const resp = await TFP_WALLET.unlockPremium(item.type);
+      if(!resp.ok){ alert(resp.message || resp.error || 'Unlock eșuat'); return; }
+      if(resp.alreadyUnlocked){ window.location.href = item.href; return; }
+      alert('Deblocat cu succes!');
+      await TFP_WALLET.sync();
+      updatePremiumWallet();
+      renderPremiumCards();
+    };
+    host.appendChild(card);
+  });
+}
+
+function updatePremiumWallet(){
+  document.getElementById('walletBalancePremium').textContent = `Balance: ${TFP_WALLET.getBalance()} CR`;
+}
+
+async function bootPremiumGallery(){
+  await TFP_WALLET.sync();
+  updatePremiumWallet();
+  renderPremiumCards();
+}
+bootPremiumGallery();
+
+</script>
 </head>
 
 <body class="home-page">
@@ -249,6 +437,20 @@
     </div>
   </section>
 
+
+  <section style="margin-top:28px" id="gallery">
+    <div class="section-head">
+      <span>PREMIUM GALLERY</span>
+      <h2>Deblocări premium cu credits</h2>
+      <p>Deblocările sunt persistente pe sesiune, iar prețurile sunt validate de backend.</p>
+    </div>
+    <div class="plans-grid" id="premiumCards"></div>
+    <div class="quick-links" style="margin-top:12px">
+      <strong id="walletBalancePremium">Balance: - CR</strong>
+      <a class="ghost-btn" href="/credits.html">Vezi wallet & istoric</a>
+    </div>
+  </section>
+
   <footer class="home-footer">
     <span data-no-translate>© The Future — PRO</span>
 
@@ -356,6 +558,53 @@ function escapeHtml(str){
 
 refreshMe();
 loadPersonas();
+
+
+
+const PREMIUM_CARDS = [
+  { type: 'private_cinematic_image', title: 'Imagine cinematică privată', cost: 20, cta: 'Generează vibe', href: '/gen-image.html' },
+  { type: 'special_story', title: 'Story special', cost: 300, cta: 'Continuă chat', href: '/chat.html?slug=ava-noir' },
+  { type: 'premium_video_teaser', title: 'Video teaser premium', cost: 90, cta: 'Video Studio', href: '/gen-video.html' }
+];
+
+function renderPremiumCards(){
+  const host = document.getElementById('premiumCards');
+  host.innerHTML = '';
+  PREMIUM_CARDS.forEach((item)=>{
+    const unlocked = TFP_WALLET.isUnlocked(item.type);
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (unlocked ? ' pro' : '');
+    card.innerHTML = `
+      <span class="plan-badge">${unlocked ? 'DEBLOCAT' : 'LOCKED'}</span>
+      <h3>${item.title}</h3>
+      <div class="price">${item.cost} CR</div>
+      <button class="${unlocked ? 'ghost-btn' : 'main-btn'}" style="width:100%;border:${unlocked ? '1px solid var(--line)' : '0'}">${unlocked ? 'Accesează' : '🔒 ' + item.cta}</button>
+    `;
+    card.querySelector('button').onclick = async ()=>{
+      if(unlocked){ window.location.href = item.href; return; }
+      const resp = await TFP_WALLET.unlockPremium(item.type);
+      if(!resp.ok){ alert(resp.message || resp.error || 'Unlock eșuat'); return; }
+      if(resp.alreadyUnlocked){ window.location.href = item.href; return; }
+      alert('Deblocat cu succes!');
+      await TFP_WALLET.sync();
+      updatePremiumWallet();
+      renderPremiumCards();
+    };
+    host.appendChild(card);
+  });
+}
+
+function updatePremiumWallet(){
+  document.getElementById('walletBalancePremium').textContent = `Balance: ${TFP_WALLET.getBalance()} CR`;
+}
+
+async function bootPremiumGallery(){
+  await TFP_WALLET.sync();
+  updatePremiumWallet();
+  renderPremiumCards();
+}
+bootPremiumGallery();
+
 </script>
 
 </body>
