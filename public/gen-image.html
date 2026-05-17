@@ -41,6 +41,10 @@
     }
     .result img{width:100%;height:100%;object-fit:cover;display:block}
     .statusbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
+    .companion-context{border:1px solid var(--line);border-radius:20px;padding:12px 14px;margin:0 0 18px;background:rgba(255,255,255,.04)}
+    .companion-context strong{display:block;margin-bottom:6px;font-size:14px}
+    .companion-context .muted{color:var(--muted);font-size:13px;line-height:1.45}
+    .companion-context a{display:inline-flex;margin-top:10px}
     .pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:13px;text-decoration:none}
     .ok{color:#34d399;border-color:rgba(52,211,153,.45)}
     .no{color:#fb7185;border-color:rgba(251,113,133,.45)}
@@ -135,6 +139,11 @@
       <a class="pill" href="/profile.html?slug=ava-noir">Profil Ava</a>
       <a class="pill" href="/api/logout">Logout</a>
     </div>
+    <section class="companion-context">
+      <strong>Generezi pentru: <span id="companionContextName" data-no-translate data-character-name>Ava Noir</span></strong>
+      <div class="muted">Vibe: <span id="companionContextVibe">dark luxury • cinematic • mysterious</span></div>
+      <a id="backToProfileLink" class="pill" href="/profile.html?slug=ava-noir">Înapoi la profil</a>
+    </section>
 
     <section class="studio-grid">
       <div class="panel">
@@ -207,6 +216,14 @@ const result = $('#result');
 
 const slugParams = new URLSearchParams(location.search);
 const currentSlug = slugParams.get("slug") || "ava-noir";
+const companionContext = {
+  "ava-noir": { name:"Ava Noir", vibe:"dark luxury • cinematic • mysterious" },
+  "mira-vale": { name:"Mira Vale", vibe:"soft romance • warm • emotional" },
+  "kira-voss": { name:"Kira Voss", vibe:"cyberpunk • neon • magnetic" },
+  "luna-sable": { name:"Luna Sable", vibe:"goth romance • poetic • intense" },
+  "dante-vale": { name:"Dante Vale", vibe:"masculine luxury • protective • intense" },
+  "noah-sterling": { name:"Noah Sterling", vibe:"elegant CEO • premium • intelligent" }
+};
 
 function isPremiumUnlockedForSlug(baseKey){
   const scopedKey = baseKey + ":" + currentSlug;
@@ -218,6 +235,18 @@ function isPremiumUnlockedForSlug(baseKey){
 
 function showDebug(x){
   out.textContent = typeof x === 'string' ? x : JSON.stringify(x,null,2);
+}
+
+function renderCompanionContext(){
+  const fallback = companionContext["ava-noir"] || { name:"Companion selectat", vibe:"premium • cinematic • companion" };
+  const active = companionContext[currentSlug] || fallback;
+  const nameEl = $('#companionContextName');
+  const vibeEl = $('#companionContextVibe');
+  const backEl = $('#backToProfileLink');
+
+  if(nameEl) nameEl.textContent = active.name || "Companion selectat";
+  if(vibeEl) vibeEl.textContent = active.vibe || fallback.vibe;
+  if(backEl) backEl.href = `/profile.html?slug=${encodeURIComponent(currentSlug)}`;
 }
 
 let user = null;
@@ -355,6 +384,7 @@ async function ensureLogin(){
 }
 
 async function boot(){
+  renderCompanionContext();
   await ensureLogin();
 
   try{
