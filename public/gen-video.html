@@ -268,13 +268,20 @@ const $ = (id) => document.getElementById(id);
 const slugParams = new URLSearchParams(location.search);
 const currentSlug = slugParams.get("slug") || "ava-noir";
 const companionContext = {
-  "ava-noir": { name:"Ava Noir", vibe:"dark luxury • cinematic • mysterious" },
-  "mira-vale": { name:"Mira Vale", vibe:"soft romance • warm • emotional" },
-  "kira-voss": { name:"Kira Voss", vibe:"cyberpunk • neon • magnetic" },
-  "luna-sable": { name:"Luna Sable", vibe:"goth romance • poetic • intense" },
-  "dante-vale": { name:"Dante Vale", vibe:"masculine luxury • protective • intense" },
-  "noah-sterling": { name:"Noah Sterling", vibe:"elegant CEO • premium • intelligent" }
+  "ava-noir": { name:"Ava Noir", vibe:"dark luxury • cinematic • mysterious", promptStyle:"dark luxury, mysterious, elegant, cinematic premium atmosphere" },
+  "mira-vale": { name:"Mira Vale", vibe:"soft romance • warm • emotional", promptStyle:"soft romance, warm emotional atmosphere, gentle intimate cinematic mood" },
+  "kira-voss": { name:"Kira Voss", vibe:"cyberpunk • neon • magnetic", promptStyle:"cyberpunk, neon, magnetic energy, futuristic cold electric atmosphere" },
+  "luna-sable": { name:"Luna Sable", vibe:"goth romance • poetic • intense", promptStyle:"goth romance, poetic, dark romantic atmosphere, intense nocturnal cinematic mood" },
+  "dante-vale": { name:"Dante Vale", vibe:"masculine luxury • protective • intense", promptStyle:"masculine luxury, protective, intense, controlled danger, mafia romance atmosphere" },
+  "noah-sterling": { name:"Noah Sterling", vibe:"elegant CEO • premium • intelligent", promptStyle:"elegant CEO, premium, intelligent, refined luxury, controlled sophisticated mood" }
 };
+
+const genericCompanionPromptStyle = "premium cinematic fictional AI companion atmosphere";
+
+function getCompanionPromptStyle(){
+  const active = companionContext[currentSlug] || companionContext["ava-noir"];
+  return (active && active.promptStyle) || genericCompanionPromptStyle;
+}
 
 function isPremiumUnlockedForSlug(baseKey){
   const scopedKey = baseKey + ":" + currentSlug;
@@ -440,14 +447,18 @@ async function runGenerate(){
 
   const token = ($("adminToken").value || "").trim();
 
+  const storyboardPrompt = ($("storyboard").value || "").trim();
+  const companionPromptStyle = getCompanionPromptStyle();
+  const enrichedStoryboard = [storyboardPrompt, companionPromptStyle].filter(Boolean).join(", ");
+
   const payload = {
-    prompt: ($("storyboard").value || "").trim(),
+    prompt: enrichedStoryboard,
     negativeExtra: ($("negative").value || "").trim(),
     seconds: Number($("seconds").value),
     quality: $("quality").value
   };
 
-  if(!payload.prompt){
+  if(!storyboardPrompt){
     return alert("Scrie un storyboard.");
   }
 
@@ -459,6 +470,9 @@ async function runGenerate(){
 
   show({
     status:"generating",
+    storyboardPrompt,
+    companionPromptStyle,
+    enrichedStoryboard,
     request:payload
   });
 
