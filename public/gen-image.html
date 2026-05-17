@@ -127,7 +127,7 @@
         <span>IMAGE STUDIO</span>
         <h2>Creează imagini AI cinematice cu realism premium.</h2>
         <p>
-          Momentan păstrăm generarea reală pe pauză dacă Replicate nu are credit. Platforma va afișa preview mock premium, fără să pară stricată.
+          Momentan păstrăm generarea reală pe pauză dacă Replicate nu are credit. Platforma va afișa previzualizare demo premium, fără să pară stricată.
         </p>
       </div>
     </section>
@@ -186,11 +186,11 @@
         </button>
 
         <button id="mockBtn" class="ghost-btn" style="border:1px solid var(--line);width:100%;margin-top:10px">
-          Arată preview mock
+          Afișează previzualizare demo
         </button>
 
         <div class="studio-note">
-          ✨ Recomandare: pentru rezultate reale, folosește prompt în engleză. Când nu avem credit Replicate, afișăm mock premium ca să putem testa flow-ul.
+          ✨ Recomandare: pentru rezultate reale, folosește prompt în engleză. Când nu avem credit Replicate, afișăm previzualizare demo premium pentru continuitatea experienței.
         </div>
 
         <pre id="out" class="hidden-debug"></pre>
@@ -201,7 +201,7 @@
           <div class="eyebrow">PREVIEW</div>
           <h2 style="margin:10px 0">Imaginea va apărea aici</h2>
           <p style="color:var(--muted);max-width:520px;margin:auto">
-            Scrie un prompt și apasă pe Generează imagine. Dacă Replicate nu are credit, primești un preview mock elegant.
+            Scrie un prompt și apasă pe Generează imagine. Dacă Replicate nu are credit, primești o previzualizare demo elegantă.
           </p>
         </div>
       </div>
@@ -317,7 +317,7 @@ function setLoading(){
       <div class="eyebrow">GENERARE</div>
       <h2 style="margin:10px 0">Se creează imaginea...</h2>
       <p style="color:var(--muted);max-width:520px;margin:auto">
-        Trimitem promptul către backend. Dacă Replicate nu are credit, afișăm fallback mock.
+        Trimitem promptul către backend. Dacă Replicate nu are credit, afișăm previzualizare demo.
       </p>
     </div>
   `;
@@ -337,14 +337,14 @@ function setSoftErrorBox(data){
 
   result.innerHTML = `
     <div class="soft-box">
-      <div class="eyebrow">MOCK FALLBACK</div>
+      <div class="eyebrow">PREVIZUALIZARE DEMO</div>
       <h2 style="margin:12px 0">Generarea reală este momentan pe pauză.</h2>
       <p style="color:var(--muted);line-height:1.7">
-        Poți folosi preview mock până activăm generarea reală.
+        Poți folosi o previzualizare demo până activăm generarea reală.
       </p>
 
       <div class="action-row">
-        <button class="main-btn" onclick="setMockPreview()" style="border:0">Afișează preview mock</button>
+        <button class="main-btn" onclick="setMockPreview()" style="border:0">Afișează previzualizare demo</button>
         <a class="ghost-btn" href="/credits.html">Vezi Credits</a>
         <a class="ghost-btn" href="${profileHref}">${profileLabel}</a>
       </div>
@@ -361,16 +361,16 @@ function setMockPreview(){
   result.innerHTML = `
     <div class="mock-preview">
       <div class="mock-label">
-        <div class="eyebrow">MOCK PREVIEW</div>
+        <div class="eyebrow">PREVIZUALIZARE DEMO</div>
         <strong>
-          Preview cinematic mock pentru
+          Previzualizare cinematică demo pentru
           <span data-no-translate data-character-name>${escapeHtml(active.name)}</span>
         </strong>
         <span>
           Vibe: ${escapeHtml(active.vibe)}<br>
           Prompt: ${escapeHtml(prompt)}<br>
           Calitate selectată: ${escapeHtml(quality)}<br>
-          Acesta este fallback vizual fără cost Replicate.
+          Aceasta este o previzualizare demo, fără costuri reale.
         </span>
       </div>
     </div>
