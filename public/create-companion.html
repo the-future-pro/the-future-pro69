@@ -18,19 +18,19 @@
 <body class="home-page">
   <main class="wrap">
     <nav class="topbar">
-      <a class="brand" href="/" data-no-translate><div class="brand-mark">AI</div><div><strong>The Future</strong><span>Companion Builder</span></div></a>
-      <div class="nav-actions"><a class="ghost-btn" href="/discover.html">Discover</a></div>
+      <a class="brand" href="/" data-no-translate><div class="brand-mark">AI</div><div><strong>The Future</strong><span>Constructor companion</span></div></a>
+      <div class="nav-actions"><a class="ghost-btn" href="/discover.html">Descoperă</a></div>
     </nav>
     <section class="panel" style="margin-top:16px">
       <h1>Creează companion AI</h1>
       <p class="muted">Creează doar personaje fictive adulte. Nu folosi persoane reale, minori sau identități fără consimțământ.</p>
-      <div class="field"><label>Companion name</label><input id="name"></div>
-      <div class="field"><label>Short bio</label><input id="bio"></div>
-      <div class="field"><label>Vibe / style</label><input id="vibe"></div>
-      <div class="field"><label>Personality traits, comma separated</label><input id="personality"></div>
-      <div class="field"><label>Tags, comma separated</label><input id="tags"></div>
-      <div class="field"><label>Prompt style for image/video generation</label><textarea id="promptStyle"></textarea></div>
-      <div class="field"><label>Theme</label><select id="theme"><option value="dark luxury">dark luxury</option><option value="soft romance">soft romance</option><option value="cyberpunk">cyberpunk</option><option value="goth romance">goth romance</option><option value="masculine luxury">masculine luxury</option><option value="elegant premium">elegant premium</option></select></div>
+      <div class="field"><label>Nume companion</label><input id="name" placeholder="Raven Lux"></div>
+      <div class="field"><label>Bio scurt</label><input id="bio" placeholder="Companion AI fictiv cu atmosferă elegantă și misterioasă."></div>
+      <div class="field"><label>Vibe / stil</label><input id="vibe" placeholder="dark luxury • cinematic • intense"></div>
+      <div class="field"><label>Trăsături de personalitate, separate prin virgulă</label><input id="personality" placeholder="calmă, misterioasă, protectivă"></div>
+      <div class="field"><label>Taguri, separate prin virgulă</label><input id="tags" placeholder="luxury, cinematic, romance"></div>
+      <div class="field"><label>Stil prompt pentru imagine/video</label><textarea id="promptStyle" placeholder="elegant cinematic portrait, dark luxury lighting, realistic atmosphere"></textarea></div>
+      <div class="field"><label>Temă vizuală</label><select id="theme"><option value="ava-theme">Dark luxury</option><option value="mira-theme">Soft romance</option><option value="kira-theme">Cyberpunk</option><option value="luna-theme">Goth romance</option><option value="dante-theme">Masculine luxury</option><option value="noah-theme">Elegant premium</option></select></div>
       <div class="actions"><button id="saveBtn" class="main-btn" type="button">Salvează companion</button><a id="viewBtn" class="ghost-btn" href="/discover.html">Vezi companionul</a></div>
     </section>
   </main>
@@ -59,6 +59,7 @@ document.getElementById("saveBtn").addEventListener("click", function(){
   list.unshift(item);
   TFP_COMPANIONS.saveCustomCompanions(list);
   document.getElementById("viewBtn").href = "/profile.html?slug=" + encodeURIComponent(item.slug);
+  document.getElementById("viewBtn").textContent = "Deschide companionul";
   alert("Companion salvat local.");
 });
 </script>
