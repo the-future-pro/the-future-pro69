@@ -64,23 +64,39 @@
 
     },
 
-    addHistory(text,amount,type,icon){
+    addHistory(entryOrText,amount,type,icon){
 
       const items = this.getHistory();
 
+      const entryIsObject =
+        entryOrText &&
+        typeof entryOrText === "object" &&
+        !Array.isArray(entryOrText);
+
+      const entry = entryIsObject
+        ? entryOrText
+        : {
+            text: entryOrText || "Activitate credits",
+            amount: amount || "0 cr",
+            type: type || "bad",
+            icon: icon || "🔓"
+          };
+
       items.unshift({
-        text:text || "Activitate credits",
-        amount:amount || "0 cr",
-        type:type || "bad",
-        icon:icon || "🔓",
-        date:new Date().toLocaleString("ro-RO")
+        text: entry.text || "Activitate credits",
+        labelKey: entry.labelKey || "",
+        params: entry.params && typeof entry.params === "object" ? entry.params : {},
+        amount: entry.amount || "0 cr",
+        type: entry.type || "bad",
+        icon: entry.icon || "🔓",
+        date: entry.date || new Date().toLocaleString("ro-RO")
       });
 
       this.saveHistory(items);
 
     },
 
-    add(amount,label,icon){
+    add(amount,labelOrConfig,icon){
 
       const value = Number(amount || 0);
 
@@ -92,17 +108,24 @@
 
       this.setBalance(current + value);
 
-      this.addHistory(
-        label || "Pachet credits mock adăugat",
-        "+" + value + " cr",
-        "good",
-        icon || "💳"
-      );
+      const config =
+        labelOrConfig && typeof labelOrConfig === "object"
+          ? labelOrConfig
+          : { text: labelOrConfig, icon: icon };
+
+      this.addHistory({
+        text: config.text || "Pachet credits mock adăugat",
+        labelKey: config.labelKey || "credits_purchase",
+        params: config.params || {},
+        amount: "+" + value + " cr",
+        type: "good",
+        icon: config.icon || "💳"
+      });
 
       return true;
     },
 
-    spend(amount,label,icon){
+    spend(amount,labelOrConfig,icon){
 
       const value = Number(amount || 0);
 
@@ -123,12 +146,19 @@
 
       this.setBalance(current - value);
 
-      this.addHistory(
-        label || "Unlock premium mock",
-        "-" + value + " cr",
-        "bad",
-        icon || "🔓"
-      );
+      const config =
+        labelOrConfig && typeof labelOrConfig === "object"
+          ? labelOrConfig
+          : { text: labelOrConfig, icon: icon };
+
+      this.addHistory({
+        text: config.text || "Unlock premium mock",
+        labelKey: config.labelKey || "premium_unlock",
+        params: config.params || {},
+        amount: "-" + value + " cr",
+        type: "bad",
+        icon: config.icon || "🔓"
+      });
 
       return true;
     },
@@ -183,8 +213,12 @@
 
       const ok = this.spend(
         config.amount,
-        config.label,
-        config.icon
+        {
+          text: config.label,
+          labelKey: config.labelKey,
+          params: config.params,
+          icon: config.icon
+        }
       );
 
       if(!ok){
@@ -209,6 +243,20 @@
       const label =
         params.get("label") ||
         "Unlock premium mock";
+
+      const labelKey =
+        params.get("labelKey") ||
+        "premium_unlock";
+
+      let parsedParams = {};
+
+      try{
+        parsedParams = JSON.parse(
+          params.get("params") || "{}"
+        );
+      }catch(e){
+        parsedParams = {};
+      }
 
       const icon =
         params.get("icon") ||
@@ -245,8 +293,12 @@
 
       const ok = this.spend(
         spend,
-        label,
-        icon
+        {
+          text: label,
+          labelKey: labelKey,
+          params: parsedParams,
+          icon: icon
+        }
       );
 
       if(ok && unlockKey){
