@@ -415,15 +415,31 @@ function ensurePremiumUnlocked(key){
   return true;
 }
 
-function bindPremiumAction(el, key){
+function bindPremiumUnlock(el, key){
   el.addEventListener("click", function(e){
-    if(TFP_WALLET.isPremiumUnlocked(key)) return;
     e.preventDefault();
     ensurePremiumUnlocked(key);
   });
 }
 
+function bindPremiumAction(el, key){
+  el.addEventListener("click", function(e){
+    if(TFP_WALLET.isPremiumUnlocked(key)) return;
+
+    e.preventDefault();
+    const unlocked = ensurePremiumUnlocked(key);
+
+    if(unlocked){
+      location.href = el.href;
+    }
+  });
+}
+
 applyProfile();
+
+bindPremiumUnlock(unlockImage, "private_cinematic_image");
+bindPremiumUnlock(unlockStory, "special_story");
+bindPremiumUnlock(unlockVideo, "premium_video_teaser");
 
 bindPremiumAction(galleryImage, "private_cinematic_image");
 bindPremiumAction(galleryChat, "special_story");
