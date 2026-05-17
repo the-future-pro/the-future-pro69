@@ -134,7 +134,7 @@
     <div class="profile-content">
       <div class="profile-title">
         <div class="eyebrow" id="profileKicker">DARK LUXURY COMPANION</div>
-        <h1 id="profileName" data-no-translate>Ava Noir</h1>
+        <h1 id="profileName" data-no-translate data-character-name>Ava Noir</h1>
         <p id="profileBio">
           Companion AI fictiv cu atmosferă cinematică, personalitate misterioasă și prezență elegantă.
         </p>
@@ -340,6 +340,8 @@ function applyProfile(){
   document.title = p.name + " — The Future PRO";
 
   profileName.textContent = p.name;
+  profileName.setAttribute("data-no-translate", "");
+  profileName.setAttribute("data-character-name", "");
   profileKicker.textContent = p.kicker || "";
   profileBio.textContent = p.bio || "";
   loreText.textContent = p.lore || "";
@@ -383,6 +385,9 @@ function applyProfile(){
 
   if(typeof window.autoTranslatePage === "function"){
     window.autoTranslatePage();
+    setTimeout(function(){
+      if(window.autoTranslatePage) window.autoTranslatePage();
+    }, 800);
   }
 }
 
@@ -492,12 +497,15 @@ function initProfilePremiumFlow(){
   bindPremiumAction(galleryImageEl, "private_cinematic_image");
   bindPremiumAction(galleryChatEl, "special_story");
   bindPremiumAction(galleryVideoEl, "premium_video_teaser");
-  const langSwitcher = document.getElementById("langSwitcher");
-  if(langSwitcher){
-    langSwitcher.addEventListener("change", function(){
-      applyProfile();
-    });
-  }
+  window.addEventListener("tfp:language-changed", function(){
+    applyProfile();
+    if(window.autoTranslatePage){
+      window.autoTranslatePage();
+      setTimeout(function(){
+        if(window.autoTranslatePage) window.autoTranslatePage();
+      }, 800);
+    }
+  });
 
   window.addEventListener("tfp:premium-updated", refreshPremiumButtons);
   window.addEventListener("tfp:wallet-updated", refreshHeaderCredits);

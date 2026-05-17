@@ -70,7 +70,7 @@
         </div>
 
         <div>
-          <strong id="title" data-no-translate>Ava Noir</strong>
+          <strong id="title" data-no-translate data-character-name>Ava Noir</strong>
           <span>
             <i class="status-dot"></i>
             online • <span id="vibeText">Dark luxury companion</span>
@@ -202,6 +202,8 @@ const profile = profiles[slug] || profiles["ava-noir"];
 
 document.title = profile.name + " Chat — The Future PRO";
 document.getElementById("title").textContent = profile.name;
+document.getElementById("title").setAttribute("data-no-translate", "");
+document.getElementById("title").setAttribute("data-character-name", "");
 document.getElementById("vibeText").textContent = profile.vibe;
 document.getElementById("avatarArt").className = "ai-face " + profile.face;
 document.getElementById("profileLink").href = "/profile.html?slug=" + encodeURIComponent(slug);
@@ -327,14 +329,14 @@ function render(m){
 
   if(m.kind === "text" || !m.kind){
     d.innerHTML = `
-      <small>${isAI ? profile.name : "Tu"}</small>
+      <small ${isAI ? 'data-no-translate data-character-name' : ''}>${isAI ? profile.name : "Tu"}</small>
       ${escapeHtml(msgText)}
     `;
   }else{
     const media = m.media || {};
 
     d.innerHTML = `
-      <small>${profile.name}</small>
+      <small data-no-translate data-character-name>${profile.name}</small>
       <div class="bubble-media">
         Teaser media privat · ${escapeHtml(media.type || "")} · ${escapeHtml(media.price_credits || 0)} cr
       </div>
