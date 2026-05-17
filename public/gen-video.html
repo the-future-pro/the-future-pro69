@@ -643,6 +643,9 @@ renderCompanionContext();
 refreshStatus();
 renderCreationHistory();
 $("clearCreationHistoryBtn").onclick = clearCreationHistory;
+window.addEventListener("tfp:companions-updated", function(){
+  renderCompanionContext();
+});
 </script>
 
 

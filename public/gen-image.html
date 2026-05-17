@@ -611,6 +611,9 @@ $('#go').onclick = async ()=>{
 };
 
 boot();
+window.addEventListener("tfp:companions-updated", function(){
+  renderCompanionContext();
+});
 </script>
 
 <script>
