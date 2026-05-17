@@ -11,6 +11,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import Replicate from "replicate";
+import sqlite3 from "sqlite3";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -33,11 +34,69 @@ const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
 const IMG_DIR = path.join(PUBLIC_DIR, IMAGES_DIR_NAME);
 const SESS_DIR = path.join(__dirname, "db");
 const CHAT_FILE = path.join(SESS_DIR, "chat-history.json");
+const APP_DB_FILE = path.join(SESS_DIR, "app.sqlite");
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.mkdirSync(IMG_DIR, { recursive: true });
 fs.mkdirSync(SESS_DIR, { recursive: true });
+
+const appDb = new sqlite3.Database(APP_DB_FILE);
+
+function dbRun(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    appDb.run(sql, params, function onRun(err) {
+      if (err) return reject(err);
+      resolve({ lastID: this.lastID, changes: this.changes });
+    });
+  });
+}
+
+function dbGet(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    appDb.get(sql, params, (err, row) => {
+      if (err) return reject(err);
+      resolve(row || null);
+    });
+  });
+}
+
+function dbAll(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    appDb.all(sql, params, (err, rows) => {
+      if (err) return reject(err);
+      resolve(Array.isArray(rows) ? rows : []);
+    });
+  });
+}
+
+async function initAppDb() {
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS custom_companions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      name TEXT NOT NULL,
+      bio TEXT DEFAULT '',
+      vibe TEXT DEFAULT '',
+      personality_json TEXT DEFAULT '[]',
+      tags_json TEXT DEFAULT '[]',
+      prompt_style TEXT DEFAULT '',
+      theme TEXT DEFAULT 'ava-theme',
+      lore TEXT DEFAULT '',
+      mood TEXT DEFAULT '',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_email, slug)
+    )
+  `);
+  console.log("custom_companions table ready");
+}
+
+initAppDb().catch((err) => {
+  console.error("custom_companions table init failed:", err?.message || err);
+  process.exit(1);
+});
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
@@ -91,6 +150,85 @@ function sendHtml(res, fileName) {
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.sendFile(path.join(PUBLIC_DIR, fileName));
+}
+
+const RESERVED_COMPANION_SLUGS = new Set([
+  "ava-noir",
+  "mira-vale",
+  "kira-voss",
+  "luna-sable",
+  "dante-vale",
+  "noah-sterling",
+]);
+
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function safeString(value, maxLen, fallback = "") {
+  const s = String(value ?? fallback).trim();
+  return s.length > maxLen ? s.slice(0, maxLen) : s;
+}
+
+function isValidSlug(slug) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+}
+
+function normalizeCompanionInput(body, { requireSlug = true } = {}) {
+  const rawSlug = safeString(body?.slug, 80, "").toLowerCase();
+  const name = safeString(body?.name, 80, "");
+  const bio = safeString(body?.bio, 700, "");
+  const vibe = safeString(body?.vibe, 300, "");
+  const promptStyle = safeString(body?.prompt_style ?? body?.promptStyle, 700, "");
+  const theme = safeString(body?.theme, 80, "ava-theme") || "ava-theme";
+  const lore = safeString(body?.lore, 1000, "");
+  const mood = safeString(body?.mood, 300, "");
+  const personality = safeArray(body?.personality);
+  const tags = safeArray(body?.tags);
+
+  if (requireSlug && !rawSlug) return { ok: false, error: "slug_required" };
+  if (rawSlug && !isValidSlug(rawSlug)) return { ok: false, error: "invalid_slug" };
+  if (!name) return { ok: false, error: "name_required" };
+  if (rawSlug && RESERVED_COMPANION_SLUGS.has(rawSlug)) return { ok: false, error: "reserved_slug" };
+
+  return {
+    ok: true,
+    value: {
+      slug: rawSlug,
+      name,
+      bio,
+      vibe,
+      personality,
+      tags,
+      promptStyle,
+      theme,
+      lore,
+      mood,
+    },
+  };
+}
+
+function mapCompanionRow(row) {
+  return {
+    id: row.id,
+    user_email: row.user_email,
+    userEmail: row.user_email,
+    slug: row.slug,
+    name: row.name,
+    bio: row.bio || "",
+    vibe: row.vibe || "",
+    personality: (() => { try { return JSON.parse(row.personality_json || "[]"); } catch { return []; } })(),
+    tags: (() => { try { return JSON.parse(row.tags_json || "[]"); } catch { return []; } })(),
+    prompt_style: row.prompt_style || "",
+    promptStyle: row.prompt_style || "",
+    theme: row.theme || "ava-theme",
+    lore: row.lore || "",
+    mood: row.mood || "",
+    created_at: row.created_at,
+    createdAt: row.created_at,
+    updated_at: row.updated_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 async function downloadToFile(url, destPath) {
@@ -446,6 +584,141 @@ app.get("/api/sub/check", (req, res) => {
   const sub = req.session?.sub || null;
   const active = !!(sub && sub.until && sub.until > Date.now());
   res.json({ ok: true, active, sub });
+});
+
+// ================== CUSTOM COMPANIONS API ==================
+
+app.get("/api/companions/custom", requireLogin, async (req, res) => {
+  try {
+    const userEmail = String(req.session?.user?.email || "").trim().toLowerCase();
+    if (!userEmail) return res.status(400).json({ ok: false, error: "missing_user_email" });
+
+    const rows = await dbAll(
+      `SELECT * FROM custom_companions WHERE user_email = ? ORDER BY updated_at DESC, id DESC`,
+      [userEmail]
+    );
+
+    return res.json({ ok: true, items: rows.map(mapCompanionRow) });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: "companions_custom_list_failed", details: String(err?.message || err) });
+  }
+});
+
+app.post("/api/companions/custom", requireLogin, async (req, res) => {
+  try {
+    const userEmail = String(req.session?.user?.email || "").trim().toLowerCase();
+    if (!userEmail) return res.status(400).json({ ok: false, error: "missing_user_email" });
+
+    const normalized = normalizeCompanionInput(req.body, { requireSlug: true });
+    if (!normalized.ok) return res.status(400).json({ ok: false, error: normalized.error });
+    const input = normalized.value;
+
+    const existing = await dbGet(
+      `SELECT id FROM custom_companions WHERE user_email = ? AND slug = ? LIMIT 1`,
+      [userEmail, input.slug]
+    );
+    if (existing) return res.status(409).json({ ok: false, error: "slug_exists" });
+
+    const nowIso = new Date().toISOString();
+
+    await dbRun(
+      `INSERT INTO custom_companions
+      (user_email, slug, name, bio, vibe, personality_json, tags_json, prompt_style, theme, lore, mood, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userEmail,
+        input.slug,
+        input.name,
+        input.bio,
+        input.vibe,
+        JSON.stringify(input.personality),
+        JSON.stringify(input.tags),
+        input.promptStyle,
+        input.theme || "ava-theme",
+        input.lore,
+        input.mood,
+        nowIso,
+        nowIso,
+      ]
+    );
+
+    const row = await dbGet(
+      `SELECT * FROM custom_companions WHERE user_email = ? AND slug = ? LIMIT 1`,
+      [userEmail, input.slug]
+    );
+
+    return res.json({ ok: true, item: mapCompanionRow(row) });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: "companions_custom_create_failed", details: String(err?.message || err) });
+  }
+});
+
+app.put("/api/companions/custom/:slug", requireLogin, async (req, res) => {
+  try {
+    const userEmail = String(req.session?.user?.email || "").trim().toLowerCase();
+    if (!userEmail) return res.status(400).json({ ok: false, error: "missing_user_email" });
+
+    const routeSlug = safeString(req.params?.slug, 80, "").toLowerCase();
+    if (!routeSlug || !isValidSlug(routeSlug)) return res.status(400).json({ ok: false, error: "invalid_slug" });
+    if (RESERVED_COMPANION_SLUGS.has(routeSlug)) return res.status(400).json({ ok: false, error: "reserved_slug" });
+
+    const normalized = normalizeCompanionInput({ ...req.body, slug: routeSlug }, { requireSlug: true });
+    if (!normalized.ok) return res.status(400).json({ ok: false, error: normalized.error });
+    const input = normalized.value;
+
+    const found = await dbGet(
+      `SELECT id FROM custom_companions WHERE user_email = ? AND slug = ? LIMIT 1`,
+      [userEmail, routeSlug]
+    );
+    if (!found) return res.status(404).json({ ok: false, error: "not_found" });
+
+    const nowIso = new Date().toISOString();
+    await dbRun(
+      `UPDATE custom_companions
+       SET name = ?, bio = ?, vibe = ?, personality_json = ?, tags_json = ?, prompt_style = ?, theme = ?, lore = ?, mood = ?, updated_at = ?
+       WHERE user_email = ? AND slug = ?`,
+      [
+        input.name,
+        input.bio,
+        input.vibe,
+        JSON.stringify(input.personality),
+        JSON.stringify(input.tags),
+        input.promptStyle,
+        input.theme || "ava-theme",
+        input.lore,
+        input.mood,
+        nowIso,
+        userEmail,
+        routeSlug,
+      ]
+    );
+
+    const row = await dbGet(
+      `SELECT * FROM custom_companions WHERE user_email = ? AND slug = ? LIMIT 1`,
+      [userEmail, routeSlug]
+    );
+    return res.json({ ok: true, item: mapCompanionRow(row) });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: "companions_custom_update_failed", details: String(err?.message || err) });
+  }
+});
+
+app.delete("/api/companions/custom/:slug", requireLogin, async (req, res) => {
+  try {
+    const userEmail = String(req.session?.user?.email || "").trim().toLowerCase();
+    if (!userEmail) return res.status(400).json({ ok: false, error: "missing_user_email" });
+    const routeSlug = safeString(req.params?.slug, 80, "").toLowerCase();
+    if (!routeSlug || !isValidSlug(routeSlug)) return res.status(400).json({ ok: false, error: "invalid_slug" });
+
+    const result = await dbRun(
+      `DELETE FROM custom_companions WHERE user_email = ? AND slug = ?`,
+      [userEmail, routeSlug]
+    );
+
+    return res.json({ ok: true, deleted: result.changes > 0 });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: "companions_custom_delete_failed", details: String(err?.message || err) });
+  }
 });
 
 // ================== PERSONAS ==================
