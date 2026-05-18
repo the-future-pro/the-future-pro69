@@ -90,7 +90,20 @@ async function initAppDb() {
       UNIQUE(user_email, slug)
     )
   `);
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS relationship_state (
+      user_email TEXT NOT NULL,
+      companion_slug TEXT NOT NULL,
+      level INTEGER NOT NULL DEFAULT 1,
+      score INTEGER NOT NULL DEFAULT 0,
+      message_count INTEGER NOT NULL DEFAULT 0,
+      last_interaction_at TEXT,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (user_email, companion_slug)
+    )
+  `);
   console.log("custom_companions table ready");
+  console.log("relationship_state table ready");
 }
 
 initAppDb().catch((err) => {
@@ -228,6 +241,39 @@ function mapCompanionRow(row) {
     createdAt: row.created_at,
     updated_at: row.updated_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function relationshipLevelFromScore(scoreRaw) {
+  const score = Number(scoreRaw) || 0;
+  if (score >= 100) return 5;
+  if (score >= 50) return 4;
+  if (score >= 25) return 3;
+  if (score >= 10) return 2;
+  return 1;
+}
+
+function mapRelationshipRow(row) {
+  const userEmail = row?.user_email || "";
+  const companionSlug = row?.companion_slug || "";
+  const level = Number(row?.level) || 1;
+  const score = Number(row?.score) || 0;
+  const messageCount = Number(row?.message_count) || 0;
+  const lastInteractionAt = row?.last_interaction_at || null;
+  const updatedAt = row?.updated_at || null;
+  return {
+    user_email: userEmail,
+    userEmail,
+    companion_slug: companionSlug,
+    companionSlug,
+    level,
+    score,
+    message_count: messageCount,
+    messageCount,
+    last_interaction_at: lastInteractionAt,
+    lastInteractionAt,
+    updated_at: updatedAt,
+    updatedAt,
   };
 }
 
@@ -718,6 +764,90 @@ app.delete("/api/companions/custom/:slug", requireLogin, async (req, res) => {
     return res.json({ ok: true, deleted: result.changes > 0 });
   } catch (err) {
     return res.status(500).json({ ok: false, error: "companions_custom_delete_failed", details: String(err?.message || err) });
+  }
+});
+
+app.get("/api/companions/:slug/relationship", requireLogin, async (req, res) => {
+  try {
+    const userEmail = String(req.session?.user?.email || "").trim().toLowerCase();
+    if (!userEmail) return res.status(400).json({ ok: false, error: "missing_user_email" });
+
+    const companionSlug = safeString(req.params?.slug, 80, "").toLowerCase();
+    if (!companionSlug || !isValidSlug(companionSlug)) return res.status(400).json({ ok: false, error: "invalid_slug" });
+
+    const row = await dbGet(
+      `SELECT * FROM relationship_state WHERE user_email = ? AND companion_slug = ? LIMIT 1`,
+      [userEmail, companionSlug]
+    );
+
+    if (!row) {
+      return res.json({
+        ok: true,
+        relationship: {
+          user_email: userEmail,
+          userEmail,
+          companion_slug: companionSlug,
+          companionSlug,
+          level: 1,
+          score: 0,
+          message_count: 0,
+          messageCount: 0,
+          last_interaction_at: null,
+          lastInteractionAt: null,
+          updated_at: null,
+          updatedAt: null,
+        },
+      });
+    }
+
+    return res.json({ ok: true, relationship: mapRelationshipRow(row) });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: "relationship_get_failed", details: String(err?.message || err) });
+  }
+});
+
+app.post("/api/companions/:slug/relationship/increment", requireLogin, async (req, res) => {
+  try {
+    const userEmail = String(req.session?.user?.email || "").trim().toLowerCase();
+    if (!userEmail) return res.status(400).json({ ok: false, error: "missing_user_email" });
+
+    const companionSlug = safeString(req.params?.slug, 80, "").toLowerCase();
+    if (!companionSlug || !isValidSlug(companionSlug)) return res.status(400).json({ ok: false, error: "invalid_slug" });
+
+    const nowIso = new Date().toISOString();
+
+    await dbRun(
+      `INSERT INTO relationship_state (user_email, companion_slug, level, score, message_count, last_interaction_at, updated_at)
+       VALUES (?, ?, 1, 0, 0, ?, ?)
+       ON CONFLICT(user_email, companion_slug) DO NOTHING`,
+      [userEmail, companionSlug, nowIso, nowIso]
+    );
+
+    const current = await dbGet(
+      `SELECT * FROM relationship_state WHERE user_email = ? AND companion_slug = ? LIMIT 1`,
+      [userEmail, companionSlug]
+    );
+    if (!current) return res.status(500).json({ ok: false, error: "relationship_load_failed" });
+
+    const nextScore = (Number(current.score) || 0) + 1;
+    const nextMessageCount = (Number(current.message_count) || 0) + 1;
+    const nextLevel = relationshipLevelFromScore(nextScore);
+
+    await dbRun(
+      `UPDATE relationship_state
+       SET level = ?, score = ?, message_count = ?, last_interaction_at = ?, updated_at = ?
+       WHERE user_email = ? AND companion_slug = ?`,
+      [nextLevel, nextScore, nextMessageCount, nowIso, nowIso, userEmail, companionSlug]
+    );
+
+    const updated = await dbGet(
+      `SELECT * FROM relationship_state WHERE user_email = ? AND companion_slug = ? LIMIT 1`,
+      [userEmail, companionSlug]
+    );
+
+    return res.json({ ok: true, relationship: mapRelationshipRow(updated) });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: "relationship_increment_failed", details: String(err?.message || err) });
   }
 });
 
