@@ -34,12 +34,14 @@ const OUT_DIR = path.join(PUBLIC_DIR, VIDEOS_DIR_NAME);
 const IMG_DIR = path.join(PUBLIC_DIR, IMAGES_DIR_NAME);
 const SESS_DIR = path.join(__dirname, "db");
 const CHAT_FILE = path.join(SESS_DIR, "chat-history.json");
-const APP_DB_FILE = path.join(SESS_DIR, "app.sqlite");
+const APP_DB_FILE = process.env.APP_DB_FILE || path.join(SESS_DIR, "app.sqlite");
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.mkdirSync(IMG_DIR, { recursive: true });
 fs.mkdirSync(SESS_DIR, { recursive: true });
+fs.mkdirSync(path.dirname(APP_DB_FILE), { recursive: true });
+console.log("App DB file:", APP_DB_FILE);
 
 const appDb = new sqlite3.Database(APP_DB_FILE);
 
